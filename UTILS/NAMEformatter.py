@@ -17,7 +17,6 @@ from selenium.webdriver.chrome.options import Options
 from selenium.webdriver.common.by import By
 
 from UTILS.LOGmaker import logger
-from UTILS.NAMEformatter import *
 
 from UTILS.EXCELreader import EXCELreader
 from UTILS.WEBsearch import WEBsearch
