@@ -1,3 +1,7 @@
+import os
+import sys
+import subprocess
+
 import time
 import random
 import pandas as pd
@@ -8,6 +12,7 @@ from bs4 import BeautifulSoup
 
 from selenium import webdriver
 from selenium.webdriver.chrome.options import Options
+from selenium.webdriver.chrome.service import Service
 
 from UTILS.LOGmaker import logger
 from UTILS.NAMEformatter import *
@@ -20,6 +25,15 @@ from UTILS.WEBsearch import WEBsearch
 #     LOGGER SETUP
 # ====================
 Logger = logger("FIXAMI")
+
+
+# ====================
+#    VARIABLE SETUP
+# ====================
+if sys.platform.startswith("win"):
+    BASE_PATH = os.path.dirname(sys.executable) if getattr(sys, 'frozen', False) else os.path.abspath(os.path.join(os.path.dirname(__file__), '..'))
+    CHROME_PATH = os.path.join(BASE_PATH, "CORE", "chrome-win", "chrome.exe")
+    CHROMEDRIVER_PATH = os.path.join(BASE_PATH, "CORE", "chromedriver_win32", "chromedriver.exe")
 
 
 # ====================
@@ -37,16 +51,25 @@ def extract_FIXAMI_products_data(MPN):
     options.add_argument("--disable-dev-shm-usage")
     options.add_argument("--disable-infobars")
     options.add_argument("--disable-extensions")
+    options.add_argument("--disable-software-rasterizer")
+    options.add_argument("--disable-logging")
+    options.add_argument("--log-level=3")
     options.add_argument(
         "--user-agent=Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/114.0.0.0 Safari/537.36"
     )
     
     options.add_experimental_option("excludeSwitches", ["enable-automation"])
+    options.add_experimental_option("excludeSwitches", ["enable-logging"])
     options.add_experimental_option('useAutomationExtension', False)
 
+    if sys.platform.startswith("win"):
+        options.binary_location = CHROME_PATH
+        service = Service(executable_path=CHROMEDRIVER_PATH, log_output=subprocess.DEVNULL)
+    else:
+        service = Service(log_output=subprocess.DEVNULL)
 
     # === Initializing WebDriver & running search ===
-    driver = webdriver.Chrome(options=options)
+    driver = webdriver.Chrome(options=options, service=service)
     try:
         REQUESTurl = f"https://www.fixami.be/fr/produits.html?s={MPN}"
         driver.get(REQUESTurl)
@@ -90,7 +113,7 @@ def extract_FIXAMI_products_data(MPN):
                 return product
 
             driver.quit()
-            driver = webdriver.Chrome(options=options)
+            driver = webdriver.Chrome(options=options, service=service)
                 
             driver.get(ARTICLEurl)
             

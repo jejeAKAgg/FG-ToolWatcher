@@ -1,5 +1,7 @@
 import os
 import sys
+import subprocess
+
 import time
 import random
 import pandas as pd
@@ -62,9 +64,9 @@ def extract_CIPAC_products_data(MPN):
 
     if sys.platform.startswith("win"):
         options.binary_location = CHROME_PATH
-        service = Service(executable_path=CHROMEDRIVER_PATH)
+        service = Service(executable_path=CHROMEDRIVER_PATH, log_output=subprocess.DEVNULL)
     else:
-        service = None
+        service = Service(log_output=subprocess.DEVNULL)
 
     # === Initializing WebDriver & running search ===
     driver = webdriver.Chrome(options=options, service=service)
@@ -108,7 +110,7 @@ def extract_CIPAC_products_data(MPN):
                 return product
 
             driver.quit() # Restarting the driver to avoid issues with BOT detection
-            driver = webdriver.Chrome(options=options)
+            driver = webdriver.Chrome(options=options, service=service)
 
             driver.get(ARTICLEurl)
             
