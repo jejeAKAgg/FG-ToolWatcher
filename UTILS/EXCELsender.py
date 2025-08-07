@@ -3,6 +3,8 @@ import gspread
 import pandas as pd
 
 from UTILS.LOGmaker import logger
+from UTILS.NAMEformatter import *
+
 from gspread_dataframe import set_with_dataframe
 from oauth2client.service_account import ServiceAccountCredentials
 from gspread.exceptions import APIError, WorksheetNotFound
@@ -24,7 +26,7 @@ def EXCELsender(file, retries=3, delay=10):
 
             # === AUTHENTIFICATION === #
             scope = ['https://spreadsheets.google.com/feeds', 'https://www.googleapis.com/auth/drive']
-            creds = ServiceAccountCredentials.from_json_keyfile_name('CONFIGS/BOTconfig.json', scope)
+            creds = ServiceAccountCredentials.from_json_keyfile_name(resource_path('CONFIGS/BOTconfig.json'), scope)
             client = gspread.authorize(creds)
 
             # === OUVERTURE DE LA FEUILLE === #
