@@ -16,6 +16,21 @@ from Chromium import download_chromium_and_driver
 
 
 # ====================
+#    VARIABLE SETUP
+# ====================
+if sys.platform.startswith("win"):
+    BASE_PATH = os.path.dirname(sys.executable) if getattr(sys, 'frozen', False) else os.path.abspath(os.path.join(os.path.dirname(__file__), '..'))
+    CHROME_PATH = os.path.join(BASE_PATH, "CORE", "chrome-win", "chrome.exe")
+    CHROMEDRIVER_PATH = os.path.join(BASE_PATH, "CORE", "chromedriver_win32", "chromedriver.exe")
+    DATA_FOLDER = os.path.join(BASE_PATH, "DATA")
+
+    if not os.path.exists(DATA_FOLDER):
+        os.makedirs(DATA_FOLDER)
+    else:
+        print("ok")
+
+
+# ====================
 #    CHROMIUM SETUP
 # ====================
 download_chromium_and_driver()

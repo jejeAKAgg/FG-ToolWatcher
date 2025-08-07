@@ -195,6 +195,7 @@ def CLABOTSwatcher():
 
     CSVpath = "DATA/CLABOTSproducts.csv"
     XLSXpath = "DATA/CLABOTSproducts.xlsx"
+    DATA_FOLDER = os.path.join(BASE_PATH, "DATA")
 
     products = []
     for MPN in MPNs:
