@@ -11,4 +11,4 @@ DATA/*
 LOGS/
 LOGS/*
 
-__pycache__
+__pycache__/
