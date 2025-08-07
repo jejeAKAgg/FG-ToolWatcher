@@ -12,6 +12,14 @@ from UTILS.CSVmerger import FINALdf
 from UTILS.MAILsender import MAILsender
 from UTILS.NAMEformatter import *
 
+from Chromium import download_chromium
+
+
+# ====================
+#    CHROMIUM SETUP
+# ====================
+download_chromium()
+
 Logger = logger("WATCHER")
 Logger.info("Démarrage de Watcher.py...")
 
