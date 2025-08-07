@@ -44,7 +44,7 @@ def extract_CIPAC_products_data(MPN):
     options.add_experimental_option("excludeSwitches", ["enable-automation"])
     options.add_experimental_option('useAutomationExtension', False)
 
-
+    options.binary_location = os.path.abspath("CORE/chrome-win/chrome.exe")
 
     # === Initializing WebDriver & running search ===
     driver = webdriver.Chrome(options=options)
