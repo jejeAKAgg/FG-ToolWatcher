@@ -1,12 +1,13 @@
 import gspread
 from oauth2client.service_account import ServiceAccountCredentials
+from UTILS.NAMEformatter import *
 
 def EXCELreader(worksheet):
     # Portée de l'accès
     scope = ['https://spreadsheets.google.com/feeds', 'https://www.googleapis.com/auth/drive']
 
     # Authentification
-    creds = ServiceAccountCredentials.from_json_keyfile_name('CONFIGS/BOTconfig.json', scope)
+    creds = ServiceAccountCredentials.from_json_keyfile_name(resource_path('CONFIGS/BOTconfig.json'), scope)
     client = gspread.authorize(creds)
 
     # Ouvre la feuille

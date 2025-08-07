@@ -12,6 +12,7 @@ from WEBSITES.KLIUMwatcher import KLIUMwatcher
 from UTILS.EXCELsender import EXCELsender
 from UTILS.CSVmerger import FINALdf
 from UTILS.MAILsender import MAILsender
+from UTILS.NAMEformatter import *
 
 Logger = logger("WATCHER")
 Logger.info("Démarrage de Watcher.py...")
@@ -35,7 +36,7 @@ Logger.info("Sending results...")
 EXCELsender(FINALcsv)
 
 Logger.info("Sending report...")
-with open("CONFIGS/EMAILconfig.json", "r", encoding="utf-8") as f:
+with open(resource_path("CONFIGS/EMAILconfig.json"), "r", encoding="utf-8") as f:
     mail_config = json.load(f)
 body = "\n".join(mail_config["BodyLines"])
 

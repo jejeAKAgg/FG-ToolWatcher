@@ -3,6 +3,8 @@ import requests
 import time
 import random
 import pandas as pd
+import sys
+import os
 
 from datetime import datetime
 
@@ -35,6 +37,21 @@ KNOWN_BRANDS = [
 ]
 
 BLACKLIST_TERMS = ["ral", "color", "silirub", "silicone", "acrylique", "cartouche", "colle"]
+
+
+def resource_path(relative_path):
+    """
+    Obtenir le chemin absolu vers une ressource, fonctionnant dans
+    un environnement normal ou dans un exécutable PyInstaller.
+    """
+    try:
+        # PyInstaller crée un dossier temporaire _MEIPASS où il extrait les fichiers
+        base_path = sys._MEIPASS
+    except AttributeError:
+        # Sinon on est en environnement de dev
+        base_path = os.path.abspath(".")
+
+    return os.path.join(base_path, relative_path)
 
 
 def parse_price(text: str | None) -> float | None:
