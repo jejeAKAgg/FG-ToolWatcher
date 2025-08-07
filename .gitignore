@@ -1,3 +1,11 @@
+ENV-TW/
+ENV-TW/*
+
+CORE/
 CORE/*
+DATA/
 DATA/*
+LOGS/
 LOGS/*
+
+__pycache__
