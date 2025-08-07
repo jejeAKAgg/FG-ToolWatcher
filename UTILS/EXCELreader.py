@@ -1,6 +1,6 @@
 import gspread
 from oauth2client.service_account import ServiceAccountCredentials
-from UTILS.NAMEformatter import *
+from UTILS.NAMEformatter import resource_path
 
 def EXCELreader(worksheet):
     # Portée de l'accès
