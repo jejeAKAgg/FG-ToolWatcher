@@ -1,3 +1,5 @@
+import os
+import sys
 import time
 import random
 import pandas as pd
@@ -8,6 +10,7 @@ from bs4 import BeautifulSoup
 
 from selenium import webdriver
 from selenium.webdriver.chrome.options import Options
+from selenium.webdriver.chrome.service import Service
 
 from UTILS.LOGmaker import logger
 from UTILS.NAMEformatter import *
@@ -23,10 +26,19 @@ Logger = logger("CIPAC")
 
 
 # ====================
+#    VARIABLE SETUP
+# ====================
+if sys.platform.startswith("win"):
+    BASE_PATH = os.path.dirname(sys.executable) if getattr(sys, 'frozen', False) else os.path.abspath(os.path.join(os.path.dirname(__file__), '..'))
+    CHROME_PATH = os.path.join(BASE_PATH, "CORE", "chrome-win", "chrome.exe")
+    CHROMEDRIVER_PATH = os.path.join(BASE_PATH, "CORE", "chromedriver_win32", "chromedriver.exe")
+
+
+# ====================
 #      FUNCTIONS
 # ====================
 def extract_CIPAC_products_data(MPN):
-
+    
     # === Selenium OPTIONS ===
     options = Options()
     
@@ -44,10 +56,14 @@ def extract_CIPAC_products_data(MPN):
     options.add_experimental_option("excludeSwitches", ["enable-automation"])
     options.add_experimental_option('useAutomationExtension', False)
 
-    options.binary_location = os.path.abspath("CORE/chrome-win/chrome.exe")
+    if sys.platform.startswith("win"):
+        options.binary_location = CHROME_PATH
+        service = Service(executable_path=CHROMEDRIVER_PATH)
+    else:
+        service = None
 
     # === Initializing WebDriver & running search ===
-    driver = webdriver.Chrome(options=options)
+    driver = webdriver.Chrome(options=options, service=service)
     try:
         REQUESTurl = f"https://www.cipac.be/produits?ts-obj=produits&ts={MPN}"
         driver.get(REQUESTurl)
