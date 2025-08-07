@@ -1,6 +1,4 @@
-import os
 import json
-import pandas as pd
 
 from UTILS.LOGmaker import logger
 

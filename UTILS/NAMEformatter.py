@@ -1,25 +1,15 @@
 import re
-import requests
 import time
-import random
-import pandas as pd
 import sys
 import os
-
-from datetime import datetime
 
 from typing import Optional
 
 from bs4 import BeautifulSoup
 
-from selenium import webdriver
-from selenium.webdriver.chrome.options import Options
 from selenium.webdriver.common.by import By
 
 from UTILS.LOGmaker import logger
-
-from UTILS.EXCELreader import EXCELreader
-from UTILS.WEBsearch import WEBsearch
 
 # ====================
 #     LOGGER SETUP

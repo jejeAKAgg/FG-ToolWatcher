@@ -1,4 +1,3 @@
-import requests
 import time
 import random
 import pandas as pd
@@ -9,7 +8,6 @@ from bs4 import BeautifulSoup
 
 from selenium import webdriver
 from selenium.webdriver.chrome.options import Options
-from selenium.webdriver.common.by import By
 
 from UTILS.LOGmaker import logger
 from UTILS.NAMEformatter import *
