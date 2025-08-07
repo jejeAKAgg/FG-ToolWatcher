@@ -1,0 +1,211 @@
+import requests
+import time
+import random
+import pandas as pd
+
+from datetime import datetime
+
+from bs4 import BeautifulSoup
+
+from selenium import webdriver
+from selenium.webdriver.chrome.options import Options
+from selenium.webdriver.common.by import By
+
+from UTILS.LOGmaker import logger
+from UTILS.NAMEformatter import *
+
+from UTILS.EXCELreader import EXCELreader
+from UTILS.WEBsearch import WEBsearch
+
+
+# ====================
+#     LOGGER SETUP
+# ====================
+Logger = logger("FIXAMI")
+
+
+# ====================
+#      FUNCTIONS
+# ====================
+def extract_FIXAMI_products_data(MPN):
+    
+    # === Selenium OPTIONS ===
+    options = Options()
+    
+    options.add_argument("--headless=new")
+    options.add_argument("--disable-gpu")
+    options.add_argument("--no-sandbox")
+    options.add_argument("--window-size=400,400")
+    options.add_argument("--disable-dev-shm-usage")
+    options.add_argument("--disable-infobars")
+    options.add_argument("--disable-extensions")
+    options.add_argument(
+        "--user-agent=Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/114.0.0.0 Safari/537.36"
+    )
+    
+    options.add_experimental_option("excludeSwitches", ["enable-automation"])
+    options.add_experimental_option('useAutomationExtension', False)
+
+
+    # === Initializing WebDriver & running search ===
+    driver = webdriver.Chrome(options=options)
+    try:
+        REQUESTurl = f"https://www.fixami.be/fr/produits.html?s={MPN}"
+        driver.get(REQUESTurl)
+        
+        time.sleep(5)
+
+        accept_cookies(driver, "Fixami")
+
+        ARTICLEpage = driver.page_source
+        ARTICLEurl = driver.current_url
+
+        # Si on est resté sur la page de recherche (pas redirigé)
+        if "/produits.html?" in ARTICLEurl:
+            soup = BeautifulSoup(ARTICLEpage, "html.parser")
+            link = soup.find("span", {"data-testid": "product-name"})
+            
+            if link:
+                a_tag = link.find_parent("a", href=True)
+                if a_tag:
+                    ARTICLEurl = "https://www.fixami.be" + a_tag['href'].split("#")[0]
+                else:
+                    Logger.warning(f"No links found for this REF-{MPN}")
+                    Logger.warning(f"Searching with Google")
+                    ARTICLEurl = WEBsearch(MPN, "fixami.be")
+            else:
+                Logger.warning(f"No links found for this REF-{MPN}")
+                product = {
+                    'MPN': "REF-" + MPN,
+                    'Société': "FIXAMI",
+                    'Article': "Produit indisponible",
+                    'Marque': "-",
+                    'Prix (HTVA)': "-",
+                    'Prix (TVA)': "-",
+                    'Ancien Prix (HTVA)': "-",
+                    'Evolution du prix': "-",
+                    'Offres': "-",
+                    'Stock': "-",
+                    'Checked on': datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+                }
+
+                return product
+
+            driver.quit()
+            driver = webdriver.Chrome(options=options)
+                
+            driver.get(ARTICLEurl)
+            
+            time.sleep(5)
+
+            accept_cookies(driver, "Fixami")
+                
+            ARTICLEpage = driver.page_source
+            ARTICLEurl = driver.current_url
+
+
+        soup = BeautifulSoup(ARTICLEpage, "html.parser")
+
+        if (extract_fixami_ref(soup) is not None and extract_fixami_ref(soup) != MPN):
+            Logger.warning(f"False positive detected for REF-{MPN}: got REF-{extract_fixami_ref(soup)}! Skipping...")
+            product = {
+                'MPN': "REF-" + MPN,
+                'Société': "FIXAMI",
+                'Article': "Produit indisponible",
+                'Marque': "-",
+                'Prix (HTVA)': "-",
+                'Prix (TVA)': "-",
+                'Ancien Prix (HTVA)': "-",
+                'Evolution du prix': "-",
+                'Offres': "-",
+                'Stock': "-",
+                'Checked on': datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+            }
+
+            return product
+
+        product = {}
+        
+        product['MPN'] = "REF-" + MPN
+        product['Société'] = 'FIXAMI'
+        product['Article'] = (
+            (name := soup.find("h1", class_="sc-9a380768-0"))
+            and f'=HYPERLINK("{ARTICLEurl}"; "{standardize_name(name.get_text(strip=True).replace("\"", "\"\""), html=ARTICLEpage)}")'
+        )
+        product['Marque'] = (
+            (name := soup.find("h1", class_="sc-9a380768-0"))
+            and extract_brand_from_all_sources(name.get_text(strip=True).replace("\"", "\"\""), html=ARTICLEpage)
+        )
+
+        HTVA, TVA = calculate_missing_price(
+            htva=(
+                (e := next(
+                    (soup.select_one(sel) for sel in ['span.promo', 'span.regular', 'p.prixcatalogue']
+                    if soup.select_one(sel)), None
+                )) and parse_price(e.get_text(strip=True))
+            ),
+            tva=(
+                (e := soup.select_one("span.sc-f3d015ac-0")) and parse_price(e.get_text(strip=True))
+            )
+        )
+
+        product['Prix (HTVA)'] = format_price_for_excel(HTVA)
+        product['Prix (TVA)'] = format_price_for_excel(TVA)
+        product['Ancien Prix (HTVA)'] = "TODO"
+        product['Evolution du prix'] = "TODO"
+        product['Offres'] = extract_offers_FIXAMI(soup)
+        product['Stock'] = bool(
+            (delivery := soup.find("p", attrs={"data-testid": "delivery-time"}))
+            and ("livré demain" in delivery.get_text(strip=True).lower())
+        )
+        product['Checked on'] = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+
+        return product
+    
+
+    except Exception as e:
+        Logger.warning(f"Error extracting data for {MPN}: {e}")
+
+        product = {
+            'MPN': MPN,
+            'Société': "CLABOTS",
+            'Article': "Erreur lors de l'extraction",
+            'Marque': "-",
+            'Prix (HTVA)': "-",
+            'Prix (TVA)': "-",
+            'Ancien Prix (HTVA)': "-",
+            'Evolution du prix': "-",
+            'Offres': "-",
+            'Stock': "-",
+            'Checked on': datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+        }
+    
+    # === Closing WebDriver ===
+    finally:
+        driver.quit()
+
+
+# ====================
+#        MAIN
+# ====================
+def FIXAMIwatcher():
+
+    MPNs = EXCELreader("MPNs")
+
+    CSVpath = "DATA/FIXAMIproducts.csv"
+    XLSXpath = "DATA/FIXAMIproducts.xlsx"
+
+    products = []
+    for MPN in MPNs:
+        data = extract_FIXAMI_products_data(MPN)
+        if data:
+            products.append(data)
+        time.sleep(random.uniform(1.5, 3))
+
+    df = pd.DataFrame(products)
+    df.to_csv(CSVpath, index=False, encoding='utf-8-sig')
+    df.to_excel(XLSXpath, index=False)
+
+    Logger.info("Processus FIXAMIwatcher terminé...")
+
+    return df, XLSXpath
