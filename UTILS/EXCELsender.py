@@ -43,7 +43,7 @@ def EXCELsender(file, retries=3, delay=10):
             sheet.clear()
 
             # === CHARGEMENT DU CSV DANS UN DATAFRAME === #
-            df = pd.read_csv(resource_path(file))
+            df = pd.read_csv(file)
 
             # === ENVOI VERS GOOGLE SHEETS === #
             set_with_dataframe(sheet, df)
