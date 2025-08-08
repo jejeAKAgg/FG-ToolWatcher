@@ -4,6 +4,12 @@ ENV-TW/*
 ENV-TW-WINDOWS/
 ENV-TW-WINDOWS/*
 
+build/
+build/*
+
+dist/
+dist/*
+
 CORE/
 CORE/*
 DATA/
