@@ -36,19 +36,19 @@ Logger = logger("WATCHER")
 Logger.info("Démarrage de Watcher.py...")
 
 Logger.info("Démarrage de CIPACwatcher.py...")
-CIPACdf, CIPACxlsx = CIPACwatcher()
+CIPACdf = CIPACwatcher()
 
 Logger.info("Démarrage de CLABOTSwatcher.py...")
-CLABOTSdf, CLABOTSxlsx = CLABOTSwatcher()
+CLABOTSdf = CLABOTSwatcher()
 
 Logger.info("Démarrage de FIXAMIwatcher.py...")
-FIXAMIdf, FIXAMIxlsx = FIXAMIwatcher()
+FIXAMIdf = FIXAMIwatcher()
 
 Logger.info("Démarrage de KLIUMwatcher.py...")
-KLIUMdf, KLIUMxlsx = KLIUMwatcher()
+KLIUMdf = KLIUMwatcher()
 
 Logger.info("Démarrage de CSVmerger.py...")
-FINALcsv, FINALxlsx = FINALdf([KLIUMdf])
+FINALcsv, FINALxlsx = FINALdf([CIPACdf, CLABOTSdf, FIXAMIdf, KLIUMdf])
 
 Logger.info("Sending results...")
 EXCELsender(FINALcsv)
@@ -68,4 +68,4 @@ MAILsender(
 )
 
 Logger.info("Shutting down...")
-exit()
+sys.exit()
