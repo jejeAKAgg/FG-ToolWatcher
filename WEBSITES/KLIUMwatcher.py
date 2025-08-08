@@ -64,9 +64,9 @@ def extract_KLIUM_products_data(MPN):
 
     if sys.platform.startswith("win"):
         options.binary_location = CHROME_PATH
-        service = Service(executable_path=CHROMEDRIVER_PATH, log_output=subprocess.DEVNULL)
+        service = Service(executable_path=CHROMEDRIVER_PATH)
     else:
-        service = Service(log_output=subprocess.DEVNULL)
+        service = None
 
     # === Initializing WebDriver & running search ===
     driver = webdriver.Chrome(options=options, service=service)

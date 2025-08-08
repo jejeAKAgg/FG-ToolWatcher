@@ -26,8 +26,6 @@ if sys.platform.startswith("win"):
 
     if not os.path.exists(DATA_FOLDER):
         os.makedirs(DATA_FOLDER)
-    else:
-        print("ok")
 
 
 # ====================
