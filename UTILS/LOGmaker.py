@@ -2,6 +2,7 @@
 import logging
 import os
 from datetime import datetime
+import sys  # <--- ajout
 
 _LOGGER = None
 
@@ -26,7 +27,7 @@ def logger(module_name):
     file_handler.setFormatter(formatter)
     _LOGGER.addHandler(file_handler)
 
-    console_handler = logging.StreamHandler()
+    console_handler = logging.StreamHandler(sys.stdout)  # <--- forcer la sortie vers stdout
     console_handler.setFormatter(formatter)
     _LOGGER.addHandler(console_handler)
 
