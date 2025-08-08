@@ -174,7 +174,7 @@ def LECOTwatcher():
         time.sleep(random.uniform(1.5, 3)) # Setting a random delay between requests to avoid being blocked by server
 
     df = pd.DataFrame(products)
-    df.to_csv(CSVpath, index=False, encoding='utf-8-sig')
+    df.to_csv(CSVpath, index=False, encoding='utf-8')
     df.to_excel(XLSXpath, index=False)
 
 

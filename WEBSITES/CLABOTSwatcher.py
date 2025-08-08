@@ -208,9 +208,9 @@ def CLABOTSwatcher():
         time.sleep(random.uniform(1.5, 3))
 
     df = pd.DataFrame(products)
-    df.to_csv(CSVpath, index=False, encoding='utf-8-sig')
-    df.to_excel(XLSXpath, index=False)
+    #df.to_csv(CSVpath, index=False, encoding='utf-8-sig')
+    #df.to_excel(XLSXpath, index=False)
 
     Logger.info("Processus CLABOTSwatcher terminé...")
 
-    return df, XLSXpath
+    return df
