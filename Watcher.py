@@ -33,23 +33,23 @@ if sys.platform.startswith("win"):
 # ====================
 download_chromium_and_driver()
 
-Logger = logger("WATCHER")
-Logger.info("Démarrage de Watcher.py...")
+#Logger = logger("WATCHER")
+#Logger.info("Démarrage de Watcher.py...")
 
-Logger.info("Démarrage de CIPACwatcher.py...")
-CIPACdf, CIPACxlsx = CIPACwatcher()
+#Logger.info("Démarrage de CIPACwatcher.py...")
+#CIPACdf, CIPACxlsx = CIPACwatcher()
 
-Logger.info("Démarrage de CLABOTSwatcher.py...")
-CLABOTSdf, CLABOTSxlsx = CLABOTSwatcher()
+#Logger.info("Démarrage de CLABOTSwatcher.py...")
+#CLABOTSdf, CLABOTSxlsx = CLABOTSwatcher()
 
-Logger.info("Démarrage de FIXAMIwatcher.py...")
-FIXAMIdf, FIXAMIxlsx = FIXAMIwatcher()
+#Logger.info("Démarrage de FIXAMIwatcher.py...")
+#FIXAMIdf, FIXAMIxlsx = FIXAMIwatcher()
 
 Logger.info("Démarrage de KLIUMwatcher.py...")
 KLIUMdf, KLIUMxlsx = KLIUMwatcher()
 
 Logger.info("Démarrage de CSVmerger.py...")
-FINALcsv, FINALxlsx = FINALdf([CIPACdf, CLABOTSdf, FIXAMIdf, KLIUMdf])
+FINALcsv, FINALxlsx = FINALdf([KLIUMdf])
 
 Logger.info("Sending results...")
 EXCELsender(FINALcsv)
