@@ -6,6 +6,7 @@ a = Analysis(
     pathex=[],
     binaries=[],
     datas=[
+        ('ASSETS/*', 'ASSETS'),
         ('CONFIGS/*', 'CONFIGS'),
         ('UTILS/*', 'UTILS'),
         ('WEBSITES/*', 'WEBSITES'),
@@ -40,5 +41,5 @@ exe = EXE(
     target_arch=None,
     codesign_identity=None,
     entitlements_file=None,
-    icon='FG-TWico.ico',
+    icon='ASSETS/FG-TWico.ico',
 )
