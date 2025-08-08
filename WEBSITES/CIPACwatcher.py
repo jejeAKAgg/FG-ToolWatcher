@@ -43,8 +43,8 @@ def extract_CIPAC_products_data(MPN):
     # === Selenium OPTIONS ===
     options = Options()
     
-    #options.add_argument("--headless=new")
-    #options.add_argument("--disable-gpu")
+    options.add_argument("--headless=new")
+    options.add_argument("--disable-gpu")
     options.add_argument("--no-sandbox")
     options.add_argument("--window-size=400,400")
     options.add_argument("--disable-dev-shm-usage")
