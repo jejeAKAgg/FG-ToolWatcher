@@ -24,8 +24,7 @@ if sys.platform.startswith("win"):
     CHROMEDRIVER_PATH = os.path.join(BASE_PATH, "CORE", "chromedriver_win32", "chromedriver.exe")
     DATA_FOLDER = os.path.join(BASE_PATH, "DATA")
 
-    if not os.path.exists(DATA_FOLDER):
-        os.makedirs(DATA_FOLDER)
+    os.makedirs(DATA_FOLDER, exist_ok=True)
 
 
 # ====================
@@ -33,17 +32,17 @@ if sys.platform.startswith("win"):
 # ====================
 download_chromium_and_driver()
 
-#Logger = logger("WATCHER")
-#Logger.info("Démarrage de Watcher.py...")
+Logger = logger("WATCHER")
+Logger.info("Démarrage de Watcher.py...")
 
-#Logger.info("Démarrage de CIPACwatcher.py...")
-#CIPACdf, CIPACxlsx = CIPACwatcher()
+Logger.info("Démarrage de CIPACwatcher.py...")
+CIPACdf, CIPACxlsx = CIPACwatcher()
 
-#Logger.info("Démarrage de CLABOTSwatcher.py...")
-#CLABOTSdf, CLABOTSxlsx = CLABOTSwatcher()
+Logger.info("Démarrage de CLABOTSwatcher.py...")
+CLABOTSdf, CLABOTSxlsx = CLABOTSwatcher()
 
-#Logger.info("Démarrage de FIXAMIwatcher.py...")
-#FIXAMIdf, FIXAMIxlsx = FIXAMIwatcher()
+Logger.info("Démarrage de FIXAMIwatcher.py...")
+FIXAMIdf, FIXAMIxlsx = FIXAMIwatcher()
 
 Logger.info("Démarrage de KLIUMwatcher.py...")
 KLIUMdf, KLIUMxlsx = KLIUMwatcher()
@@ -61,10 +60,10 @@ body = "\n".join(mail_config["BodyLines"])
 
 MAILsender(
     sender_email=mail_config["Source"],
-    password=mail_config["password"],
+    password=mail_config["Password"],
     recipient_email=mail_config["Target"],
     subject=mail_config["Subject"],
-    body=mail_config["Body"],
+    body=body,
     filename=FINALxlsx
 )
 
