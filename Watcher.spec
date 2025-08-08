@@ -7,7 +7,6 @@ a = Analysis(
     binaries=[],
     datas=[
         ('CONFIGS/*', 'CONFIGS'),
-        ('DATA/*', 'DATA'),
         ('UTILS/*', 'UTILS'),
         ('WEBSITES/*', 'WEBSITES'),
         ('downloaded_files/*', 'downloaded_files'),
@@ -28,7 +27,7 @@ exe = EXE(
     a.binaries,
     a.datas,
     [],
-    name='Watcher',
+    name='FG-ToolWatcher',
     debug=False,
     bootloader_ignore_signals=False,
     strip=False,
