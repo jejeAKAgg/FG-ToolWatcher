@@ -48,19 +48,19 @@ def EXCELsender(file, retries=3, delay=10):
             # === ENVOI VERS GOOGLE SHEETS === #
             set_with_dataframe(sheet, df)
 
-            Logger.info("✅ Envoi vers Google Sheets réussi.")
+            Logger.info("Envoi vers Google Sheets réussi.")
             return
 
         except APIError as e:
             attempt += 1
-            Logger.error(f"❌ Erreur Google API (APIError) : {e}")
+            Logger.error(f"Erreur Google API (APIError) : {e}")
             if attempt < retries:
                 Logger.info(f"Nouvelle tentative dans {delay} secondes...")
                 time.sleep(delay)
             else:
-                Logger.critical("⛔ Échec après plusieurs tentatives. Abandon.")
+                Logger.critical("Échec après plusieurs tentatives. Abandon.")
                 return
 
         except Exception as e:
-            Logger.exception(f"❌ Erreur inattendue pendant l'envoi à Google Sheets : {e}")
+            Logger.exception(f"Erreur inattendue pendant l'envoi à Google Sheets : {e}")
             return
