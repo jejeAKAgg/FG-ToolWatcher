@@ -12,3 +12,4 @@ undetected-chromedriver
 webdriver-manager
 pyinstaller
 xlsxwriter
+PySide6
