@@ -21,21 +21,21 @@ def download_and_extract(url, dest_zip_path, extract_to):
     if not os.path.exists(dest_zip_path):
         print(f"Téléchargement depuis {url} ...")
         urllib.request.urlretrieve(url, dest_zip_path)
-        print("✅ Téléchargement terminé.")
+        print("Téléchargement terminé.")
         
-        print("📦 Décompression...")
+        print("Décompression...")
         with zipfile.ZipFile(dest_zip_path, 'r') as zip_ref:
             zip_ref.extractall(extract_to)
-        print("✅ Décompression terminée.")
+        print("Décompression terminée.")
     else:
-        print(f"⏩ Archive déjà présente : {dest_zip_path}")
+        print(f"Archive déjà présente : {dest_zip_path}")
 
 def download_chromium_and_driver():
     print(f"Destination : {DEST_FOLDER}")
     os.makedirs(DEST_FOLDER, exist_ok=True)
 
     build_number = get_latest_build_number()
-    print(f"🔢 Build Chromium : {build_number}")
+    print(f"Build Chromium : {build_number}")
 
     # Chromium
     chromium_zip_path = os.path.join(DEST_FOLDER, "chrome-win.zip")
