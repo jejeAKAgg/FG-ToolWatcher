@@ -11,3 +11,4 @@ selenium_stealth
 undetected-chromedriver
 webdriver-manager
 pyinstaller
+xlsxwriter
