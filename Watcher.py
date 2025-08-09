@@ -17,8 +17,6 @@ from UTILS.CSVmerger import FINALdf
 from UTILS.MAILsender import MAILsender
 from UTILS.NAMEformatter import *
 
-from Chromium import download_chromium_and_driver
-
 
 # ====================
 #    VARIABLE SETUP
@@ -35,8 +33,6 @@ if sys.platform.startswith("win"):
 # ====================
 #    CHROMIUM SETUP
 # ====================
-download_chromium_and_driver()
-
 Logger = logger("WATCHER")
 Logger.info("Démarrage de Watcher.py...")
 
