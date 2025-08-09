@@ -26,7 +26,7 @@ class WatcherGUI(QWidget):
         else:
             EXECUTABLE = sys.executable
 
-        watcher_script = resource_path("Watcher.py")
+        watcher_script = "Watcher.py"
         if not os.path.exists(watcher_script):
             print(f"[ERROR] Le script Watcher.py est introuvable à {watcher_script}")
 
