@@ -22,10 +22,6 @@ class WatcherGUI(QWidget):
         EXECUTABLE = resource_path("CORE/python/python.exe") if sys.platform.startswith("win") else sys.executable
 
         self.process = QProcess(self)
-
-        print(EXECUTABLE)
-        print(resource_path("Watcher.py"))
-
         self.process.setProgram(EXECUTABLE)
         self.process.setArguments([resource_path("Watcher.py")])
         self.process.readyReadStandardOutput.connect(self.handle_stdout)
