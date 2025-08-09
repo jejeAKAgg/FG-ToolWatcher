@@ -23,7 +23,7 @@ class WatcherGUI(QWidget):
 
         self.process = QProcess(self)
         self.process.setProgram(EXECUTABLE)
-        self.process.setArguments(["Watcher.py"])
+        self.process.setArguments([resource_path("Watcher.py")])
         self.process.readyReadStandardOutput.connect(self.handle_stdout)
         self.process.readyReadStandardError.connect(self.handle_stderr)
         self.process.started.connect(self.process_started)
