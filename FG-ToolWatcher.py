@@ -6,9 +6,9 @@ from PySide6.QtWidgets import (
 from PySide6.QtCore import Qt, QProcess, QSize
 from PySide6.QtGui import QIcon, QPixmap, QPalette, QBrush
 import os
-
-def resource_path(relative_path):
-    return os.path.join(os.path.abspath("."), relative_path)
+from UTILS.NAMEformatter import *
+from Chromium import download_chromium_and_driver
+from Python import download_and_extract_python
 
 class WatcherGUI(QWidget):
     def __init__(self):
@@ -16,9 +16,14 @@ class WatcherGUI(QWidget):
         self.setWindowTitle("FG-ToolWatcher")
         self.setGeometry(300, 300, 1000, 800)
 
+        download_chromium_and_driver()
+        download_and_extract_python()
+
+        EXECUTABLE = resource_path("CORE/python/python.exe") if sys.platform.startswith("win") else sys.executable
+
         self.process = QProcess(self)
         self.process.setProgram(sys.executable)
-        self.process.setArguments(["Watcher.py"])
+        self.process.setArguments([resource_path("Watcher.py")])
         self.process.readyReadStandardOutput.connect(self.handle_stdout)
         self.process.readyReadStandardError.connect(self.handle_stderr)
         self.process.started.connect(self.process_started)
