@@ -28,16 +28,17 @@ class WatcherGUI(QWidget):
         self.process.readyReadStandardError.connect(self.handle_stderr)
         self.process.started.connect(self.process_started)
         self.process.finished.connect(self.process_finished)
+        self.process.errorOccurred.connect(self.process_error)
 
         # --- Boutons Exit et Update en haut dans un widget dédié ---
         top_buttons_widget = QWidget()
-        top_buttons_widget.setFixedHeight(50)  # hauteur suffisante pour gros boutons
+        top_buttons_widget.setFixedHeight(50)
         top_buttons_layout = QHBoxLayout(top_buttons_widget)
         top_buttons_layout.setContentsMargins(5, 5, 5, 5)
         top_buttons_layout.setSpacing(0)
 
         self.update_button = QPushButton("Check")
-        self.update_button.setFixedSize(100, 50)  # un peu plus large pour texte+icone
+        self.update_button.setFixedSize(100, 50)
         update_icon = QIcon(resource_path("ASSETS/update.ico"))
         self.update_button.setIcon(update_icon)
         self.update_button.setIconSize(QSize(30, 30))
@@ -166,12 +167,12 @@ class WatcherGUI(QWidget):
         # --- Zone de logs avec conteneur pour overlay Clear ---
         self.log_container = QWidget()
         self.log_container.setMinimumHeight(180)
-        self.log_container.setStyleSheet("background: transparent;")  # Pas de fond
+        self.log_container.setStyleSheet("background: transparent;")
 
         self.log_area = QTextEdit(self.log_container)
         self.log_area.setReadOnly(True)
         self.log_area.setStyleSheet("background-color: white; font-family: Consolas, monospace; font-size: 12px;")
-        self.log_area.setGeometry(0, 0, 1000, 180)  # taille initiale (sera resizeé)
+        self.log_area.setGeometry(0, 0, 1000, 180)
 
         self.clear_log_button = QPushButton(self.log_container)
         self.clear_log_button.setFixedSize(60, 30)
@@ -192,11 +193,9 @@ class WatcherGUI(QWidget):
         """)
         self.clear_log_button.clicked.connect(self.clear_logs)
 
-        # Position absolute du bouton clear dans le log_container
         self.clear_log_button.move(self.log_container.width() - self.clear_log_button.width() - 5, 5)
         self.clear_log_button.raise_()
 
-        # --- Layout principal ---
         main_layout = QVBoxLayout(self)
         main_layout.setContentsMargins(0, 0, 0, 0)
         main_layout.setSpacing(5)
@@ -208,7 +207,6 @@ class WatcherGUI(QWidget):
         main_layout.addWidget(self.log_label)
         main_layout.addWidget(self.log_container)
 
-        # --- Overlay semi-transparent en fond ---
         bg_path = resource_path("ASSETS/FGbackground.jpg")
         if os.path.exists(bg_path):
             o_pixmap = QPixmap(bg_path).scaled(self.size(), Qt.KeepAspectRatioByExpanding, Qt.SmoothTransformation)
@@ -226,64 +224,103 @@ class WatcherGUI(QWidget):
     def resizeEvent(self, event):
         super().resizeEvent(event)
         self.overlay.setGeometry(0, 0, self.width(), self.height())
-        # resize log_area to fit container
         self.log_area.setGeometry(0, 0, self.log_container.width(), self.log_container.height())
-        # repositionne le bouton clear dans le coin top droit
         self.clear_log_button.move(self.log_container.width() - self.clear_log_button.width() - 5, 5)
 
     def start_watcher(self):
-        if self.process.state() == QProcess.NotRunning:
-            self.log_area.clear()
-            self.process.start()
-            self.start_button.setEnabled(False)
-            self.stop_button.setEnabled(True)
-            self.calibrate_button.setEnabled(False)
-        else:
-            self.log_area.append("Le process est déjà en cours.")
+        try:
+            if self.process.state() == QProcess.NotRunning:
+                self.log_area.clear()
+                self.log_area.append("[INFO] Démarrage du process Watcher.py...")
+                print("[INFO] Starting process...")
+                self.process.start()
+                self.start_button.setEnabled(False)
+                self.stop_button.setEnabled(True)
+                self.calibrate_button.setEnabled(False)
+            else:
+                self.log_area.append("[WARN] Le process est déjà en cours.")
+                print("[WARN] Process already running.")
+        except Exception as e:
+            self.log_area.append(f"[ERROR] Exception lors du démarrage: {e}")
+            print(f"Exception during start_watcher: {e}")
 
     def stop_watcher(self):
-        if self.process.state() == QProcess.Running:
-            self.process.terminate()
-            self.stop_button.setEnabled(False)
-            self.start_button.setEnabled(False)
-            self.calibrate_button.setEnabled(False)
+        try:
+            if self.process.state() == QProcess.Running:
+                self.log_area.append("[INFO] Arrêt du process en cours...")
+                print("[INFO] Terminating process...")
+                self.process.terminate()
+                if not self.process.waitForFinished(5000):
+                    self.log_area.append("[WARN] Le process ne s'est pas terminé, kill forcé.")
+                    self.process.kill()
+                    self.process.waitForFinished()
+                self.stop_button.setEnabled(False)
+                self.start_button.setEnabled(True)
+                self.calibrate_button.setEnabled(True)
+                self.log_area.append("[INFO] Process arrêté.")
+                print("[INFO] Process stopped.")
+            else:
+                self.log_area.append("[WARN] Aucun process en cours à arrêter.")
+                print("[WARN] No running process to stop.")
+        except Exception as e:
+            self.log_area.append(f"[ERROR] Exception lors de l'arrêt: {e}")
+            print(f"Exception during stop_watcher: {e}")
 
     def handle_stdout(self):
-        data = self.process.readAllStandardOutput().data().decode()
-        if data:
-            self.log_area.append(data.strip())
+        try:
+            data = self.process.readAllStandardOutput().data().decode()
+            if data:
+                self.log_area.append(data.strip())
+                print("[STDOUT]", data.strip())
+        except Exception as e:
+            self.log_area.append(f"[ERROR] Exception lors de la lecture stdout: {e}")
+            print(f"Exception in handle_stdout: {e}")
 
     def handle_stderr(self):
-        data = self.process.readAllStandardError().data().decode()
-        if data:
-            self.log_area.append(f"❗ {data.strip()}")
-
-    def process_started(self):
-        pass
-
-    def process_finished(self):
-        self.start_button.setEnabled(True)
-        self.stop_button.setEnabled(False)
-        self.calibrate_button.setEnabled(True)
-
-    def calibrate_action(self):
-        QMessageBox.information(self, "Calibrage", "Fonction calibrage non implémentée.")
-
-    def update_action(self):
-        QMessageBox.information(self, "Update", "Fonction update non implémentée.")
-
-    def exit_action(self):
-        if self.process.state() == QProcess.Running:
-            self.process.terminate()
-            self.process.waitForFinished(3000)
-        self.close()
+        try:
+            data = self.process.readAllStandardError().data().decode()
+            if data:
+                self.log_area.append(f"❗ [STDERR] {data.strip()}")
+                print("[STDERR]", data.strip())
+        except Exception as e:
+            self.log_area.append(f"[ERROR] Exception lors de la lecture stderr: {e}")
+            print(f"Exception in handle_stderr: {e}")
 
     def clear_logs(self):
         self.log_area.clear()
 
+    def update_action(self):
+        self.log_area.append("[ACTION] Vérification des mises à jour...")
+
+    def calibrate_action(self):
+        self.log_area.append("[ACTION] Calibrage en cours...")
+
+    def exit_action(self):
+        self.stop_watcher()
+        QApplication.quit()
+
+    def process_started(self):
+        self.log_area.append("[INFO] Process démarré.")
+        print("[INFO] Process started.")
+
+    def process_finished(self, exitCode, exitStatus):
+        self.log_area.append(f"[INFO] Process terminé avec code {exitCode}, statut {exitStatus}.")
+        print(f"[INFO] Process finished with exitCode={exitCode}, exitStatus={exitStatus}")
+        self.start_button.setEnabled(True)
+        self.stop_button.setEnabled(False)
+        self.calibrate_button.setEnabled(True)
+
+    def process_error(self, error):
+        self.log_area.append(f"[ERROR] Erreur process: {error}")
+        print(f"[ERROR] Process error: {error}")
+
+def resource_path(relative_path):
+    # Dummy for testing, replace with actual logic if needed
+    base_path = os.path.dirname(os.path.abspath(__file__))
+    return os.path.join(base_path, relative_path)
 
 if __name__ == "__main__":
     app = QApplication(sys.argv)
-    window = WatcherGUI()
-    window.show()
+    watcher = WatcherGUI()
+    watcher.show()
     sys.exit(app.exec())
