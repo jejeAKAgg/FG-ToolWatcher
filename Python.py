@@ -23,21 +23,13 @@ def download_and_extract_python():
 
     # Télécharge Python si besoin
     if not os.path.exists(PYTHON_ZIP_PATH):
-        print(f"Téléchargement de Python {PYTHON_VERSION} ...")
         urllib.request.urlretrieve(BASE_URL, PYTHON_ZIP_PATH)
-        print("Téléchargement terminé.")
-    else:
-        print(f"Archive déjà présente : {PYTHON_ZIP_PATH}")
 
     # Décompresse si pas encore extrait
     marker_file = os.path.join(DEST_FOLDER, "python.exe")
     if not os.path.exists(marker_file):
-        print("Décompression...")
         with zipfile.ZipFile(PYTHON_ZIP_PATH, 'r') as zip_ref:
             zip_ref.extractall(DEST_FOLDER)
-        print("Décompression terminée.")
-    else:
-        print("Python déjà extrait.")
 
 if __name__ == "__main__":
     download_and_extract_python()
