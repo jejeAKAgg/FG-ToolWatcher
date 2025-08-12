@@ -1,9 +1,11 @@
-from selenium.webdriver.chrome.options import Options
-from seleniumbase import SB
-import time
 import random
+import time
 
-from UTILS.LOGmaker import logger
+from seleniumbase import SB
+from selenium.webdriver.chrome.options import Options
+
+from UTILS.LOGmaker import *
+
 
 
 # ====================
