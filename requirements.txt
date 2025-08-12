@@ -13,3 +13,4 @@ webdriver-manager
 pyinstaller
 xlsxwriter
 PySide6
+psutil
