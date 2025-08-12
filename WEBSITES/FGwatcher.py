@@ -23,7 +23,7 @@ from UTILS.WEBsearch import *
 # ====================
 #     LOGGER SETUP
 # ====================
-Logger = logger("CLABOTS")
+Logger = logger("FERNAND GEORGES")
 
 
 # ====================
@@ -61,7 +61,7 @@ if sys.platform.startswith("linux"):
 # ====================
 #      FUNCTIONS
 # ====================
-def extract_CLABOTS_products_data(MPN):
+def extract_FG_products_data(MPN):
 
     # === PARAMETERS ===
     ATTEMPT = 0
@@ -70,7 +70,7 @@ def extract_CLABOTS_products_data(MPN):
     
     # === Selenium OPTIONS ===
     options = Options()
-    
+
     options.add_argument("--headless")
     options.add_argument("--disable-gpu")
     options.add_argument("--no-sandbox")
@@ -87,6 +87,7 @@ def extract_CLABOTS_products_data(MPN):
     options.add_experimental_option("excludeSwitches", ["enable-automation", "enable-logging"])
     options.add_experimental_option('useAutomationExtension', False)
 
+
     if sys.platform.startswith("win"):
         options.binary_location = CHROME_PATH
         service = Service(executable_path=CHROMEDRIVER_PATH)
@@ -97,31 +98,31 @@ def extract_CLABOTS_products_data(MPN):
     driver = webdriver.Chrome(options=options, service=service)
     while ATTEMPT < MAX_RETRIES:
         try:
-            REQUESTurl = f"https://www.clabots.be/fr/product/search?search={MPN}&_rand=0.9565057069184605"
+            REQUESTurl = f"https://www.georges.be/fr-be/search?q={MPN}"
             driver.get(REQUESTurl)
             
             time.sleep(3)  # Loading time (JS)
 
-            ARTICLEpage =  driver.page_source
+            ARTICLEpage = driver.page_source
             ARTICLEurl = driver.current_url
             
-            if "/recherche?" in ARTICLEurl or "/search?" in ARTICLEurl:
+            if ARTICLEurl == REQUESTurl or "search?" in ARTICLEurl:
                 soup = BeautifulSoup(ARTICLEpage, "html.parser")
-                link = soup.select_one('.grid-row.product-item')
-
+                link = soup.find("div", class_="l-products-item")
+    
                 if link:
-                    a_tag = link.select_one('a.view-product[href]')
+                    a_tag = link.find("a", href=True)
                     if a_tag:
-                        ARTICLEurl = "https://www.clabots.be" + a_tag['href'].split("#")[0]
+                        ARTICLEurl = "https://www.georges.be" + a_tag['href'].split("#")[0]
                     else:
                         Logger.warning(f"Pas de liens trouvés pour la REF-{MPN}")
-                        Logger.warning("Tentative de recherche avec Google...")
-                        ARTICLEurl = WEBsearch(MPN, "clabots.be")
+                        Logger.warning(f"Tentative de recherche avec Google...")
+                        ARTICLEurl = WEBsearch(MPN, "georges.be")
                 else:
                     Logger.warning(f"Pas de produits trouvés pour la REF-{MPN}")
                     product = {
                         'MPN': "REF-" + MPN,
-                        'Société': "CLABOTS",
+                        'Société': "FERNAND GEORGES",
                         'Article': "Produit indisponible",
                         'Marque': "-",
                         'Prix (HTVA)': "-",
@@ -132,12 +133,12 @@ def extract_CLABOTS_products_data(MPN):
                         'Stock': "-",
                         'Checked on': datetime.now().strftime("%Y-%m-%d %H:%M:%S")
                     }
-                    
+
                     return product
-                
+
                 driver.quit() # Restarting the driver to avoid issues with BOT detection
                 driver = webdriver.Chrome(options=options, service=service)
-                    
+
                 driver.get(ARTICLEurl)
                 
                 time.sleep(3) # Loading time (JS)
@@ -145,56 +146,67 @@ def extract_CLABOTS_products_data(MPN):
                 ARTICLEpage = driver.page_source
                 ARTICLEurl = driver.current_url
 
-            
             soup = BeautifulSoup(ARTICLEpage, "html.parser")
 
-            if (extract_clabots_ref(soup) is not None and extract_clabots_ref(soup) != MPN):
-                Logger.warning(f"Faux positif détecté pour la REF-{MPN}: REF-{extract_clabots_ref(soup)} détectée à la place! Pas pris en compte...")
-                product = {
-                    'MPN': "REF-" + MPN,
-                    'Société': "CLABOTS",
-                    'Article': "Produit indisponible",
-                    'Marque': "-",
-                    'Prix (HTVA)': "-",
-                    'Prix (TVA)': "-",
-                    'Ancien Prix (HTVA)': "-",
-                    'Evolution du prix': "-",
-                    'Offres': "-",
-                    'Stock': "-",
-                    'Checked on': datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-                }
+            #if (extract_cipac_ref(soup) is not None and extract_cipac_ref(soup) != MPN):
+                #Logger.warning(f"Faux positif détecté pour la REF-{MPN}: REF-{extract_cipac_ref(soup)} détectée à la place! Pas pris en compte...")
+                #product = {
+                    #'MPN': "REF-" + MPN,
+                    #'Société': "FERNAND GEORGES",
+                    #'Article': "Produit indisponible",
+                    #'Marque': "-",
+                    #'Prix (HTVA)': "-",
+                    #'Prix (TVA)': "-",
+                    #'Ancien Prix (HTVA)': "-",
+                    #'Evolution du prix': "-",
+                    #'Offres': "-",
+                    #'Stock': "-",
+                    #'Checked on': datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+                #}
 
-                return product
+                #return product
 
             product = {}
-            
+
             product['MPN'] = "REF-" + MPN
-            product['Société'] = 'CLABOTS'
+            product['Société'] = "FERNAND GEORGES"
             product['Article'] = (
-                (name := (soup.find("h1", class_="page-title") or soup.find("h1"))) and
-                f'=HYPERLINK("{ARTICLEurl}"; "{standardize_name(name.get_text(strip=True).replace("\"", "\"\""), html=ARTICLEpage)}")'
+                (name := soup.find("h1", class_="font-product-title"))
+                and f'=HYPERLINK("{ARTICLEurl}"; "{standardize_name(name.get_text(strip=True).replace("\"", "\"\""), html=ARTICLEpage)}")'
             )
             product['Marque'] = (
-                (name := (soup.find("h1", class_="page-title") or soup.find("h1"))) and
-                extract_brand_from_all_sources(name.get_text(strip=True).replace("\"", "\"\""), html=ARTICLEpage)
+                (name := soup.find("h1", class_="font-product-title"))
+                and extract_brand_from_all_sources(name.get_text(strip=True).replace("\"", "\"\""), html=ARTICLEpage)
             )
 
-            HTVA, TVA = calculate_missing_price((
-                (e := soup.find("div", class_="price-htvac")) and parse_price(e.get_text(strip=True).split()[0])
-            ), (
-                (e := soup.select_one("p.your-price")) and parse_price(e.get_text(strip=True))
-            ))
+            HTVA, TVA = calculate_missing_price(
+                htva=(
+                    (prices_action := soup.find("div", class_="prices-action")) and
+                    (htva_div := prices_action.find("div", string=lambda t: t and "HTVA" in t)) and
+                    (e := htva_div.find_previous("meta", itemprop="price")) and
+                    parse_price(e["content"])
+                ),
+                tva=(
+                    (price_tvac := soup.find("div", class_="price-tvac")) and
+                    (e := price_tvac.find("meta", itemprop="price")) and
+                    parse_price(e["content"])
+                )
+            )
 
             product['Prix (HTVA)'] = format_price_for_excel(HTVA)
             product['Prix (TVA)'] = format_price_for_excel(TVA)
             product['Ancien Prix (HTVA)'] = "TODO"
             product['Evolution du prix'] = "TODO"
             product['Offres'] = "-"
-            product['Stock'] = bool(soup.select_one("#product-availability .availability-label.in-stock"))
+            product['Stock'] = any(
+                int(s.get_text(strip=True).split()[0]) > 0
+                for s in soup.select(".multiple-locations-wrapper .stock-amount")
+            )
             product['Checked on'] = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
 
             return product
-            
+
+
         except Exception as e:
             Logger.warning(f"Erreur lors de l'extraction des données pour la REF-{MPN}: {e}")
             
@@ -203,7 +215,7 @@ def extract_CLABOTS_products_data(MPN):
                 Logger.warning(f"Abandon après {MAX_RETRIES} tentatives pour REF-{MPN}")
                 product = {
                     'MPN': MPN,
-                    'Société': "CLABOTS",
+                    'Société': "FERNAND GEORGES",
                     'Article': "Erreur lors de l'extraction",
                     'Marque': "-",
                     'Prix (HTVA)': "-",
@@ -219,24 +231,26 @@ def extract_CLABOTS_products_data(MPN):
             
             else:
                 time.sleep(RETRY_DELAY)
-        
+
+        # === Closing WebDriver ===
         finally:
             driver.quit()
+
 
 
 # ====================
 #        MAIN
 # ====================
-def CLABOTSwatcher():
+def FGwatcher():
 
     MPNs = EXCELreader("MPNs")
 
-    CSVpath = os.path.join(BASE_SYSTEM_PATH, "DATA", "CLABOTSproducts.csv")
-    XLSXpath = os.path.join(BASE_SYSTEM_PATH, "DATA", "CLABOTSproducts.xlsx")
+    CSVpath = os.path.join(BASE_SYSTEM_PATH, "DATA", "FGproducts.csv")
+    XLSXpath = os.path.join(BASE_SYSTEM_PATH, "DATA", "FGproducts.xlsx")
 
     products = []
     for MPN in MPNs:
-        data = extract_CLABOTS_products_data(MPN)
+        data = extract_FG_products_data(MPN)
         if data:
             products.append(data)
         time.sleep(random.uniform(1.5, 3))
@@ -245,6 +259,6 @@ def CLABOTSwatcher():
     df.to_csv(CSVpath, index=False, encoding='utf-8-sig')
     df.to_excel(XLSXpath, index=False)
 
-    Logger.info("Processus CLABOTSwatcher terminé...")
+    Logger.info("Processus FGwatcher terminé...")
 
     return df
