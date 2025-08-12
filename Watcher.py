@@ -1,72 +1,111 @@
-import json
+import os
 import sys
-import threading
 
-from PySide6.QtWidgets import QApplication, QWidget, QVBoxLayout, QPushButton, QLabel, QMessageBox
-from PySide6.QtCore import Qt
-
-from UTILS.LOGmaker import logger
+from UTILS.EXCELutils import *
+from UTILS.LOGmaker import *
+from UTILS.PRODUCTformatter import *
+from UTILS.TOOLSbox import *
+from UTILS.TOOLSinstaller import *
 
 from WEBSITES.CIPACwatcher import CIPACwatcher
 from WEBSITES.CLABOTSwatcher import CLABOTSwatcher
+from WEBSITES.FGwatcher import FGwatcher
 from WEBSITES.FIXAMIwatcher import FIXAMIwatcher
 from WEBSITES.KLIUMwatcher import KLIUMwatcher
-
-from UTILS.EXCELsender import EXCELsender
-from UTILS.CSVmerger import FINALdf
-from UTILS.MAILsender import MAILsender
-from UTILS.NAMEformatter import *
+from WEBSITES.LECOTwatcher import LECOTwatcher
 
 
 # ====================
 #    VARIABLE SETUP
 # ====================
 if sys.platform.startswith("win"):
-    BASE_PATH = os.path.dirname(sys.executable) if getattr(sys, 'frozen', False) else os.path.abspath(os.path.join(os.path.dirname(__file__), '..'))
-    CHROME_PATH = os.path.join(BASE_PATH, "CORE", "chrome-win", "chrome.exe")
-    CHROMEDRIVER_PATH = os.path.join(BASE_PATH, "CORE", "chromedriver_win32", "chromedriver.exe")
-    DATA_FOLDER = os.path.join(BASE_PATH, "DATA")
+    BASE_SYSTEM_PATH = os.path.dirname(sys.executable) if getattr(sys, 'frozen', False) else os.path.abspath(os.path.join(os.path.dirname(__file__)))
+    BASE_TEMP_PATH = sys._MEIPASS if getattr(sys, 'frozen', False) else ""
 
+    CORE_FOLDER = os.path.join(BASE_SYSTEM_PATH, "CORE")
+    DATA_FOLDER = os.path.join(BASE_SYSTEM_PATH, "DATA")
+    LOGS_FOLDER = os.path.join(BASE_SYSTEM_PATH, "LOGS")
+
+    os.makedirs(CORE_FOLDER, exist_ok=True)
     os.makedirs(DATA_FOLDER, exist_ok=True)
+    os.makedirs(LOGS_FOLDER, exist_ok=True)
 
+if sys.platform.startswith("linux"):
+    BASE_SYSTEM_PATH = os.path.dirname(sys.executable) if getattr(sys, 'frozen', False) else os.path.abspath(os.path.join(os.path.dirname(__file__)))
+    BASE_TEMP_PATH = sys._MEIPASS if getattr(sys, 'frozen', False) else ""
+
+    CORE_FOLDER = os.path.join(BASE_SYSTEM_PATH, "CORE")
+    DATA_FOLDER = os.path.join(BASE_SYSTEM_PATH, "DATA")
+    LOGS_FOLDER = os.path.join(BASE_SYSTEM_PATH, "LOGS")
+
+    os.makedirs(CORE_FOLDER, exist_ok=True)
+    os.makedirs(DATA_FOLDER, exist_ok=True)
+    os.makedirs(LOGS_FOLDER, exist_ok=True)
+    
 
 # ====================
-#    CHROMIUM SETUP
+#     LOGGER SETUP
 # ====================
 Logger = logger("WATCHER")
-Logger.info("Démarrage de Watcher.py...")
 
-Logger.info("Démarrage de CIPACwatcher.py...")
-CIPACdf = CIPACwatcher()
 
-Logger.info("Démarrage de CLABOTSwatcher.py...")
-CLABOTSdf = CLABOTSwatcher()
+# ====================
+#        MAIN
+# ====================
+def main_watcher():
+    Logger.info("Démarrage de Watcher...")
 
-Logger.info("Démarrage de FIXAMIwatcher.py...")
-FIXAMIdf = FIXAMIwatcher()
 
-Logger.info("Démarrage de KLIUMwatcher.py...")
-KLIUMdf = KLIUMwatcher()
+    # === TOOLS SETUP ===
+    Logger.info("Vérification de Chromium...")
+    getCHROMIUMpackage()
 
-Logger.info("Démarrage de CSVmerger.py...")
-FINALcsv, FINALxlsx = FINALdf([CIPACdf, CLABOTSdf, FIXAMIdf, KLIUMdf])
+    Logger.info("Vérification de Python...")
+    getPYTHONpackage()
 
-Logger.info("Sending results...")
-EXCELsender(FINALcsv)
+    Logger.info("Vérification de pip/ensurepip")
+    getPIPpackage()
 
-Logger.info("Sending report...")
-with open(resource_path("CONFIGS/EMAILconfig.json"), "r", encoding="utf-8") as f:
-    mail_config = json.load(f)
-body = "\n".join(mail_config["BodyLines"])
+    Logger.info("Vérification des packages requis...")
+    getREQUIREMENTSpackage()
 
-MAILsender(
-    sender_email=mail_config["Source"],
-    password=mail_config["Password"],
-    recipient_email=mail_config["Target"],
-    subject=mail_config["Subject"],
-    body=body,
-    filename=FINALxlsx
-)
 
-Logger.info("Shutting down...")
-sys.exit()
+    # === WATCHER MAIN ===
+    Logger.info("Démarrage de CIPACwatcher...")
+    CIPACdf = CIPACwatcher()
+
+    Logger.info("Démarrage de CLABOTSwatcher...")
+    CLABOTSdf = CLABOTSwatcher()
+
+    Logger.info("Démarrage de FGwatcher...")
+    FGdf = FGwatcher()
+
+    Logger.info("Démarrage de FIXAMIwatcher...")
+    FIXAMIdf = FIXAMIwatcher()
+
+    Logger.info("Démarrage de KLIUMwatcher...")
+    KLIUMdf = KLIUMwatcher()
+
+    Logger.info("Démarrage de LECOTwatcher...")
+    LECOTdf = LECOTwatcher()
+
+    Logger.info("Démarrage de CSVmerger...")
+    FINALxlsx = FINALdf([CIPACdf, CLABOTSdf, FGdf, FIXAMIdf, KLIUMdf, LECOTdf])
+
+    Logger.info("Envoi des résultats pour la version WEB...")
+    EXCELsender(FINALxlsx)
+
+    Logger.info("Envoi des résultats pour la version MAIL...")
+    MAILconfig = JSONloader(os.path.join(BASE_TEMP_PATH, "CONFIGS", "EMAILconfig.json"))
+    body = "\n".join(MAILconfig["BodyLines"])
+
+    MAILsender(
+        sender_email=MAILconfig["Source"],
+        password=MAILconfig["Password"],
+        recipient_email=MAILconfig["Target"],
+        subject=MAILconfig["Subject"],
+        body=body,
+        filename=FINALxlsx
+    )
+
+    Logger.info("Analyse terminée.")
