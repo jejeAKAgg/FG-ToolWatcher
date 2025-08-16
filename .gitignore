@@ -27,3 +27,6 @@ __pycache__
 */__pycache__
 */__pycache__/
 */__pycache__/*
+
+# Temporary files
+downloaded_files/
