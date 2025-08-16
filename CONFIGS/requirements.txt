@@ -1,0 +1,16 @@
+requests
+beautifulsoup4
+pandas
+gspread
+gspread-dataframe
+oauth2client
+openpyxl
+selenium
+seleniumbase
+selenium_stealth
+undetected-chromedriver
+webdriver-manager
+pyinstaller
+xlsxwriter
+PySide6
+psutil
