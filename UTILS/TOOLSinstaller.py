@@ -225,7 +225,7 @@ def getREQUIREMENTSpackage():
         "pyinstaller": "PyInstaller",
     }
 
-    requirements_path = os.path.join(BASE_TEMP_PATH, "requirements.txt")
+    requirements_path = os.path.join(BASE_TEMP_PATH, "CONFIGS", "requirements.txt")
 
     with open(requirements_path, "r", encoding="utf-8") as f:
         required_packages = [
