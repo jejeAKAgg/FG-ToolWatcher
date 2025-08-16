@@ -1,4 +1,5 @@
 import os
+import shutil
 import sys
 import subprocess
 
@@ -18,40 +19,60 @@ Logger = logger("TOOLinstaller")
 # ====================
 #    VARIABLE SETUP
 # ====================
+BASE_SYSTEM_PATH = os.path.dirname(sys.executable) if getattr(sys, 'frozen', False) else os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
+BASE_TEMP_PATH = sys._MEIPASS if getattr(sys, 'frozen', False) else ""
+
+CORE_FOLDER = os.path.join(BASE_SYSTEM_PATH, "CORE")
+DATA_FOLDER = os.path.join(BASE_SYSTEM_PATH, "DATA")
+LOGS_FOLDER = os.path.join(BASE_SYSTEM_PATH, "LOGS")
+
+os.makedirs(CORE_FOLDER, exist_ok=True)
+os.makedirs(DATA_FOLDER, exist_ok=True)
+os.makedirs(LOGS_FOLDER, exist_ok=True)
+
 if sys.platform.startswith("win"):
-    BASE_SYSTEM_PATH = os.path.dirname(sys.executable) if getattr(sys, 'frozen', False) else os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
-    BASE_TEMP_PATH = sys._MEIPASS if getattr(sys, 'frozen', False) else ""
-
-    CORE_FOLDER = os.path.join(BASE_SYSTEM_PATH, "CORE")
-    DATA_FOLDER = os.path.join(BASE_SYSTEM_PATH, "DATA")
-    LOGS_FOLDER = os.path.join(BASE_SYSTEM_PATH, "LOGS")
-
-    os.makedirs(CORE_FOLDER, exist_ok=True)
-    os.makedirs(DATA_FOLDER, exist_ok=True)
-    os.makedirs(LOGS_FOLDER, exist_ok=True)
-
     CHROME_PATH = os.path.join(BASE_SYSTEM_PATH, "CORE", "chrome-win", "chrome.exe")
     CHROMEDRIVER_PATH = os.path.join(BASE_SYSTEM_PATH, "CORE", "chromedriver_win32", "chromedriver.exe")
     PYTHON_EXE = os.path.join(BASE_SYSTEM_PATH, "CORE", "python", "python.exe")
 
+    BASE_CHROMIUM_URL = "https://commondatastorage.googleapis.com/chromium-browser-snapshots/Win_x64/"
+    CHROMIUM_ZIP_NAME = "chrome-win.zip"
+    CHROMEDRIVER_ZIP_NAME = "chromedriver_win32.zip"
+
 if sys.platform.startswith("linux"):
-    BASE_SYSTEM_PATH = os.path.dirname(sys.executable) if getattr(sys, 'frozen', False) else os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
-    BASE_TEMP_PATH = sys._MEIPASS if getattr(sys, 'frozen', False) else ""
+    CHROME_PATH = os.path.join(BASE_SYSTEM_PATH, "CORE", "chrome-win", "chrome.exe")
+    CHROMEDRIVER_PATH = os.path.join(BASE_SYSTEM_PATH, "CORE", "chromedriver_win32", "chromedriver.exe")
+    PYTHON_EXE = shutil.which("python3") or "/usr/bin/python3"
 
-    CORE_FOLDER = os.path.join(BASE_SYSTEM_PATH, "CORE")
-    DATA_FOLDER = os.path.join(BASE_SYSTEM_PATH, "DATA")
-    LOGS_FOLDER = os.path.join(BASE_SYSTEM_PATH, "LOGS")
+    BASE_CHROMIUM_URL = "https://commondatastorage.googleapis.com/chromium-browser-snapshots/Linux_x64/"
+    CHROMIUM_ZIP_NAME = "chrome-linux.zip"
+    CHROMEDRIVER_ZIP_NAME = "chromedriver_linux64.zip"
 
-    os.makedirs(CORE_FOLDER, exist_ok=True)
-    os.makedirs(DATA_FOLDER, exist_ok=True)
-    os.makedirs(LOGS_FOLDER, exist_ok=True)
+elif sys.platform.startswith("darwin"):
+    machine = sys.platform.machine().lower()
+    PYTHON_EXE = shutil.which("python3") or "/usr/bin/python3"
+
+    if machine in ["arm64", "aarch64"]:
+        BASE_CHROMIUM_URL = "https://commondatastorage.googleapis.com/chromium-browser-snapshots/Mac_Arm/"
+        CHROMIUM_ZIP_NAME = "chrome-mac.zip"
+        CHROMEDRIVER_ZIP_NAME = "chromedriver_mac64.zip"
+        CHROME_PATH = os.path.join(CORE_FOLDER, "chrome-mac", "Chromium.app", "Contents", "MacOS", "Chromium")
+        CHROMEDRIVER_PATH = os.path.join(CORE_FOLDER, "chromedriver_mac64", "chromedriver")
+
+    else:  # Mac Intel
+        BASE_CHROMIUM_URL = "https://commondatastorage.googleapis.com/chromium-browser-snapshots/Mac/"
+        CHROMIUM_ZIP_NAME = "chrome-mac.zip"
+        CHROMEDRIVER_ZIP_NAME = "chromedriver_mac64.zip"
+        CHROME_PATH = os.path.join(CORE_FOLDER, "chrome-mac", "Chromium.app", "Contents", "MacOS", "Chromium")
+        CHROMEDRIVER_PATH = os.path.join(CORE_FOLDER, "chromedriver_mac64", "chromedriver")
+
+else:
+    raise RuntimeError(f"Système non supporté: {sys.platform}")
 
 
 # ========================
 #    CHROMIUM INSTALLER
 # ========================
-BASE_CHROMIUM_URL = "https://commondatastorage.googleapis.com/chromium-browser-snapshots/Win_x64/"
-
 def get_latest_build_number():
     last_change_url = BASE_CHROMIUM_URL + "LAST_CHANGE"
     Logger.info(f"Récupération du dernier build Chromium via {last_change_url}...")
@@ -91,17 +112,16 @@ def getCHROMIUMpackage():
     build_number = get_latest_build_number()
 
     # Chromium
-    chromium_zip_path = os.path.join(CORE_FOLDER, "chrome-win.zip")
-    chromium_url = f"{BASE_CHROMIUM_URL}{build_number}/chrome-win.zip"
+    chromium_zip_path = os.path.join(CORE_FOLDER, CHROMIUM_ZIP_NAME)
+    chromium_url = f"{BASE_CHROMIUM_URL}{build_number}/{CHROMIUM_ZIP_NAME}"
     download_and_extract(chromium_url, chromium_zip_path, CORE_FOLDER)
 
     # Chromedriver
-    chromedriver_zip_path = os.path.join(CORE_FOLDER, "chromedriver.zip")
-    chromedriver_url = f"{BASE_CHROMIUM_URL}{build_number}/chromedriver_win32.zip"
+    chromedriver_zip_path = os.path.join(CORE_FOLDER, CHROMEDRIVER_ZIP_NAME)
+    chromedriver_url = f"{BASE_CHROMIUM_URL}{build_number}/{CHROMEDRIVER_ZIP_NAME}"
     download_and_extract(chromedriver_url, chromedriver_zip_path, CORE_FOLDER)
     
     Logger.info("Package Chromium et Chromedriver récupérés avec succès.")
-
 
 # ========================
 #     PYTHON INSTALLER
@@ -109,7 +129,6 @@ def getCHROMIUMpackage():
 PYTHON_VERSION = "3.13.6"
 PYTHON_ZIP_NAME = f"python-{PYTHON_VERSION}-embed-amd64.zip"
 PYTHON_ZIP_PATH = os.path.join(BASE_SYSTEM_PATH, "CORE", PYTHON_ZIP_NAME)
-
 BASE_PYTHON_URL = f"https://www.python.org/ftp/python/{PYTHON_VERSION}/{PYTHON_ZIP_NAME}"
 
 if sys.platform == "win32":
@@ -118,8 +137,11 @@ if sys.platform == "win32":
 else:
     startupinfo = None
 
-
 def getPYTHONpackage():
+    if sys.platform.startswith("linux"):
+        Logger.info("Sur Linux, utilisation du Python système. Étape ignorée.")
+        return
+
     os.makedirs(os.path.join(CORE_FOLDER, "python"), exist_ok=True)
 
     if not os.path.exists(PYTHON_ZIP_PATH):
@@ -158,7 +180,6 @@ def getPYTHONpackage():
         else:
             Logger.warning(f"Fichier {pth_filename} non trouvé, impossible de modifier pour activer 'import site'.")
 
-
 def getPIPpackage():
     try:
         subprocess.run(
@@ -194,7 +215,6 @@ def getPIPpackage():
     subprocess.run([PYTHON_EXE, "-m", "pip", "install", "--upgrade", "setuptools", "wheel"], check=True, startupinfo=startupinfo)
 
     Logger.info("pip, setuptools et wheel installés et prêts.")
-
 
 def getREQUIREMENTSpackage():
     PACKAGE_IMPORT_MAP = {
