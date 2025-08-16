@@ -18,29 +18,16 @@ from WEBSITES.LECOTwatcher import LECOTwatcher
 # ====================
 #    VARIABLE SETUP
 # ====================
-if sys.platform.startswith("win"):
-    BASE_SYSTEM_PATH = os.path.dirname(sys.executable) if getattr(sys, 'frozen', False) else os.path.abspath(os.path.join(os.path.dirname(__file__)))
-    BASE_TEMP_PATH = sys._MEIPASS if getattr(sys, 'frozen', False) else ""
+BASE_SYSTEM_PATH = os.path.dirname(sys.executable) if getattr(sys, 'frozen', False) else os.path.abspath(os.path.join(os.path.dirname(__file__)))
+BASE_TEMP_PATH = sys._MEIPASS if getattr(sys, 'frozen', False) else ""
 
-    CORE_FOLDER = os.path.join(BASE_SYSTEM_PATH, "CORE")
-    DATA_FOLDER = os.path.join(BASE_SYSTEM_PATH, "DATA")
-    LOGS_FOLDER = os.path.join(BASE_SYSTEM_PATH, "LOGS")
+CORE_FOLDER = os.path.join(BASE_SYSTEM_PATH, "CORE")
+DATA_FOLDER = os.path.join(BASE_SYSTEM_PATH, "DATA")
+LOGS_FOLDER = os.path.join(BASE_SYSTEM_PATH, "LOGS")
 
-    os.makedirs(CORE_FOLDER, exist_ok=True)
-    os.makedirs(DATA_FOLDER, exist_ok=True)
-    os.makedirs(LOGS_FOLDER, exist_ok=True)
-
-if sys.platform.startswith("linux"):
-    BASE_SYSTEM_PATH = os.path.dirname(sys.executable) if getattr(sys, 'frozen', False) else os.path.abspath(os.path.join(os.path.dirname(__file__)))
-    BASE_TEMP_PATH = sys._MEIPASS if getattr(sys, 'frozen', False) else ""
-
-    CORE_FOLDER = os.path.join(BASE_SYSTEM_PATH, "CORE")
-    DATA_FOLDER = os.path.join(BASE_SYSTEM_PATH, "DATA")
-    LOGS_FOLDER = os.path.join(BASE_SYSTEM_PATH, "LOGS")
-
-    os.makedirs(CORE_FOLDER, exist_ok=True)
-    os.makedirs(DATA_FOLDER, exist_ok=True)
-    os.makedirs(LOGS_FOLDER, exist_ok=True)
+os.makedirs(CORE_FOLDER, exist_ok=True)
+os.makedirs(DATA_FOLDER, exist_ok=True)
+os.makedirs(LOGS_FOLDER, exist_ok=True)
     
 
 # ====================
