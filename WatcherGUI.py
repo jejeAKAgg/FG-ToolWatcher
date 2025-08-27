@@ -2,9 +2,10 @@ import os
 import sys
 
 import logging
-from logging.handlers import RotatingFileHandler  # Ajout pour le fichier log
 
 import Watcher
+
+from logging.handlers import RotatingFileHandler
 
 from PySide6.QtCore import Qt, QThread, Signal, QObject, QSize
 from PySide6.QtGui import QIcon, QPixmap, QPalette, QBrush
@@ -217,7 +218,7 @@ class WatcherGUI(QWidget):
 
         # --- Bouton Calibrage ---
         self.calibrate_button = QToolButton()
-        self.calibrate_button.setText("REF/Articles")
+        self.calibrate_button.setText("REFs/Articles")
         self.calibrate_button.setToolButtonStyle(Qt.ToolButtonTextUnderIcon)
         calibrate_icon_path = os.path.join(BASE_TEMP_PATH, "ASSETS", "MPN.ico")
         if os.path.exists(calibrate_icon_path):
@@ -292,23 +293,26 @@ class WatcherGUI(QWidget):
         buttons_layout.addStretch()
 
 
-        # --- Zone de logs ---
+        # --- Zone de logs avec bouton Clear ---
         self.log_container = QWidget()
         self.log_container.setMinimumHeight(200)
         self.log_container.setStyleSheet("background: transparent;")
 
-        self.log_area = QTextEdit(self.log_container)
-        self.log_area.setReadOnly(True)
-        self.log_area.setStyleSheet("background-color: white; color: black; font-family: Consolas, monospace; font-size: 12px;")
-        self.log_area.setGeometry(0, 0, 1000, 200)
+        # Layout principal vertical pour le log_container
+        self.log_layout = QVBoxLayout(self.log_container)
+        self.log_layout.setContentsMargins(5, 5, 5, 5)
+        self.log_layout.setSpacing(5)
+
+        # Layout horizontal pour le bouton Clear en haut à droite
+        top_layout = QHBoxLayout()
+        top_layout.addStretch()  # pousse le bouton à droite
 
         self.clear_log_button = QPushButton("", self.log_container)
         self.clear_log_button.setFixedSize(30, 30)
-        
+
         clear_icon_path = os.path.join(BASE_TEMP_PATH, "ASSETS", "clear.ico")
         self.clear_log_button.setIcon(QIcon(clear_icon_path))
         self.clear_log_button.setIconSize(QSize(25, 25))
-        
         self.clear_log_button.setStyleSheet("""
             QPushButton {
                 background-color: #FFFFFF;
@@ -322,8 +326,22 @@ class WatcherGUI(QWidget):
             }
         """)
         self.clear_log_button.clicked.connect(self.clear_logs)
-        self.clear_log_button.move(self.log_container.width() - self.clear_log_button.width() - 15, 5)
-        self.clear_log_button.raise_()
+
+        top_layout.addWidget(self.clear_log_button)
+        self.log_layout.addLayout(top_layout)
+
+        # Zone de texte pour les logs
+        self.log_area = QTextEdit()
+        self.log_area.setReadOnly(True)
+        self.log_area.setStyleSheet("""
+            background-color: white;
+            color: black;
+            font-family: Consolas, monospace;
+            font-size: 12px;
+        """)
+
+        # Ajout du QTextEdit au layout vertical (prend tout l’espace restant)
+        self.log_layout.addWidget(self.log_area)
 
         # --- Layout principal ---
         main_layout = QVBoxLayout(self)
@@ -355,8 +373,6 @@ class WatcherGUI(QWidget):
     def resizeEvent(self, event):
         super().resizeEvent(event)
         self.overlay.setGeometry(0, 0, self.width(), self.height())
-        self.log_area.setGeometry(0, 0, self.log_container.width(), self.log_container.height())
-        self.clear_log_button.move(self.log_container.width() - self.clear_log_button.width() - 15, 5)
 
     def log_area_append(self, text):
         self.log_area.append(text.strip())
@@ -404,6 +420,7 @@ class WatcherGUI(QWidget):
         self.calibrate_button.setEnabled(True)
         self.update_button.setEnabled(True)
         self.settings_button.setEnabled(True)
+
 
 
 if __name__ == "__main__":

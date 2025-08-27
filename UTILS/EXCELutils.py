@@ -103,6 +103,7 @@ def EXCELreader(worksheet):
 
     # Lit la colonne A (URLs)
     urls = sheet.col_values(1)
+
     return [url.strip() for url in urls if url.strip()]
 
 

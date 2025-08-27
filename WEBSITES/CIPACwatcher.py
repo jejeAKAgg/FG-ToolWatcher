@@ -1,4 +1,5 @@
 import os
+import shutil
 import sys
 import time
 
@@ -29,33 +30,55 @@ Logger = logger("CIPAC")
 # ====================
 #    VARIABLE SETUP
 # ====================
+BASE_SYSTEM_PATH = os.path.dirname(sys.executable) if getattr(sys, 'frozen', False) else os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
+BASE_TEMP_PATH = sys._MEIPASS if getattr(sys, 'frozen', False) else ""
+
+CORE_FOLDER = os.path.join(BASE_SYSTEM_PATH, "CORE")
+DATA_FOLDER = os.path.join(BASE_SYSTEM_PATH, "DATA")
+LOGS_FOLDER = os.path.join(BASE_SYSTEM_PATH, "LOGS")
+
+os.makedirs(CORE_FOLDER, exist_ok=True)
+os.makedirs(DATA_FOLDER, exist_ok=True)
+os.makedirs(LOGS_FOLDER, exist_ok=True)
+
 if sys.platform.startswith("win"):
-    BASE_SYSTEM_PATH = os.path.dirname(sys.executable) if getattr(sys, 'frozen', False) else os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
-    BASE_TEMP_PATH = sys._MEIPASS if getattr(sys, 'frozen', False) else ""
-
-    CORE_FOLDER = os.path.join(BASE_SYSTEM_PATH, "CORE")
-    DATA_FOLDER = os.path.join(BASE_SYSTEM_PATH, "DATA")
-    LOGS_FOLDER = os.path.join(BASE_SYSTEM_PATH, "LOGS")
-
-    os.makedirs(CORE_FOLDER, exist_ok=True)
-    os.makedirs(DATA_FOLDER, exist_ok=True)
-    os.makedirs(LOGS_FOLDER, exist_ok=True)
-
     CHROME_PATH = os.path.join(BASE_SYSTEM_PATH, "CORE", "chrome-win", "chrome.exe")
     CHROMEDRIVER_PATH = os.path.join(BASE_SYSTEM_PATH, "CORE", "chromedriver_win32", "chromedriver.exe")
     PYTHON_EXE = os.path.join(BASE_SYSTEM_PATH, "CORE", "python", "python.exe")
 
+    BASE_CHROMIUM_URL = "https://commondatastorage.googleapis.com/chromium-browser-snapshots/Win_x64/"
+    CHROMIUM_ZIP_NAME = "chrome-win.zip"
+    CHROMEDRIVER_ZIP_NAME = "chromedriver_win32.zip"
+
 if sys.platform.startswith("linux"):
-    BASE_SYSTEM_PATH = os.path.dirname(sys.executable) if getattr(sys, 'frozen', False) else os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
-    BASE_TEMP_PATH = sys._MEIPASS if getattr(sys, 'frozen', False) else ""
+    CHROME_PATH = os.path.join(BASE_SYSTEM_PATH, "CORE", "chrome-win", "chrome.exe")
+    CHROMEDRIVER_PATH = os.path.join(BASE_SYSTEM_PATH, "CORE", "chromedriver_win32", "chromedriver.exe")
+    PYTHON_EXE = shutil.which("python3") or "/usr/bin/python3"
 
-    CORE_FOLDER = os.path.join(BASE_SYSTEM_PATH, "CORE")
-    DATA_FOLDER = os.path.join(BASE_SYSTEM_PATH, "DATA")
-    LOGS_FOLDER = os.path.join(BASE_SYSTEM_PATH, "LOGS")
+    BASE_CHROMIUM_URL = "https://commondatastorage.googleapis.com/chromium-browser-snapshots/Linux_x64/"
+    CHROMIUM_ZIP_NAME = "chrome-linux.zip"
+    CHROMEDRIVER_ZIP_NAME = "chromedriver_linux64.zip"
 
-    os.makedirs(CORE_FOLDER, exist_ok=True)
-    os.makedirs(DATA_FOLDER, exist_ok=True)
-    os.makedirs(LOGS_FOLDER, exist_ok=True)
+elif sys.platform.startswith("darwin"):
+    machine = sys.platform.machine().lower()
+    PYTHON_EXE = shutil.which("python3") or "/usr/bin/python3"
+
+    if machine in ["arm64", "aarch64"]:
+        BASE_CHROMIUM_URL = "https://commondatastorage.googleapis.com/chromium-browser-snapshots/Mac_Arm/"
+        CHROMIUM_ZIP_NAME = "chrome-mac.zip"
+        CHROMEDRIVER_ZIP_NAME = "chromedriver_mac64.zip"
+        CHROME_PATH = os.path.join(CORE_FOLDER, "chrome-mac", "Chromium.app", "Contents", "MacOS", "Chromium")
+        CHROMEDRIVER_PATH = os.path.join(CORE_FOLDER, "chromedriver_mac64", "chromedriver")
+
+    else:
+        BASE_CHROMIUM_URL = "https://commondatastorage.googleapis.com/chromium-browser-snapshots/Mac/"
+        CHROMIUM_ZIP_NAME = "chrome-mac.zip"
+        CHROMEDRIVER_ZIP_NAME = "chromedriver_mac64.zip"
+        CHROME_PATH = os.path.join(CORE_FOLDER, "chrome-mac", "Chromium.app", "Contents", "MacOS", "Chromium")
+        CHROMEDRIVER_PATH = os.path.join(CORE_FOLDER, "chromedriver_mac64", "chromedriver")
+
+else:
+    raise RuntimeError(f"Système non supporté: {sys.platform}")
 
 
 # ====================
@@ -236,16 +259,14 @@ def extract_CIPAC_products_data(MPN):
 # ====================
 #        MAIN
 # ====================
-def CIPACwatcher():
-
-    MPNs = EXCELreader("MPNs")
+def CIPACwatcher(ITEMs):
 
     CSVpath = os.path.join(BASE_SYSTEM_PATH, "DATA", "CIPACproducts.csv")
     XLSXpath = os.path.join(BASE_SYSTEM_PATH, "DATA", "CIPACproducts.xlsx")
 
     products = []
-    for MPN in MPNs:
-        data = extract_CIPAC_products_data(MPN)
+    for ITEM in ITEMs:
+        data = extract_CIPAC_products_data(ITEM)
         if data:
             products.append(data)
         time.sleep(random.uniform(1.5, 3))

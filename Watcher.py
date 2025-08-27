@@ -58,8 +58,11 @@ def main_watcher():
 
 
     # === WATCHER MAIN ===
+    Logger.info("Réception des données [REFs/Articles] et synchronisation...")
+    ITEMs = EXCELreader("MPNs/Articles")
+
     Logger.info("Démarrage de CIPACwatcher...")
-    CIPACdf = CIPACwatcher()
+    CIPACdf = CIPACwatcher(ITEMs)
 
     Logger.info("Démarrage de CLABOTSwatcher...")
     CLABOTSdf = CLABOTSwatcher()
@@ -73,11 +76,11 @@ def main_watcher():
     Logger.info("Démarrage de KLIUMwatcher...")
     KLIUMdf = KLIUMwatcher()
 
-    Logger.info("Démarrage de LECOTwatcher...")
-    LECOTdf = LECOTwatcher()
+    #Logger.info("Démarrage de LECOTwatcher...")
+    #LECOTdf = LECOTwatcher()
 
     Logger.info("Démarrage de CSVmerger...")
-    FINALxlsx = FINALdf([CIPACdf, CLABOTSdf, FGdf, FIXAMIdf, KLIUMdf, LECOTdf])
+    FINALxlsx = FINALdf([CIPACdf, CLABOTSdf, FGdf, FIXAMIdf, KLIUMdf])
 
     Logger.info("Envoi des résultats pour la version WEB...")
     EXCELsender(FINALxlsx)
