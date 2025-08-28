@@ -6,8 +6,12 @@ import json
 import pandas as pd
 import platform
 import psutil
+import re
 import signal
 import smtplib
+
+from difflib import SequenceMatcher
+from rapidfuzz import fuzz
 
 from email.message import EmailMessage
 
@@ -124,6 +128,77 @@ def check_cache(cache_df, MPN):
     if not row.empty:
         return row.iloc[0].to_dict()
     return None
+
+
+# ===================
+#    MATCH TRACKER
+# ===================
+def potential_match(ref: str, title: str, threshold: float = 0.75, weights: dict = None) -> dict:
+    """
+    Compute a reliable probability score between a reference and a product title.
+
+    Args:
+        ref (str): Reference string (e.g., product code)
+        title (str): Product title string
+        threshold (float, optional): Minimum score to consider a match. Default = 0.75
+        weights (dict, optional): Weights for signals: {"exact":0.5,"fuzzy":0.2,"parts":0.3}
+
+    Returns:
+        dict: {
+            "match" (bool): True if matched, False otherwise
+            "score" (float): final weighted score [0,1]
+            "details" (dict): breakdown of metrics used
+        }
+    """
+    if weights is None:
+        weights = {"exact": 0.5, "fuzzy": 0.2, "parts": 0.3}
+
+    # -------------------------
+    # Normalize strings in-place
+    # -------------------------
+    def normalize(s: str) -> str:
+        s = s.lower()
+        s = re.sub(r'[^a-z0-9\s]', '', s)
+        s = re.sub(r'\s+', ' ', s).strip()
+        # Normalize numbers like "60202.0" -> "60202"
+        tokens = []
+        for tok in s.split():
+            try:
+                tokens.append(str(int(float(tok))))
+            except:
+                tokens.append(tok)
+        return ' '.join(tokens)
+
+    ref_norm = normalize(ref)
+    title_norm = normalize(title)
+
+    # -------------------------
+    # Signals
+    # -------------------------
+    exact = 1.0 if ref_norm in title_norm else 0.0
+    fuzzy_score = fuzz.token_set_ratio(ref_norm, title_norm) / 100
+    ref_parts = ref_norm.split()
+    parts_score = sum(1 for part in ref_parts if part in title_norm) / len(ref_parts) if ref_parts else 0.0
+
+    # -------------------------
+    # Weighted score
+    # -------------------------
+    final_score = weights["exact"]*exact + weights["fuzzy"]*fuzzy_score + weights["parts"]*parts_score
+    final_score = max(0.0, min(1.0, final_score))
+
+    # Adaptive match: accept if exact or all parts present
+    match = final_score >= threshold or exact == 1.0 or parts_score == 1.0
+
+    return {
+        "match": match,
+        "score": final_score,
+        "details": {
+            "exact": exact,
+            "fuzzy_score": fuzzy_score,
+            "parts_score": parts_score
+        }
+    }
+
 
 
 # ===============================
