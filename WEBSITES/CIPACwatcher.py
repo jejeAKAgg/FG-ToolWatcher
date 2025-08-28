@@ -155,9 +155,15 @@ def extract_CIPAC_products_data(MPN, driver):
             soup = BeautifulSoup(ARTICLEpage, "html.parser")
 
             if (extract_cipac_ref(soup) is not None and extract_cipac_ref(soup) != MPN):
-                Logger.warning(f"Faux positif détecté pour la REF-{MPN}: REF-{extract_cipac_ref(soup)} détectée à la place! Pas pris en compte...")
+                Logger.warning(f"Incompatibilité détectée pour la REF-{MPN}: REF-{extract_cipac_ref(soup)} scannée à la place!")
+                Logger.warning("Recherche de match potentiel...")
 
-                return PRODUCTvar
+                if (res := potential_match(MPN, standardize_name((soup.find("h1") or soup.select_one("div[class*='col-'] h1")).get_text(strip=True).replace("\"", "\"\""), html=ARTICLEpage)))["score"] >= 0.75:
+                    Logger.info(f"Probabilité de {res['score']:.2f} pour la REF-{MPN}: correspond probablement au produit")
+                else:
+                    Logger.warning(f"Faux positif détecté avec probabilité de {res['score']:.2f} pour la REF-{MPN}, pas pris en compte: {res}")
+                    return PRODUCTvar
+
 
             PRODUCTvar['MPN'] = "REF-" + MPN
             PRODUCTvar['Société'] = "CIPAC"

@@ -152,6 +152,12 @@ def extract_FG_products_data(MPN, driver):
 
             soup = BeautifulSoup(ARTICLEpage, "html.parser")
 
+            if (res := potential_match(MPN, standardize_name(soup.find("h1", class_="font-product-title").get_text(strip=True).replace("\"", "\"\""), html=ARTICLEpage)))["score"] >= 0.75:
+                Logger.info(f"Probabilité de {res['score']:.2f} pour la REF-{MPN}: correspond probablement au produit")
+            else:
+                Logger.warning(f"Faux positif détecté avec probabilité de {res['score']:.2f} pour la REF-{MPN}, pas pris en compte: {res}")
+                return PRODUCTvar
+
             PRODUCTvar['MPN'] = "REF-" + MPN
             PRODUCTvar['Société'] = "FERNAND GEORGES"
             PRODUCTvar['Article'] = (
