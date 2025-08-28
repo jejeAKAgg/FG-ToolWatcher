@@ -39,7 +39,7 @@ if sys.platform.startswith("win"):
     CHROMIUM_ZIP_NAME = "chrome-win.zip"
     CHROMEDRIVER_ZIP_NAME = "chromedriver_win32.zip"
 
-if sys.platform.startswith("linux"):
+elif sys.platform.startswith("linux"):
     CHROME_PATH = os.path.join(BASE_SYSTEM_PATH, "CORE", "chrome-win", "chrome.exe")
     CHROMEDRIVER_PATH = os.path.join(BASE_SYSTEM_PATH, "CORE", "chromedriver_win32", "chromedriver.exe")
     PYTHON_EXE = shutil.which("python3") or "/usr/bin/python3"
@@ -47,24 +47,6 @@ if sys.platform.startswith("linux"):
     BASE_CHROMIUM_URL = "https://commondatastorage.googleapis.com/chromium-browser-snapshots/Linux_x64/"
     CHROMIUM_ZIP_NAME = "chrome-linux.zip"
     CHROMEDRIVER_ZIP_NAME = "chromedriver_linux64.zip"
-
-elif sys.platform.startswith("darwin"):
-    machine = sys.platform.machine().lower()
-    PYTHON_EXE = shutil.which("python3") or "/usr/bin/python3"
-
-    if machine in ["arm64", "aarch64"]:
-        BASE_CHROMIUM_URL = "https://commondatastorage.googleapis.com/chromium-browser-snapshots/Mac_Arm/"
-        CHROMIUM_ZIP_NAME = "chrome-mac.zip"
-        CHROMEDRIVER_ZIP_NAME = "chromedriver_mac64.zip"
-        CHROME_PATH = os.path.join(CORE_FOLDER, "chrome-mac", "Chromium.app", "Contents", "MacOS", "Chromium")
-        CHROMEDRIVER_PATH = os.path.join(CORE_FOLDER, "chromedriver_mac64", "chromedriver")
-
-    else:  # Mac Intel
-        BASE_CHROMIUM_URL = "https://commondatastorage.googleapis.com/chromium-browser-snapshots/Mac/"
-        CHROMIUM_ZIP_NAME = "chrome-mac.zip"
-        CHROMEDRIVER_ZIP_NAME = "chromedriver_mac64.zip"
-        CHROME_PATH = os.path.join(CORE_FOLDER, "chrome-mac", "Chromium.app", "Contents", "MacOS", "Chromium")
-        CHROMEDRIVER_PATH = os.path.join(CORE_FOLDER, "chromedriver_mac64", "chromedriver")
 
 else:
     raise RuntimeError(f"Système non supporté: {sys.platform}")
