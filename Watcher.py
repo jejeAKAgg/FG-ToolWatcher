@@ -70,20 +70,20 @@ def main_watcher():
     Logger.info("Démarrage de FGwatcher...")
     FGdf = FGwatcher(ITEMs)
 
-    Logger.info("Démarrage de FIXAMIwatcher...")
-    FIXAMIdf = FIXAMIwatcher(ITEMs)
+    #Logger.info("Démarrage de FIXAMIwatcher...")
+    #FIXAMIdf = FIXAMIwatcher(ITEMs)
 
-    Logger.info("Démarrage de KLIUMwatcher...")
-    KLIUMdf = KLIUMwatcher(ITEMs)
+    #Logger.info("Démarrage de KLIUMwatcher...")
+    #KLIUMdf = KLIUMwatcher(ITEMs)
 
     #Logger.info("Démarrage de LECOTwatcher...")
     #LECOTdf = LECOTwatcher()
 
     Logger.info("Génération du CSV...")
-    FINALcsv = FINALcsvCONVERTER([CIPACdf, CLABOTSdf, FGdf, FIXAMIdf, KLIUMdf])
+    FINALcsv = FINALcsvCONVERTER([CIPACdf, CLABOTSdf, FGdf])
 
     Logger.info("Génération du XLSX...")
-    FINALxlsx = FINALxlsxCONVERTER([CIPACdf, CLABOTSdf, FGdf, FIXAMIdf, KLIUMdf])
+    FINALxlsx = FINALxlsxCONVERTER([CIPACdf, CLABOTSdf, FGdf])
 
     Logger.info("Envoi des résultats pour la version WEB...")
     EXCELsender(FINALcsv)
