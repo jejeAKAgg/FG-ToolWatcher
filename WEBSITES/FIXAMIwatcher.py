@@ -1,7 +1,9 @@
 import os
+import shutil
 import sys
 import time
 
+import numpy as np
 import pandas as pd
 import random
 
@@ -16,6 +18,7 @@ from selenium.webdriver.chrome.service import Service
 from UTILS.EXCELutils import *
 from UTILS.LOGmaker import *
 from UTILS.PRODUCTformatter import *
+from UTILS.TOOLSbox import *
 from UTILS.WEBsearch import *
 
 
@@ -29,78 +32,98 @@ Logger = logger("FIXAMI")
 # ====================
 #    VARIABLE SETUP
 # ====================
+BASE_SYSTEM_PATH = os.path.dirname(sys.executable) if getattr(sys, 'frozen', False) else os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
+BASE_TEMP_PATH = sys._MEIPASS if getattr(sys, 'frozen', False) else ""
+
+PROFILE_PATH = os.path.join(BASE_SYSTEM_PATH, "CORE", "chrome_profile")
+
+CORE_FOLDER = os.path.join(BASE_SYSTEM_PATH, "CORE")
+DATA_FOLDER = os.path.join(BASE_SYSTEM_PATH, "DATA")
+LOGS_FOLDER = os.path.join(BASE_SYSTEM_PATH, "LOGS")
+
+os.makedirs(CORE_FOLDER, exist_ok=True)
+os.makedirs(DATA_FOLDER, exist_ok=True)
+os.makedirs(LOGS_FOLDER, exist_ok=True)
+
 if sys.platform.startswith("win"):
-    BASE_SYSTEM_PATH = os.path.dirname(sys.executable) if getattr(sys, 'frozen', False) else os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
-    BASE_TEMP_PATH = sys._MEIPASS if getattr(sys, 'frozen', False) else ""
-
-    CORE_FOLDER = os.path.join(BASE_SYSTEM_PATH, "CORE")
-    DATA_FOLDER = os.path.join(BASE_SYSTEM_PATH, "DATA")
-    LOGS_FOLDER = os.path.join(BASE_SYSTEM_PATH, "LOGS")
-
-    os.makedirs(CORE_FOLDER, exist_ok=True)
-    os.makedirs(DATA_FOLDER, exist_ok=True)
-    os.makedirs(LOGS_FOLDER, exist_ok=True)
-
     CHROME_PATH = os.path.join(BASE_SYSTEM_PATH, "CORE", "chrome-win", "chrome.exe")
     CHROMEDRIVER_PATH = os.path.join(BASE_SYSTEM_PATH, "CORE", "chromedriver_win32", "chromedriver.exe")
     PYTHON_EXE = os.path.join(BASE_SYSTEM_PATH, "CORE", "python", "python.exe")
 
-if sys.platform.startswith("linux"):
-    BASE_SYSTEM_PATH = os.path.dirname(sys.executable) if getattr(sys, 'frozen', False) else os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
-    BASE_TEMP_PATH = sys._MEIPASS if getattr(sys, 'frozen', False) else ""
+elif sys.platform.startswith("linux"):
+    CHROME_PATH = os.path.join(BASE_SYSTEM_PATH, "CORE", "chrome-win", "chrome.exe")
+    CHROMEDRIVER_PATH = os.path.join(BASE_SYSTEM_PATH, "CORE", "chromedriver_win32", "chromedriver.exe")
+    PYTHON_EXE = shutil.which("python3") or "/usr/bin/python3"
 
-    CORE_FOLDER = os.path.join(BASE_SYSTEM_PATH, "CORE")
-    DATA_FOLDER = os.path.join(BASE_SYSTEM_PATH, "DATA")
-    LOGS_FOLDER = os.path.join(BASE_SYSTEM_PATH, "LOGS")
+else:
+    raise RuntimeError(f"Système non supporté: {sys.platform}")
 
-    os.makedirs(CORE_FOLDER, exist_ok=True)
-    os.makedirs(DATA_FOLDER, exist_ok=True)
-    os.makedirs(LOGS_FOLDER, exist_ok=True)
+
+# ================================
+#    PARAMETERS & OPTIONS SETUP
+# ================================
+options = Options()
+
+options.add_argument(f"--user-data-dir={PROFILE_PATH}")
+
+options.add_argument("--headless=new")
+options.add_argument("--disable-gpu")
+options.add_argument("--disable-software-rasterizer")
+options.add_argument("--disable-blink-features=AutomationControlled")
+options.add_argument("--no-sandbox")
+options.add_argument("--window-size=400,400")
+options.add_argument("--disable-dev-shm-usage")
+options.add_argument("--disable-infobars")
+options.add_argument("--disable-extensions")
+options.add_argument("--disable-software-rasterizer")
+options.add_argument("--disable-logging")
+options.add_argument("--log-level=3")
+options.add_argument("--remote-debugging-port=9222")
+options.add_argument("--user-agent=Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/114.0.0.0 Safari/537.36")
+
+options.add_experimental_option("excludeSwitches", ["enable-automation", "enable-logging"])
+options.add_experimental_option('useAutomationExtension', False)
+
+if sys.platform.startswith("win"):
+    options.binary_location = CHROME_PATH
+    service = Service(executable_path=CHROMEDRIVER_PATH)
+else:
+    service = None
 
 
 # ====================
 #      FUNCTIONS
 # ====================
-def extract_FIXAMI_products_data(MPN):
+def extract_FIXAMI_products_data(MPN, driver):
 
     # === PARAMETERS ===
     ATTEMPT = 0
     MAX_RETRIES = 3
     RETRY_DELAY = 5
-    
-    # === Selenium OPTIONS ===
-    options = Options()
-    
-    options.add_argument("--headless")
-    options.add_argument("--disable-gpu")
-    options.add_argument("--no-sandbox")
-    options.add_argument("--window-size=400,400")
-    options.add_argument("--disable-dev-shm-usage")
-    options.add_argument("--disable-infobars")
-    options.add_argument("--disable-extensions")
-    options.add_argument("--disable-software-rasterizer")
-    options.add_argument("--disable-logging")
-    options.add_argument("--log-level=3")
-    options.add_argument("--remote-debugging-port=9222")
-    options.add_argument("--user-agent=Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/114.0.0.0 Safari/537.36")
 
-    options.add_experimental_option("excludeSwitches", ["enable-automation", "enable-logging"])
-    options.add_experimental_option('useAutomationExtension', False)
+    # === INTERNAL PARAMETER(S) ===
+    REQUESTurl = f"https://www.fixami.be/fr/produits.html?s={MPN}"
+    PRODUCTvar = {   
+        'MPN': "REF-" + MPN,
+        'Société': "FIXAMI",
+        'Article': "Produit indisponible",
+        'ArticleURL': "-",
+        'Marque': "-",
+        'Prix (HTVA)': np.nan,
+        'Prix (TVA)': np.nan,
+        'Ancien Prix (HTVA)': np.nan,
+        'Evolution du prix': "-",
+        'Offres': "-",
+        'Stock': "-",
+        'Checked on': datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+    }
 
-    if sys.platform.startswith("win"):
-        options.binary_location = CHROME_PATH
-        service = Service(executable_path=CHROMEDRIVER_PATH)
-    else:
-        service = None
-
-    # === Initializing WebDriver & running search ===
-    driver = webdriver.Chrome(options=options, service=service)
+    # === Running search ===
     while ATTEMPT < MAX_RETRIES:
         try:
-            REQUESTurl = f"https://www.fixami.be/fr/produits.html?s={MPN}"
             driver.get(REQUESTurl)
             
-            time.sleep(3)
+            time.sleep(5)
 
             accept_cookies(driver, "Fixami")
 
@@ -122,28 +145,12 @@ def extract_FIXAMI_products_data(MPN):
                         ARTICLEurl = WEBsearch(MPN, "fixami.be")
                 else:
                     Logger.warning(f"Pas de produits trouvés pour la REF-{MPN}")
-                    product = {
-                        'MPN': "REF-" + MPN,
-                        'Société': "FIXAMI",
-                        'Article': "Produit indisponible",
-                        'Marque': "-",
-                        'Prix (HTVA)': "-",
-                        'Prix (TVA)': "-",
-                        'Ancien Prix (HTVA)': "-",
-                        'Evolution du prix': "-",
-                        'Offres': "-",
-                        'Stock': "-",
-                        'Checked on': datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-                    }
 
-                    return product
-
-                driver.quit()
-                driver = webdriver.Chrome(options=options, service=service)
+                    return PRODUCTvar
                     
                 driver.get(ARTICLEurl)
                 
-                time.sleep(3)
+                time.sleep(5)
 
                 accept_cookies(driver, "Fixami")
                     
@@ -155,31 +162,17 @@ def extract_FIXAMI_products_data(MPN):
 
             if (extract_fixami_ref(soup) is not None and extract_fixami_ref(soup) != MPN):
                 Logger.warning(f"Faux positif détecté pour la REF-{MPN}: REF-{extract_fixami_ref(soup)} détectée à la place! Pas pris en compte...")
-                product = {
-                    'MPN': "REF-" + MPN,
-                    'Société': "FIXAMI",
-                    'Article': "Produit indisponible",
-                    'Marque': "-",
-                    'Prix (HTVA)': "-",
-                    'Prix (TVA)': "-",
-                    'Ancien Prix (HTVA)': "-",
-                    'Evolution du prix': "-",
-                    'Offres': "-",
-                    'Stock': "-",
-                    'Checked on': datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-                }
 
-                return product
-
-            product = {}
+                return PRODUCTvar
             
-            product['MPN'] = "REF-" + MPN
-            product['Société'] = 'FIXAMI'
-            product['Article'] = (
+            PRODUCTvar['MPN'] = "REF-" + MPN
+            PRODUCTvar['Société'] = 'FIXAMI'
+            PRODUCTvar['Article'] = (
                 (name := soup.find("h1", class_="sc-9a380768-0"))
-                and f'=HYPERLINK("{ARTICLEurl}"; "{standardize_name(name.get_text(strip=True).replace("\"", "\"\""), html=ARTICLEpage)}")'
+                and standardize_name(name.get_text(strip=True).replace("\"", "\"\""), html=ARTICLEpage)
             )
-            product['Marque'] = (
+            PRODUCTvar['ArticleURL'] = ARTICLEurl
+            PRODUCTvar['Marque'] = (
                 (name := soup.find("h1", class_="sc-9a380768-0"))
                 and extract_brand_from_all_sources(name.get_text(strip=True).replace("\"", "\"\""), html=ARTICLEpage)
             )
@@ -196,18 +189,18 @@ def extract_FIXAMI_products_data(MPN):
                 )
             )
 
-            product['Prix (HTVA)'] = format_price_for_excel(HTVA)
-            product['Prix (TVA)'] = format_price_for_excel(TVA)
-            product['Ancien Prix (HTVA)'] = "TODO"
-            product['Evolution du prix'] = "TODO"
-            product['Offres'] = extract_offers_FIXAMI(soup)
-            product['Stock'] = bool(
+            PRODUCTvar['Prix (HTVA)'] = format_price_for_excel(HTVA)
+            PRODUCTvar['Prix (TVA)'] = format_price_for_excel(TVA)
+            PRODUCTvar['Ancien Prix (HTVA)'] = "TODO"
+            PRODUCTvar['Evolution du prix'] = "TODO"
+            PRODUCTvar['Offres'] = extract_offers_FIXAMI(soup)
+            PRODUCTvar['Stock'] = bool(
                 (delivery := soup.find("p", attrs={"data-testid": "delivery-time"}))
                 and ("livré demain" in delivery.get_text(strip=True).lower())
             )
-            product['Checked on'] = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+            PRODUCTvar['Checked on'] = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
 
-            return product
+            return PRODUCTvar
         
 
         except Exception as e:
@@ -216,46 +209,41 @@ def extract_FIXAMI_products_data(MPN):
             ATTEMPT+=1
             if ATTEMPT == MAX_RETRIES:
                 Logger.warning(f"Abandon après {MAX_RETRIES} tentatives pour REF-{MPN}")
-                product = {
-                    'MPN': MPN,
-                    'Société': "FIXAMI",
-                    'Article': "Erreur lors de l'extraction",
-                    'Marque': "-",
-                    'Prix (HTVA)': "-",
-                    'Prix (TVA)': "-",
-                    'Ancien Prix (HTVA)': "-",
-                    'Evolution du prix': "-",
-                    'Offres': "-",
-                    'Stock': "-",
-                    'Checked on': datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-                }
 
-                return product
+                return PRODUCTvar
             
             else:
                 time.sleep(RETRY_DELAY)
-        
-        # === Closing WebDriver ===
-        finally:
-            driver.quit()
 
 
 # ====================
 #        MAIN
 # ====================
-def FIXAMIwatcher():
-
-    MPNs = EXCELreader("MPNs")
+def FIXAMIwatcher(ITEMs):
 
     CSVpath = os.path.join(BASE_SYSTEM_PATH, "DATA", "FIXAMIproducts.csv")
     XLSXpath = os.path.join(BASE_SYSTEM_PATH, "DATA", "FIXAMIproducts.xlsx")
 
+    CACHEdata = load_cache(CSVpath)
+
     products = []
-    for MPN in MPNs:
-        data = extract_FIXAMI_products_data(MPN)
-        if data:
-            products.append(data)
-        time.sleep(random.uniform(1.5, 3))
+    try:
+        driver = webdriver.Chrome(options=options, service=service)
+
+        for ITEM in ITEMs:
+            if cached := check_cache(CACHEdata, ITEM):
+                Logger.info(f"REF-{ITEM} récupéré depuis le cache")
+                products.append(cached)
+                continue
+
+            data = extract_FIXAMI_products_data(ITEM, driver)
+            if data:
+                products.append(data)
+            time.sleep(random.uniform(1.5, 3))
+    
+    finally:
+        if 'driver' in locals() and driver:
+            driver.quit()
 
     df = pd.DataFrame(products)
     df.to_csv(CSVpath, index=False, encoding='utf-8-sig')
