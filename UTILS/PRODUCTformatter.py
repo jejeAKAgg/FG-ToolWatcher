@@ -261,9 +261,10 @@ def extract_cipac_ref(soup):
     if p_ref:
         text = p_ref.get_text(separator=' ').strip()  # on remplace les <br> par des espaces
         # Regex pour récupérer la valeur après "Réf. :"
-        match = re.search(r'Réf\. :\s*(\S+)', text)
+        match = re.search(r'Réf\. :\s*(.+)', text)
         if match:
-            return match.group(1)
+            return match.group(1).strip()
+        
     return None
 
 def extract_clabots_ref(soup):
