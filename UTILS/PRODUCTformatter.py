@@ -1,9 +1,8 @@
+import numpy as np
 import re
 import time
 
 from bs4 import BeautifulSoup
-
-from selenium.webdriver.common.by import By
 
 from typing import Optional
 
@@ -17,11 +16,11 @@ from UTILS.LOGmaker import *
 Logger = logger("PRODUCTformatter")
 
 
-# ====================
-#    VARIABLE SETUP
-# ====================
+# =======================
+#  GLOBAL VARIABLE SETUP
+# =======================
 KNOWN_BRANDS = [
-    "3M", "ABB", "Bosch", "Contimac", "Cembre", "Dewalt", "Eaton", "Facom",
+    "ABB", "Bosch", "Contimac", "Cembre", "Dewalt", "DL Chemicals", "Eaton", "Facom",
     "Festool", "Fluke", "Hager", "HellermannTyton", "Hikoki", "Karcher",
     "Klauke", "Knipex", "Kraftwerk", "Legrand", "Makita", "Meno", "Milwaukee",
     "Petzl", "Phoenix Contact", "Rothenberger", "Schneider", "Siemens",
@@ -35,10 +34,20 @@ BLACKLIST_TERMS = ["ral", "color", "silirub", "silicone", "acrylique", "cartouch
 #   NAME FORMATTER FUNCTIONS
 # ============================
 def standardize_name(product_name: str, html: str | None = None) -> str:
+    
     """
-    Renvoie le nom standardisé du produit : 'Marque - Nom Produit'.
-    Utilise le HTML si fourni pour détecter plus intelligemment la marque.
+    Returns a standardized product name in the format 'Brand - Product Name'.
+    Uses optional HTML input to better detect the brand.
+
+    Args:
+        product_name (str): Raw product name string.
+        html (str | None): Optional HTML source to extract brand information.
+
+    Returns:
+        str: Standardized product name.
+    
     """
+
     brand = extract_brand_from_all_sources(product_name, html)
     model = extract_product_name(product_name)
 
@@ -47,18 +56,38 @@ def standardize_name(product_name: str, html: str | None = None) -> str:
     return model.upper()
 
 def extract_brand(product_name: str) -> str | None:
+    
     """
-    Détecte une marque connue dans le nom du produit.
+    Detects a known brand within the product name.
+
+    Args:
+        product_name (str): Raw product name string.
+
+    Returns:
+        str | None: Brand name in uppercase if found, else None.
+    
     """
+
     for brand in KNOWN_BRANDS:
         if brand.lower() in product_name.lower():
             return brand.upper()
     return None
 
 def extract_brand_from_all_sources(product_name: str, html: str | None = None) -> str | None:
+    
     """
-    Tente de détecter la marque depuis le HTML (balise .fabricant), sinon depuis le nom du produit.
+    Attempts to detect the brand from HTML (div with class 'fabricant') first,
+    falling back to product name if HTML is not provided or brand not found.
+
+    Args:
+        product_name (str): Raw product name string.
+        html (str | None): Optional HTML source.
+
+    Returns:
+        str | None: Detected brand in uppercase or None if not found.
+    
     """
+
     if html:
         soup = BeautifulSoup(html, "html.parser")
         fabricant_tag = soup.find("div", class_="fabricant")
@@ -71,9 +100,19 @@ def extract_brand_from_all_sources(product_name: str, html: str | None = None) -
     return extract_brand(product_name)
 
 def clean_product_name(product_name: str) -> str:
+    
     """
-    Nettoie les éléments inutiles dans le nom (quantité, taille, parenthèses...).
+    Cleans unnecessary elements from the product name, such as quantities, sizes, 
+    parenthesis content, color codes, references, and normalizes separators.
+
+    Args:
+        product_name (str): Raw product name.
+
+    Returns:
+        str: Cleaned product name.
+    
     """
+
     name = product_name.strip()
 
     # Supprime le contenu entre parenthèses
@@ -98,9 +137,18 @@ def clean_product_name(product_name: str) -> str:
     return name.strip()
 
 def extract_product_name(product_name: str) -> str:
+    
     """
-    Extrait le nom du produit en supprimant la marque détectée.
+    Extracts the product name by removing the detected brand.
+
+    Args:
+        product_name (str): Raw product name.
+
+    Returns:
+        str: Product name with brand removed and formatted in title case.
+    
     """
+
     brand = extract_brand(product_name)
     cleaned = clean_product_name(product_name)
 
@@ -112,6 +160,19 @@ def extract_product_name(product_name: str) -> str:
     return cleaned.title()
 
 def parse_price(text: str | None) -> float | None:
+
+    """
+    Parses a price string into a float. Handles European formats and removes
+    currency symbols, special spaces, and labels (HTVA, TTC).
+
+    Args:
+        text (str | None): Raw price string.
+
+    Returns:
+        float | None: Parsed price as float, or None if parsing fails.
+    
+    """
+
     if not text:
         return None
 
@@ -142,22 +203,60 @@ def parse_price(text: str | None) -> float | None:
         return None
     
 def calculate_missing_price(htva: float | None, tva: float | None, tva_rate: float = 0.21) -> tuple[float | None, float | None]:
+    
     """
-    Calcule le prix manquant (HTVA ou TVA) si l'autre est présent.
+    Calculates the missing HTVA or TVA price if the other is provided.
+
+    Args:
+        htva (float | None): Price excluding VAT.
+        tva (float | None): Price including VAT.
+        tva_rate (float, optional): VAT rate. Default is 0.21 (21%).
+
+    Returns:
+        tuple[float | None, float | None]: Tuple of (HTVA, TVA).
+    
     """
+
     if htva is not None and tva is None:
         tva = htva * (1 + tva_rate)
     elif tva is not None and htva is None:
         htva = tva / (1 + tva_rate)
     return htva, tva
     
-def format_price_for_excel(price: float | None) -> str:
-    return f"{price:.2f}".replace('.', ',') if price is not None else ""
+def format_price_for_excel(price: float | None) -> float:
+    
+    """
+    Converts a raw price to a float rounded to 2 decimals for Excel.
+
+    Args:
+        price (float | None): Raw price value.
+
+    Returns:
+        float: Rounded float value, or np.nan if conversion fails.
+    
+    """
+    
+    try:
+        return round(float(str(price).replace(",", ".")), 2)
+    except (TypeError, ValueError):
+        return np.nan
 
 # ============================
 #   REFs EXTRACTOR FUNCTIONS
 # ============================
 def extract_cipac_ref(soup):
+
+    """
+    Extracts the CIPAC reference from the parsed HTML.
+
+    Args:
+        soup (BeautifulSoup): Parsed HTML of the product page.
+
+    Returns:
+        str | None: CIPAC reference or None if not found.
+    
+    """
+
     p_ref = soup.find('p', class_='ref')
     if p_ref:
         text = p_ref.get_text(separator=' ').strip()  # on remplace les <br> par des espaces
@@ -168,6 +267,18 @@ def extract_cipac_ref(soup):
     return None
 
 def extract_clabots_ref(soup):
+
+    """
+    Extracts the supplier reference for Clabots products.
+
+    Args:
+        soup (BeautifulSoup): Parsed HTML.
+
+    Returns:
+        str | None: Supplier reference or None if not found.
+    
+    """
+
     rows = soup.select('div.attribute-table__row')
     for row in rows:
         label = row.select_one('div.attribute-table__column__label')
@@ -178,6 +289,18 @@ def extract_clabots_ref(soup):
     return None
 
 def extract_fixami_ref(soup):
+
+    """
+    Extracts the Fixami model code from HTML.
+
+    Args:
+        soup (BeautifulSoup): Parsed HTML.
+
+    Returns:
+        str | None: Model code or None if not found.
+    
+    """
+
     dt = soup.find('dt', string=lambda x: x and "Code du modèle" in x)
     if dt:
         dd = dt.find_next_sibling('dd')
@@ -188,6 +311,18 @@ def extract_fixami_ref(soup):
     return None
 
 def extract_klium_ref(soup):
+
+    """
+    Extracts the Klium supplier reference from HTML, removing brand prefix.
+
+    Args:
+        soup (BeautifulSoup): Parsed HTML.
+
+    Returns:
+        str | None: Supplier reference or None if not found.
+    
+    """
+
     supplier_ref_li = soup.find('li', id='supplier_reference_value')
     if supplier_ref_li:
         span = supplier_ref_li.find('span')
@@ -207,6 +342,18 @@ def extract_klium_ref(soup):
     return None
 
 def extract_lecot_ref(soup):
+
+    """
+    Extracts the Lecot supplier reference from HTML.
+
+    Args:
+        soup (BeautifulSoup): Parsed HTML.
+
+    Returns:
+        str | None: Supplier reference or None if not found.
+    
+    """
+
     rows = soup.select('tr.properties-row')
     for row in rows:
         label = row.select_one('th.properties-label')
@@ -221,6 +368,18 @@ def extract_lecot_ref(soup):
 #  OFFERS EXTRACTOR FUNCTIONS
 # ============================
 def extract_offers_FIXAMI(soup: BeautifulSoup) -> Optional[str]:
+
+    """
+    Extracts quantity/price offers from Fixami product page.
+
+    Args:
+        soup (BeautifulSoup): Parsed HTML.
+
+    Returns:
+        str: Offers formatted as 'quantity: price€ (discount)', or '-' if none found.
+    
+    """
+
     offers = []
 
     for offer_block in soup.select("div.sc-cd80083d-1"):
@@ -243,6 +402,18 @@ def extract_offers_FIXAMI(soup: BeautifulSoup) -> Optional[str]:
     return "\n".join(offers) if offers else "-"
 
 def extract_offers_KLIUM(soup: BeautifulSoup) -> Optional[str]:
+
+    """
+    Extracts quantity/price offers from KLIUM product page.
+
+    Args:
+        soup (BeautifulSoup): Parsed HTML.
+
+    Returns:
+        str: Offers formatted as 'quantity: price€ (discount)', or '-' if none found.
+    
+    """
+
     offers = []
 
     # Sélectionne tous les blocs d'offres
@@ -267,28 +438,3 @@ def extract_offers_KLIUM(soup: BeautifulSoup) -> Optional[str]:
             offers.append(f"{quantity_text}: {price:.2f}€{discount_text}")
 
     return "\n".join(offers) if offers else "-"
-
-# =============================
-#  COOKIES EXTRACTOR FUNCTIONS
-# =============================
-def accept_cookies(driver, site_name):
-    cookie_buttons = {
-        "fixami": "ac",
-        "klium": "CybotCookiebotDialogBodyButtonAccept",
-        "lecot": "CybotCookiebotDialogBodyLevelButtonLevelOptinAllowAll"
-    }
-
-    button_id = cookie_buttons.get(site_name.lower())
-
-    if not button_id:
-        Logger.info(f"[{site_name}] Aucun bouton de cookie défini.")
-        return
-
-    try:
-        accept_button = driver.find_element(By.ID, button_id)
-        if accept_button.is_displayed():
-            accept_button.click()
-            Logger.info(f"Cookies acceptés pour {site_name}: {driver.current_url}.")
-            time.sleep(5)
-    except Exception:
-        Logger.info(f"Pas de cookies à accepter ou déjà acceptés pour {site_name}: {driver.current_url}.")
