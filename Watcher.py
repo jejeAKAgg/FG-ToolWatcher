@@ -65,25 +65,28 @@ def main_watcher():
     CIPACdf = CIPACwatcher(ITEMs)
 
     Logger.info("Démarrage de CLABOTSwatcher...")
-    CLABOTSdf = CLABOTSwatcher()
+    CLABOTSdf = CLABOTSwatcher(ITEMs)
 
     Logger.info("Démarrage de FGwatcher...")
-    FGdf = FGwatcher()
+    FGdf = FGwatcher(ITEMs)
 
     Logger.info("Démarrage de FIXAMIwatcher...")
-    FIXAMIdf = FIXAMIwatcher()
+    FIXAMIdf = FIXAMIwatcher(ITEMs)
 
     Logger.info("Démarrage de KLIUMwatcher...")
-    KLIUMdf = KLIUMwatcher()
+    KLIUMdf = KLIUMwatcher(ITEMs)
 
     #Logger.info("Démarrage de LECOTwatcher...")
     #LECOTdf = LECOTwatcher()
 
-    Logger.info("Démarrage de CSVmerger...")
-    FINALxlsx = FINALdf([CIPACdf, CLABOTSdf, FGdf, FIXAMIdf, KLIUMdf])
+    Logger.info("Génération du CSV...")
+    FINALcsv = FINALcsvCONVERTER([CIPACdf, CLABOTSdf, FGdf, FIXAMIdf, KLIUMdf])
+
+    Logger.info("Génération du XLSX...")
+    FINALxlsx = FINALxlsxCONVERTER([CIPACdf, CLABOTSdf, FGdf, FIXAMIdf, KLIUMdf])
 
     Logger.info("Envoi des résultats pour la version WEB...")
-    EXCELsender(FINALxlsx)
+    EXCELsender(FINALcsv)
 
     Logger.info("Envoi des résultats pour la version MAIL...")
     MAILconfig = JSONloader(os.path.join(BASE_TEMP_PATH, "CONFIGS", "EMAILconfig.json"))

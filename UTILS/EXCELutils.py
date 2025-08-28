@@ -28,117 +28,203 @@ FINALcsv = os.path.join(BASE_SYSTEM_PATH, "DATA", "RESULTSproducts.csv")
 FINALxlsx = os.path.join(BASE_SYSTEM_PATH, "DATA", "RESULTSproducts.xlsx")
 
 
-# ====================
-#     CSV MERGER 
-# ====================
-def FINALdf(files):
-    # Fusion + tri + réindexation
-    final_df = pd.concat(files, ignore_index=True)
+# ===================
+#   EXCEL FUNCTIONS 
+# ===================
+def EXCELreader(worksheet):
     
+    """
+    Read the specific sheet 'MPNs/Articles' available online and return
+    a list containing all specific values present on the sheet.
+
+    Args:
+        worksheet (gspread.models.Worksheet): 
+            The Google Sheets worksheet object to read from.
+
+    Returns:
+        list[str]: 
+            A list containing all extracted values from the sheet.
+
+    """
+
+    # === Access ===
+    scope = ['https://spreadsheets.google.com/feeds', 'https://www.googleapis.com/auth/drive']
+
+    # === Auth ===
+    creds = ServiceAccountCredentials.from_json_keyfile_name(os.path.join(BASE_TEMP_PATH,'CONFIGS/BOTconfig.json'), scope)
+    client = gspread.authorize(creds)
+
+    # === Opening the given sheet and reading the first column (only place where MPNs/Articles are put) ===
+    sheet = client.open("FG-ToolWatcher List").worksheet(worksheet)
+    urls = sheet.col_values(1)
+
+    # === Returning a list of all the content available ===
+    return [url.strip() for url in urls if url.strip()]
+
+
+def FINALcsvCONVERTER(files):
+
+    """
+    Merges multiple DataFrames, creates hyperlinks in the 'Article' column,
+    normalizes price columns, and exports as CSV ready for Google Sheets.
+
+    Args:
+        files (list[pd.DataFrame]): List of DataFrames to merge.
+
+    Returns:
+        str: Path to the generated CSV file.
+    
+    """
+
+    price_cols = ["Prix (HTVA)", "Prix (TVA)", "Ancien Prix (HTVA)"]
+
+    # --- Merge ---
+    final_df = pd.concat(files, ignore_index=True)
+
+    # --- Priorité FERNAND GEORGES pour tri ---
     final_df['priority'] = final_df['Société'].apply(lambda x: 0 if x == "FERNAND GEORGES" else 1)
-    final_df = final_df.sort_values(by=["MPN", "priority", "Société"], ascending=[True, True, True]).reset_index(drop=True)
+    final_df = final_df.sort_values(by=["MPN", "priority", "Société"]).reset_index(drop=True)
     final_df.drop(columns=['priority'], inplace=True)
 
-    # CSV brut
-    final_df.to_csv(FINALcsv, index=False, encoding='utf-8-sig', quoting=csv.QUOTE_ALL)
+    # --- Fusion Article + ArticleURL en HYPERLINK ---
+    if "Article" in final_df.columns and "ArticleURL" in final_df.columns:
+        final_df["Article"] = final_df.apply(
+            lambda x: f'=HYPERLINK("{x["ArticleURL"]}"; "{x["Article"]}")'
+            if pd.notna(x["ArticleURL"]) and x["ArticleURL"] not in ["", "-", "None"] else "Produit indisponible",
+            axis=1
+        )
+        final_df = final_df.drop(columns=["ArticleURL"])
+
+    # --- Normalisation prix ---
+    if price_cols:
+        for col in price_cols:
+            if col in final_df.columns:
+                final_df[col] = final_df[col].apply(lambda x: "" if pd.isna(x) else str(x).replace('.', ','))
+
+    # --- Export CSV ---
+    final_df.to_csv(FINALcsv, sep=';', index=False, encoding='utf-8-sig', quoting=csv.QUOTE_ALL)
+
+    # --- Return ---
+    return FINALcsv
 
 
-    # Excel avec hyperliens
+def FINALxlsxCONVERTER(files):
+
+    """
+    Merges multiple DataFrames, creates hyperlinks in the 'Article' column,
+    normalizes price columns, exports as XLSX for Excel, and applies formatting:
+    - Bold rows where 'Société' is 'FERNAND GEORGES'.
+    - Secure hyperlinks in the 'Article' column.
+
+    Args:
+        files (list[pd.DataFrame]): List of DataFrames to merge.
+
+    Returns:
+        str: Path to the generated XLSX file.
+    
+    """
+
+    price_cols = ["Prix (HTVA)", "Prix (TVA)", "Ancien Prix (HTVA)"]
+
+    # --- Merge ---
+    final_df = pd.concat(files, ignore_index=True)
+
+    # --- Priorité FERNAND GEORGES pour tri ---
+    final_df['priority'] = final_df['Société'].apply(lambda x: 0 if x == "FERNAND GEORGES" else 1)
+    final_df = final_df.sort_values(by=["MPN", "priority", "Société"]).reset_index(drop=True)
+    final_df.drop(columns=['priority'], inplace=True)
+
+    # --- Préparer hyperliens Article directement dans Article ---
+    if "Article" in final_df.columns and "ArticleURL" in final_df.columns:
+        final_df["Article"] = final_df.apply(
+            lambda x: f'=HYPERLINK("{x["ArticleURL"]}"; "{x["Article"]}")'
+            if pd.notna(x["ArticleURL"]) and x["ArticleURL"] not in ["", "-", "None"] else "Produit indisponible",
+            axis=1
+        )
+        final_df = final_df.drop(columns=["ArticleURL"])
+
+    # --- Export Excel ---
     with pd.ExcelWriter(FINALxlsx, engine='xlsxwriter') as writer:
+        final_df.to_excel(writer, index=False, sheet_name="Feuille1")
         workbook = writer.book
-        worksheet = workbook.add_worksheet("Feuille1")
-        writer.sheets["Feuille1"] = worksheet
+        worksheet = writer.sheets["Feuille1"]
 
-        # Format gras
+        # --- Bold FERNAND GEORGES ---
         bold_format = workbook.add_format({'bold': True})
+        for row_idx, societe in enumerate(final_df['Société'], start=1):
+            if societe == "FERNAND GEORGES":
+                worksheet.set_row(row_idx, None, bold_format)
 
-        # En-tête
-        for col_idx, col_name in enumerate(final_df.columns):
-            worksheet.write(0, col_idx, col_name)
+        # --- Hyperliens sécurisés dans Article ---
+        article_col_idx = final_df.columns.get_loc("Article")
+        hyperlink_pattern = re.compile(r'=HYPERLINK\("([^"]+)"; "([^"]+)"\)', re.IGNORECASE)
 
-        hyperlink_pattern = re.compile(r'=HYPERLINK\("([^"]+)"\s*;\s*"([^"]+)"\)', re.IGNORECASE)
-
-        # Colonnes à mettre en gras uniquement pour FERNAND GEORGES
-        cols_to_bold = ["Société", "Prix (HTVA)", "Prix (TVA)"]
-
-        # Écriture lignes
-        for row_idx in range(len(final_df)):
-            is_fg = final_df.iloc[row_idx]['Société'] == "FERNAND GEORGES"
-            for col_idx, col_name in enumerate(final_df.columns):
-                value = final_df.iloc[row_idx, col_idx]
-
-                # Appliquer gras uniquement sur ces colonnes ET si Société == FERNAND GEORGES
-                if is_fg and col_name in cols_to_bold:
-                    cell_format = bold_format
-                else:
-                    cell_format = None
-
-                if col_name == "Article" and isinstance(value, str):
-                    match = hyperlink_pattern.match(value.strip())
-                    if match:
-                        url, text = match.groups()
-                        text = text.replace('""', '"')  # Correction des doubles guillemets
-                        worksheet.write_url(row_idx + 1, col_idx, url.strip(), string=text.strip(), cell_format=cell_format)
+        for row_idx, val in enumerate(final_df["Article"], start=1):
+            if isinstance(val, str):
+                match = hyperlink_pattern.match(val.strip())
+                if match:
+                    url, text = match.groups()
+                    if url.startswith(("http://", "https://", "mailto:")):
+                        worksheet.write_url(row_idx, article_col_idx, url, string=text)
                     else:
-                        worksheet.write(row_idx + 1, col_idx, value, cell_format)
+                        worksheet.write(row_idx, article_col_idx, "Produit indisponible")
                 else:
-                    worksheet.write(row_idx + 1, col_idx, value, cell_format)
+                    worksheet.write(row_idx, article_col_idx, val)
+
+        # --- Formattage prix ---
+        money_format = workbook.add_format({'num_format': '#,##0.00'})
+        for col_name in price_cols:
+            if col_name in final_df.columns:
+                col_idx = final_df.columns.get_loc(col_name)
+                worksheet.set_column(col_idx, col_idx, 15, money_format)
 
     return FINALxlsx
 
 
-# ====================
-#     EXCEL READER 
-# ====================
-def EXCELreader(worksheet):
-    # Portée de l'accès
-    scope = ['https://spreadsheets.google.com/feeds', 'https://www.googleapis.com/auth/drive']
-
-    # Authentification
-    creds = ServiceAccountCredentials.from_json_keyfile_name(os.path.join(BASE_TEMP_PATH,'CONFIGS/BOTconfig.json'), scope)
-    client = gspread.authorize(creds)
-
-    # Ouvre la feuille
-    sheet = client.open("FG-ToolWatcher List").worksheet(worksheet)
-
-    # Lit la colonne A (URLs)
-    urls = sheet.col_values(1)
-
-    return [url.strip() for url in urls if url.strip()]
-
-
-# ====================
-#     EXCEL SENDER 
-# ====================
 def EXCELsender(file, retries=3, delay=10):
+
+    """
+    Uploads a local CSV or XLSX file to Google Sheets ("FG-ToolWatcher List" > "RESULTS").
+    - Creates the worksheet if it doesn't exist.
+    - Clears existing content before upload.
+    - Automatically retries on API errors.
+
+    Args:
+        file (str): Path to the CSV or XLSX file.
+        retries (int, optional): Maximum retry attempts. Default is 3.
+        delay (int, optional): Delay in seconds between retries. Default is 10.
+
+    Returns:
+        None
+    """
+
     attempt = 0
 
     while attempt < retries:
         try:
             Logger.info(f"Tentative d'envoi vers Google Sheets (tentative {attempt + 1}/{retries})...")
 
-            # === AUTHENTIFICATION === #
+            # === Auth ===
             scope = ['https://spreadsheets.google.com/feeds', 'https://www.googleapis.com/auth/drive']
-            creds = ServiceAccountCredentials.from_json_keyfile_name(os.path.join(BASE_TEMP_PATH,'CONFIGS/BOTconfig.json'), scope)
+            creds = ServiceAccountCredentials.from_json_keyfile_name(
+                os.path.join(BASE_TEMP_PATH,'CONFIGS/BOTconfig.json'), scope)
             client = gspread.authorize(creds)
 
-            # === OUVERTURE DE LA FEUILLE === #
+            # === Opening sheet and switching to correct worksheet ===
             spreadsheet = client.open("FG-ToolWatcher List")
 
-            # === OUVERTURE/CRÉATION DE L'ONGLET "RESULTS" === #
             try:
                 sheet = spreadsheet.worksheet("RESULTS")
             except WorksheetNotFound:
                 Logger.warning("Onglet 'RESULTS' non trouvé. Création en cours...")
                 sheet = spreadsheet.add_worksheet(title="RESULTS", rows="1000", cols="20")
 
-            # === VIDAGE DU CONTENU EXISTANT (optionnel) === #
+            # === Cleaning ===
             sheet.clear()
 
-            # === CHARGEMENT DU XLSX DANS UN DATAFRAME === #
-            df = pd.read_excel(file, engine="openpyxl")
+            # --- Lecture CSV/XLSX ---
+            df = pd.read_csv(file, sep=';', encoding='utf-8-sig', quoting=csv.QUOTE_ALL) if file.lower().endswith('.csv') else pd.read_excel(file)
 
-            # === ENVOI VERS GOOGLE SHEETS === #
             set_with_dataframe(sheet, df)
 
             Logger.info("Envoi vers Google Sheets réussi.")
