@@ -5,13 +5,12 @@ a = Analysis(
     pathex=[],
     binaries=[],
     datas=[
+        ('APP/*', 'APP/'),
         ('ASSETS/*', 'ASSETS/'),
         ('CONFIGS/*', 'CONFIGS/'),
         ('UTILS/*', 'UTILS/'),
         ('WEBSITES/*', 'WEBSITES/'),
-        ('Watcher.py', '.'),
-        ('requirements.txt', '.'),
-        ('downloaded_files', '.'),
+        ('Watcher.py', '.')
     ],
     hiddenimports=[],
     hookspath=[],
