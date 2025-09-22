@@ -49,7 +49,7 @@ class UserConfig:
             os.makedirs(folder, exist_ok=True)
 
         with open(self.path, "w", encoding="utf-8") as f:
-            json.dump(self.config, f, indent=4)
+            json.dump(self.config, f, indent=4, ensure_ascii=False)
 
     def get(self, key, default=None):
         """Accède à une valeur avec fallback."""

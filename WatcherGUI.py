@@ -33,8 +33,8 @@ class WatcherGUI(QWidget):
     def __init__(self):
         super().__init__()
         
-        USERconfig = UserConfig(USER_CONFIG_PATH)
-        USERconfig.load()
+        self.USERconfig = UserConfig(USER_CONFIG_PATH)
+        self.USERconfig.load()
         
         make_dirs()
         
@@ -61,7 +61,7 @@ class WatcherGUI(QWidget):
         self.settings_button = CustomPushButton(os.path.join(BASE_TEMP_PATH, "APP", "ASSETS", "settings.ico"), tip="Paramètres")
         
         self.update_button.clicked.connect(self.toggle_setup)
-        self.profile_button.clicked.connect(self.show_profile)
+        self.profile_button.clicked.connect(self.toggle_profile)
         self.settings_button.clicked.connect(self.toggle_settings)
 
         TOP_BAR = create_top_buttons(self.update_button, self.profile_button, self.settings_button)
@@ -88,14 +88,14 @@ class WatcherGUI(QWidget):
         self.stack_container = QWidget()
 
         self.setup_page = SetupPage(update_button=self.update_button, profile_button=self.profile_button, settings_button=self.settings_button, parent=self.stack_container)
-        self.profile_page = ProfilePage(update_button=self.update_button, profile_button=self.profile_button, settings_button=self.settings_button, config=USERconfig, parent=self.stack_container)
-        self.main_page = MainPage(update_button=self.update_button, profile_button=self.profile_button, settings_button=self.settings_button, config=USERconfig, parent=self.stack_container)
-        self.calibration_page = CalibrationPage(update_button=self.update_button, profile_button=self.profile_button, settings_button=self.settings_button, config=USERconfig, parent=self.stack_container)
-        self.settings_page = SettingsPage(update_button=self.update_button, profile_button=self.profile_button, settings_button=self.settings_button, config=USERconfig, parent=self.stack_container)
+        self.profile_page = ProfilePage(update_button=self.update_button, profile_button=self.profile_button, settings_button=self.settings_button, config=self.USERconfig, parent=self.stack_container)
+        self.main_page = MainPage(update_button=self.update_button, profile_button=self.profile_button, settings_button=self.settings_button, config=self.USERconfig, parent=self.stack_container)
+        self.calibration_page = CalibrationPage(update_button=self.update_button, profile_button=self.profile_button, settings_button=self.settings_button, config=self.USERconfig, parent=self.stack_container)
+        self.settings_page = SettingsPage(update_button=self.update_button, profile_button=self.profile_button, settings_button=self.settings_button, config=self.USERconfig, parent=self.stack_container)
 
         self.transition = FadeTransition(self.stack)
 
-        self.setup_page.setup_finished.connect(lambda: self.transition.fade_to(self.profile_page if not USERconfig.get("user_mail") else self.main_page, on_finished=lambda: self._update_top_buttons()))
+        self.setup_page.setup_finished.connect(lambda: self.transition.fade_to(self.profile_page if not self.USERconfig.get("user_mail") else self.main_page, on_finished=lambda: self._update_top_buttons()))
         self.profile_page.user_saved.connect(lambda: self.transition.fade_to(self.main_page, on_finished=lambda: self._update_top_buttons()))
         self.settings_page.settings_saved.connect(lambda: self.transition.fade_to(self.main_page, on_finished=lambda: self._update_top_buttons()))
 
@@ -141,9 +141,6 @@ class WatcherGUI(QWidget):
         self.transition.fade_to(self.calibration_page, on_finished=lambda: self._update_top_buttons())
 
 
-    def show_profile(self):
-        self.transition.fade_to(self.profile_page, on_finished=lambda: self._update_top_buttons())
-
     def show_info(self, version=1.0, ID=None):
         QMessageBox.information(self, "À propos", f"Créé par Jérôme LECHAT\nVersion : {version}\nID : {ID}")
     
@@ -152,7 +149,7 @@ class WatcherGUI(QWidget):
 
     def show_ticket(self):
         BugReportDialog(self).exec()
-    
+
 
     def _update_top_buttons(self):
         current_index = self.stack.currentIndex()
@@ -169,10 +166,16 @@ class WatcherGUI(QWidget):
             self.update_button.setEnabled(False)
             self.profile_button.setEnabled(False)
         elif current_page == self.profile_page:
-            self.settings_button.setEnabled(False)
-            self.settings_button.setText("")
-            self.update_button.setEnabled(False)
-            self.profile_button.setEnabled(False)
+            if self.USERconfig.get("user_mail"):
+                self.settings_button.setEnabled(True)
+                self.settings_button.setText("Menu")
+                self.update_button.setEnabled(False)
+                self.profile_button.setEnabled(False)
+            else:
+                self.settings_button.setEnabled(False)
+                self.settings_button.setText("")
+                self.update_button.setEnabled(False)
+                self.profile_button.setEnabled(False)
         elif current_page == self.main_page:
             self.settings_button.setEnabled(True)
             self.settings_button.setText("")

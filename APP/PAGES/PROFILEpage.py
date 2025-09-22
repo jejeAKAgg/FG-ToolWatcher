@@ -1,11 +1,16 @@
-from PySide6.QtCore import Signal, Qt
+from PySide6.QtCore import Signal, Qt, QSize
 from PySide6.QtWidgets import (
     QWidget, QVBoxLayout, QLabel, QLineEdit, QMessageBox,
-    QSpacerItem, QSizePolicy, QHBoxLayout
+    QSpacerItem, QSizePolicy, QHBoxLayout, QPushButton
 )
+from PySide6.QtGui import QIcon
 from APP.WIDGETS.PUSHbuttons import CustomPushButton
 from APP.SERVICES.__init__ import *
 import os
+import re
+
+EMAIL_REGEX = re.compile(r"^[^@\s]+@[^@\s]+\.[a-zA-Z0-9]+$")
+
 
 class ProfilePage(QWidget):
     user_saved = Signal()  # signal à émettre quand l'utilisateur valide
@@ -14,13 +19,13 @@ class ProfilePage(QWidget):
         super().__init__(parent)
 
         self.update_button = update_button
-        self.profile_button = profile_button 
+        self.profile_button = profile_button
         self.settings_button = settings_button
         self.config = config
 
         layout = QVBoxLayout(self)
-        layout.setSpacing(15)
-        layout.setContentsMargins(10, 10, 10, 10)
+        layout.setSpacing(5)
+        layout.setContentsMargins(0, 0, 0, 0)
 
         # Titre
         title = QLabel("Vos informations")
@@ -45,7 +50,7 @@ class ProfilePage(QWidget):
             line_edit.setText(text_value)
             line_edit.setAlignment(Qt.AlignmentFlag.AlignCenter)
             line_edit.setStyleSheet("""
-                padding: 8px;
+                padding: 5px;
                 border-radius: 8px;
                 border: 1px solid #ccc;
                 font-size: 16px;
@@ -79,6 +84,43 @@ class ProfilePage(QWidget):
 
         layout.addSpacerItem(QSpacerItem(20, 20, QSizePolicy.Policy.Minimum, QSizePolicy.Policy.Expanding))
 
+        # === LANGUAGE SELECTION ===
+        lang_layout = QHBoxLayout()
+        lang_layout.setAlignment(Qt.AlignCenter)
+
+        self.lang_buttons = {}
+        for code, icon_file in [("FR", "french.ico"), ("EN", "english.ico"), ("NL", "netherlands.ico")]:
+            btn = QPushButton()
+            icon_path = os.path.join(BASE_TEMP_PATH, "APP", "ASSETS", icon_file)
+            btn.setIcon(QIcon(icon_path))
+            btn.setIconSize(QSize(32, 32))
+            btn.setCheckable(True)
+            btn.setAutoExclusive(True)
+
+            btn.setStyleSheet("""
+                QPushButton {
+                    border: none;
+                    background: transparent;
+                    padding: 0px;
+                }
+                QPushButton:checked {
+                    border: 2px solid #eb6134;
+                    border-radius: 4px;
+                }
+            """)
+            btn.setFixedSize(32, 32)
+
+            btn.clicked.connect(lambda checked, c=code: self.set_language(c))
+
+            lang_layout.addWidget(btn)
+            self.lang_buttons[code] = btn
+
+        # Pré-sélection d’après le JSON ou FR par défaut
+        self.lang_buttons[self.config.get("language", "FR")].setChecked(True)
+        layout.addLayout(lang_layout)
+
+        layout.addSpacerItem(QSpacerItem(20, 20, QSizePolicy.Policy.Minimum, QSizePolicy.Policy.Expanding))
+
         # Bouton sauvegarder centré
         self.save_button = CustomPushButton(
             os.path.join(BASE_TEMP_PATH, "APP", "ASSETS", "save.ico"),
@@ -96,6 +138,9 @@ class ProfilePage(QWidget):
         layout.addLayout(button_layout)
         layout.addStretch()
 
+    def set_language(self, code):
+        self.config.set("language", code)
+
     def save_user(self):
         first_name = self.first_name_input.text().strip()
         last_name = self.last_name_input.text().strip()
@@ -105,8 +150,17 @@ class ProfilePage(QWidget):
             QMessageBox.warning(self, "Erreur", "Tous les champs doivent être remplis !")
             return
 
+        if not is_valid_email(email):
+            QMessageBox.warning(self, "Erreur", "Veuillez entrer une adresse e-mail valide !")
+            return
+
+        # Sauvegarde dans la config
         self.config.set("user_firstname", first_name)
         self.config.set("user_lastname", last_name)
         self.config.set("user_mail", email)
 
         self.user_saved.emit()
+
+
+def is_valid_email(email: str) -> bool:
+    return EMAIL_REGEX.match(email) is not None
