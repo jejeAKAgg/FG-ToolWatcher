@@ -6,11 +6,16 @@ a = Analysis(
     binaries=[],
     datas=[
         ('APP/*', 'APP/'),
-        ('ASSETS/*', 'ASSETS/'),
-        ('CONFIGS/*', 'CONFIGS/'),
-        ('UTILS/*', 'UTILS/'),
-        ('WEBSITES/*', 'WEBSITES/'),
-        ('Watcher.py', '.')
+        ('APP/ASSETS/*', 'APP/ASSETS/'),
+        ('APP/CONFIGS/*', 'APP/CONFIGS/'),
+        ('APP/LAYOUTS/*, 'APP/LAYOUTS/'),
+        ('APP/PAGES/*', 'APP/PAGES/'),
+        ('APP/SERVICES/*', 'APP/SERVICES/'),
+        ('APP/UTILS/*', 'APP/UTILS/'),
+        ('APP/WEBSITES/*', 'APP/WEBSITES/'),
+        ('APP/WIDGETS/*', 'APP/WIDGETS/'),
+        ('Watcher.py', '.'),
+        ('WatcherGUI.py', '.')
     ],
     hiddenimports=[],
     hookspath=[],

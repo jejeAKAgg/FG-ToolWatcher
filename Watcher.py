@@ -1,33 +1,19 @@
-# FICHIER: Watcher.py
+# Watcher.py
 import os
-import sys
 
-from UTILS.EXCELutils import *
-from UTILS.LOGmaker import *
-from UTILS.PRODUCTformatter import *
-from UTILS.TOOLSbox import *
-from UTILS.TOOLSinstaller import *
+from APP.SERVICES.__init__ import *
 
-from WEBSITES.CIPACwatcher import CIPACwatcher
-from WEBSITES.CLABOTSwatcher import CLABOTSwatcher
-from WEBSITES.FGwatcher import FGwatcher
-from WEBSITES.FIXAMIwatcher import FIXAMIwatcher
-from WEBSITES.KLIUMwatcher import KLIUMwatcher
-from WEBSITES.LECOTwatcher import LECOTwatcher
+from APP.UTILS.LOGmaker import *
 
-# ====================
-#    VARIABLE SETUP
-# ====================
-BASE_SYSTEM_PATH = os.path.dirname(sys.executable) if getattr(sys, 'frozen', False) else os.path.abspath(os.path.join(os.path.dirname(__file__)))
-BASE_TEMP_PATH = getattr(sys, '_MEIPASS', "")
+from APP.UTILS.EXCELutils import *
+from APP.UTILS.TOOLSbox import *
 
-CORE_FOLDER = os.path.join(BASE_SYSTEM_PATH, "CORE")
-DATA_FOLDER = os.path.join(BASE_SYSTEM_PATH, "DATA")
-LOGS_FOLDER = os.path.join(BASE_SYSTEM_PATH, "LOGS")
-
-os.makedirs(CORE_FOLDER, exist_ok=True)
-os.makedirs(DATA_FOLDER, exist_ok=True)
-os.makedirs(LOGS_FOLDER, exist_ok=True)
+from APP.WEBSITES.CIPACwatcher import CIPACwatcher
+from APP.WEBSITES.CLABOTSwatcher import CLABOTSwatcher
+from APP.WEBSITES.FGwatcher import FGwatcher
+from APP.WEBSITES.FIXAMIwatcher import FIXAMIwatcher
+from APP.WEBSITES.KLIUMwatcher import KLIUMwatcher
+from APP.WEBSITES.LECOTwatcher import LECOTwatcher
 
 
 # ====================
@@ -43,7 +29,7 @@ def main_watcher(progress_callback=None):
 
     Logger.info("Démarrage de Watcher...")
 
-    steps = 12
+    steps = 8
     current = 0
 
     def update_progress():
@@ -52,22 +38,6 @@ def main_watcher(progress_callback=None):
         if progress_callback:
             progress_callback(int(current / steps * 100))
 
-    # === TOOLS SETUP ===
-    Logger.info("Vérification de Chromium...")
-    getCHROMIUMpackage()
-    update_progress()
-
-    Logger.info("Vérification de Python...")
-    getPYTHONpackage()
-    update_progress()
-
-    Logger.info("Vérification de pip/ensurepip")
-    getPIPpackage()
-    update_progress()
-
-    Logger.info("Vérification des packages requis...")
-    getREQUIREMENTSpackage()
-    update_progress()
 
     # === WATCHER MAIN ===
     Logger.info("Réception des données [REFs/Articles] et synchronisation...")
