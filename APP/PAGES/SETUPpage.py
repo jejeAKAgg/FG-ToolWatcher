@@ -4,9 +4,7 @@ from PySide6.QtCore import Qt, QThread, Signal
 from PySide6.QtWidgets import QWidget, QVBoxLayout, QLabel
 
 from APP.WIDGETS.SPINNERbar import Spinner
-
 from APP.SERVICES.__init__ import *
-
 from APP.UTILS.LOGmaker import *
 from APP.UTILS.TOOLSinstaller import *
 
@@ -61,7 +59,7 @@ class SetupPage(QWidget):
         layout.addSpacing(15)
         layout.addWidget(self.label)
 
-        self.start_setup()  # lancement initial
+        self.start_setup()
 
     def start_setup(self):
         if self.is_running:
@@ -76,5 +74,4 @@ class SetupPage(QWidget):
 
     def on_setup_finished(self):
         self.is_running = False
-
         self.setup_finished.emit()

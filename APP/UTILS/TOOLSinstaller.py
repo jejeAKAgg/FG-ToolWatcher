@@ -24,7 +24,9 @@ def get_latest_build_number():
     last_change_url = BASE_CHROMIUM_URL + "LAST_CHANGE"
     Logger.info(f"Récupération du dernier build Chromium via {last_change_url}...")
     try:
+        Logger.info("Connexion au serveur pour obtenir le numéro de build...")
         with urllib.request.urlopen(last_change_url) as response:
+            Logger.info("Connexion réussie.")
             build_number = response.read().decode('utf-8').strip()
             Logger.info(f"Dernier build disponible : {build_number}")
             return build_number

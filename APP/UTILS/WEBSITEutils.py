@@ -5,6 +5,8 @@ import time
 import pandas as pd
 import re
 
+from datetime import datetime, timedelta
+
 from selenium.webdriver.common.by import By
 
 from rapidfuzz import fuzz
@@ -166,24 +168,37 @@ def load_cache(path):
     else:
         return pd.DataFrame(columns=columns)
     
-def check_cache(cache_df, MPN):
-    
+def check_cache(cache_df, MPN, cache_duration_days=3):
     """
-    Checks if a given MPN exists in the cache DataFrame.
+    Vérifie si un MPN existe dans le cache et si son cache est encore valide.
 
     Args:
         cache_df (pd.DataFrame): Cache DataFrame.
-        MPN (str): The MPN code to search for.
+        MPN (str): Le code MPN à rechercher.
+        cache_duration_days (int | float): Durée de validité du cache en jours. La valeur par défaut est 3 jours.
 
     Returns:
-        dict | None: Row as a dictionary if found, else None.
-    
+        dict | None: Ligne du cache si trouvée et valide, sinon None.
     """
-
     key = f"REF-{MPN}"
+    
     if cache_df.empty or 'MPN' not in cache_df.columns:
         return None
+
     row = cache_df[cache_df['MPN'] == key]
-    if not row.empty:
-        return row.iloc[0].to_dict()
+    if row.empty:
+        return None
+
+    row_dict = row.iloc[0].to_dict()
+    checked_on_str = row_dict.get("Checked on")
+
+    try:
+        last_checked = pd.to_datetime(checked_on_str)
+        if datetime.now() - last_checked <= timedelta(days=cache_duration_days):
+            return row_dict
+    except Exception:
+        # si la conversion échoue ou valeur manquante, considérer le cache invalide
+        return None
+
+    # cache expiré
     return None

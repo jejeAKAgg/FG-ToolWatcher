@@ -22,12 +22,15 @@ class WatcherThread(QThread):
     error = Signal(str)
     progress = Signal(int)
 
-    def __init__(self):
+    def __init__(self, config):
         super().__init__()
+
+        self.config = config
 
     def run(self):
         try:
             Watcher.main_watcher(
+                config=self.config,
                 progress_callback=self.progress.emit,
             )
         except Exception as e:
@@ -48,7 +51,7 @@ class MainPage(QWidget):
         self.config = config
 
         # --- Thread watcher ---
-        self.watcher_thread = WatcherThread()
+        self.watcher_thread = WatcherThread(config=self.config)
         self.watcher_thread.progress.connect(self.update_progress)
         self.watcher_thread.finished.connect(self.on_watcher_finished)
 

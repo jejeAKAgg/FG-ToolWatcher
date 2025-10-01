@@ -186,7 +186,7 @@ def extract_CIPAC_products_data(MPN, driver):
 # ====================
 #        MAIN
 # ====================
-def CIPACwatcher(ITEMs):
+def CIPACwatcher(ITEMs, config):
 
     CSVpath = os.path.join(RESULTS_SUBFOLDER_TEMP, "CIPACproducts.csv")
     XLSXpath = os.path.join(RESULTS_SUBFOLDER_TEMP, "CIPACproducts.xlsx")
@@ -198,7 +198,7 @@ def CIPACwatcher(ITEMs):
         driver = webdriver.Chrome(options=options, service=service)
 
         for ITEM in ITEMs:
-            if cached := check_cache(CACHEdata, ITEM):
+            if cached := check_cache(CACHEdata, ITEM, cache_duration_days=config.get("cache_duration", 3)):
                 Logger.info(f"REF-{ITEM} récupéré depuis le cache")
                 products.append(cached)
                 continue

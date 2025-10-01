@@ -11,8 +11,11 @@ from APP.UTILS.TOOLSbox import *
 
 
 class BugReportDialog(QDialog):
-    def __init__(self, parent=None):
+    def __init__(self, config, parent=None):
         super().__init__(parent)
+
+        self.config = config
+
         self.setWindowTitle("Signaler un problème")
         self.setMinimumSize(400, 300)
 
@@ -40,14 +43,13 @@ class BugReportDialog(QDialog):
             return
 
         try:
-            MAILconfig = JSONloader(os.path.join(BASE_TEMP_PATH, "CONFIGS", "EMAILconfig.json"))
-            body = f"Description utilisateur:\n{desc}.\n\n"
-
+            MAILconfig = JSONloader(os.path.join(BASE_TEMP_PATH, "APP", "CONFIGS", "EMAILconfig.json"))
+            body = f"De: {self.config.get('user_lastname')} {self.config.get('user_firstname')}.\n\n Description du problème:\n{desc}.\n\n\n Contact: {self.config.get('user_mail')}"
             MAILsender(
                 sender_email=MAILconfig["Source"],
                 password=MAILconfig["Password"],
-                recipient_email=MAILconfig["Target"],
-                subject="[Bug Report] FG-ToolWatcher",
+                recipient_email=MAILconfig["Target_REPORT"],
+                subject=MAILconfig["Subject_REPORT"],
                 body=body,
                 filename=log_file
             )

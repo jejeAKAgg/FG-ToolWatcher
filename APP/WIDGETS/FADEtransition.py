@@ -1,12 +1,11 @@
-# APP/widgets/FadeTransition.py
-from PySide6.QtCore import QPropertyAnimation, QEasingCurve, QSequentialAnimationGroup
+from PySide6.QtCore import QPropertyAnimation, QEasingCurve, QSequentialAnimationGroup, QPauseAnimation
 from PySide6.QtWidgets import QGraphicsOpacityEffect
 
 
 class FadeTransition:
     def __init__(self, stacked_widget):
         self.stacked = stacked_widget
-        self._current_group = None  # garder une ref
+        self._current_group = None  # garder une référence sinon GC tue l’anim
 
     def fade_to(self, new_widget, duration=800, on_finished=None):
         old_widget = self.stacked.currentWidget()
@@ -16,37 +15,46 @@ class FadeTransition:
                 on_finished()
             return
 
+        # Effets d’opacité
         old_effect = QGraphicsOpacityEffect(old_widget)
         new_effect = QGraphicsOpacityEffect(new_widget)
         old_widget.setGraphicsEffect(old_effect)
         new_widget.setGraphicsEffect(new_effect)
 
-        new_effect.setOpacity(0.0)  # important sinon ça reste transparent
+        new_effect.setOpacity(0.0)
 
+        # Animation sortie
         fade_out = QPropertyAnimation(old_effect, b"opacity")
         fade_out.setDuration(duration // 2)
         fade_out.setStartValue(1.0)
         fade_out.setEndValue(0.0)
         fade_out.setEasingCurve(QEasingCurve.InOutQuad)
 
+        # Animation entrée
         fade_in = QPropertyAnimation(new_effect, b"opacity")
         fade_in.setDuration(duration // 2)
         fade_in.setStartValue(0.0)
         fade_in.setEndValue(1.0)
         fade_in.setEasingCurve(QEasingCurve.InOutQuad)
 
+        # Groupe séquentiel
         group = QSequentialAnimationGroup()
-        group.addAnimation(fade_out)
-        group.addPause(50)
-        group.addAnimation(fade_in)
 
-        def switch_page():
+        # Étape 1 : fade out
+        group.addAnimation(fade_out)
+
+        # Étape 2 : pause + switch de page
+        pause = QPauseAnimation(50)
+        def do_switch():
             self.stacked.setCurrentWidget(new_widget)
             if on_finished:
                 on_finished()
+        pause.finished.connect(do_switch)
+        group.addAnimation(pause)
 
-        fade_out.finished.connect(switch_page)
+        # Étape 3 : fade in
+        group.addAnimation(fade_in)
 
-        # garder la ref sinon GC tue l’anim
+        # Sauvegarde de la réf
         self._current_group = group
         group.start()

@@ -180,7 +180,7 @@ def extract_CLABOTS_products_data(MPN, driver):
 # ====================
 #        MAIN
 # ====================
-def CLABOTSwatcher(ITEMs):
+def CLABOTSwatcher(ITEMs, config):
 
     CSVpath = os.path.join(RESULTS_SUBFOLDER_TEMP, "CLABOTSproducts.csv")
     XLSXpath = os.path.join(RESULTS_SUBFOLDER_TEMP, "CLABOTSproducts.xlsx")
@@ -192,7 +192,7 @@ def CLABOTSwatcher(ITEMs):
         driver = webdriver.Chrome(options=options, service=service)
 
         for ITEM in ITEMs:
-            if cached := check_cache(CACHEdata, ITEM):
+            if cached := check_cache(CACHEdata, ITEM, cache_duration_days=config.get("cache_duration", 3)):
                 Logger.info(f"REF-{ITEM} récupéré depuis le cache")
                 products.append(cached)
                 continue

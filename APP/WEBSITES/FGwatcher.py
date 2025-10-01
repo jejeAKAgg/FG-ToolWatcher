@@ -185,7 +185,7 @@ def extract_FG_products_data(MPN, driver):
 # ====================
 #        MAIN
 # ====================
-def FGwatcher(ITEMs):
+def FGwatcher(ITEMs, config):
 
     CSVpath = os.path.join(RESULTS_SUBFOLDER_TEMP, "FGproducts.csv")
     XLSXpath = os.path.join(RESULTS_SUBFOLDER_TEMP, "FGproducts.xlsx")
@@ -197,7 +197,7 @@ def FGwatcher(ITEMs):
         driver = webdriver.Chrome(options=options, service=service)
         
         for ITEM in ITEMs:
-            if cached := check_cache(CACHEdata, ITEM):
+            if cached := check_cache(CACHEdata, ITEM, cache_duration_days=config.get("cache_duration", 3)):
                 Logger.info(f"REF-{ITEM} récupéré depuis le cache")
                 products.append(cached)
                 continue

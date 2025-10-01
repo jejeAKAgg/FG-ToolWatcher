@@ -4,12 +4,11 @@ import json
 class UserConfig:
     DEFAULT_SETTINGS = {
         "language": "FR",
-        "theme": "light",
         "user_firstname": "",
         "user_lastname": "",
         "user_mail": "",
         "websites_to_watch": [],
-        "cache_duration": 24,
+        "cache_duration": 3,
         "send_email": False
     }
 
