@@ -144,11 +144,11 @@ class WatcherGUI(QWidget):
     def show_info(self, version=1.0, ID=None):
         QMessageBox.information(self, "À propos", f"Créé par Jérôme LECHAT\nVersion : {version}\nID : {ID}")
     
+    def show_ticket(self):
+        BugReportDialog(self.USERconfig, parent=self).exec()
+    
     def show_github(self):
         QDesktopServices.openUrl(QUrl("https://github.com/jejeAKAgg/FG-ToolWatcher"))
-
-    def show_ticket(self):
-        BugReportDialog(self).exec()
 
 
     def _update_top_buttons(self):
