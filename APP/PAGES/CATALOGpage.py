@@ -9,8 +9,8 @@ from APP.ASSETS.WIDGETS.PUSHbuttons import CustomPushButton
 from APP.SERVICES.__init__ import BASE_TEMP_PATH
 
 
-class CalibrationPage(QWidget):
-    def __init__(self, update_button, profile_button, settings_button, user_config, mpn_config, parent=None):
+class CatalogPage(QWidget):
+    def __init__(self, update_button, profile_button, settings_button, user_config, catalog_config, parent=None):
         super().__init__(parent)
 
         # ===============================
@@ -20,7 +20,7 @@ class CalibrationPage(QWidget):
         self.profile_button = profile_button
         self.settings_button = settings_button
         self.user_config = user_config
-        self.mpn_config = mpn_config  # <-- Instance de MPNConfig
+        self.catalog_config = catalog_config
 
         # ===============================
         #         LAYOUT PRINCIPAL
@@ -53,7 +53,7 @@ class CalibrationPage(QWidget):
         add_layout = QHBoxLayout()
 
         self.input_field = QLineEdit()
-        self.input_field.setPlaceholderText("Entrer un nouveau MPN...")
+        self.input_field.setPlaceholderText("Entrer un nouveau MPN/article...")
         self.input_field.setStyleSheet("padding: 5px; font-size: 14px; border-radius: 5px;")
         add_layout.addWidget(self.input_field)
 
@@ -68,24 +68,9 @@ class CalibrationPage(QWidget):
         main_layout.addLayout(add_layout)
 
         # ---------------------------------------
-        #             SAUVEGARDE
-        # ---------------------------------------
-        save_layout = QHBoxLayout()
-        self.save_button = CustomPushButton(
-            os.path.join(BASE_TEMP_PATH, "APP", "ASSETS", "ICONS", "save.ico"),
-            width=150, height=50,
-            bg_color="#eb6134", hover_color="#78351f"
-        )
-        self.save_button.setText("Sauvegarder")
-        self.save_button.clicked.connect(self.save_mpn)
-        save_layout.addWidget(self.save_button, alignment=Qt.AlignCenter)
-
-        main_layout.addLayout(save_layout)
-
-        # ---------------------------------------
         #           SYNCHRONISATION INITIALE
         # ---------------------------------------
-        self.refresh_list()
+        #self.refresh_list()
 
     # ====================================
     #           MÉTHODES
@@ -93,9 +78,9 @@ class CalibrationPage(QWidget):
 
     def refresh_list(self):
         """Recharge la liste locale et affiche les MPN."""
-        self.mpn_config.sync_with_sheet()
+        self.catalog_config.sync_with_sheet()
         self.mpn_list.clear()
-        self.mpn_list.addItems(self.mpn_config.get_all())
+        self.mpn_list.addItems(self.catalog_config.get_all())
 
     def add_mpn(self):
         """Ajoute un MPN à la config."""
@@ -104,7 +89,7 @@ class CalibrationPage(QWidget):
             QMessageBox.warning(self, "Erreur", "Veuillez entrer un MPN valide.")
             return
 
-        success = self.mpn_config.add(mpn)
+        success = self.catalog_config.add(mpn)
         if not success:
             QMessageBox.information(self, "Info", "Ce MPN existe déjà.")
             return
@@ -125,10 +110,10 @@ class CalibrationPage(QWidget):
             QMessageBox.Yes | QMessageBox.No
         )
         if confirm == QMessageBox.Yes:
-            self.mpn_config.remove(mpn)
+            self.catalog_config.remove(mpn)
             self.refresh_list()
 
     def save_mpn(self):
         """Sauvegarde manuellement (utile si plusieurs modifs locales)."""
-        self.mpn_config.save()
+        self.catalog_config.save()
         QMessageBox.information(self, "Succès", "Les MPN ont été sauvegardés localement et synchronisés.")

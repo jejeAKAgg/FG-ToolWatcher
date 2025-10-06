@@ -14,7 +14,7 @@ from APP.SERVICES.__init__ import *
 class SettingsPage(QWidget):
     settings_saved = Signal()
 
-    def __init__(self, update_button, profile_button, settings_button, config, parent=None):
+    def __init__(self, update_button, profile_button, settings_button, user_config, catalog_config, parent=None):
         super().__init__(parent)
 
         self.update_button = update_button
@@ -22,7 +22,8 @@ class SettingsPage(QWidget):
         self.settings_button = settings_button
 
         # USER config
-        self.config = config
+        self.user_config = user_config
+        self.catalog_config = catalog_config
 
         layout = QVBoxLayout(self)
         layout.setContentsMargins(10,10,10,10)
@@ -59,7 +60,7 @@ class SettingsPage(QWidget):
             lang_layout.addWidget(btn)
             self.lang_buttons[code] = btn
 
-        self.lang_buttons[self.config.get("language", "FR")].setChecked(True)
+        self.lang_buttons[self.user_config.get("language", "FR")].setChecked(True)
         layout.addLayout(lang_layout)
 
         layout.addSpacerItem(QSpacerItem(0, 50, QSizePolicy.Minimum, QSizePolicy.Fixed))
@@ -81,7 +82,7 @@ class SettingsPage(QWidget):
         self.site_checkboxes = {}
 
         # Récupérer la liste des sites à observer depuis le JSON
-        selected_sites = self.config.get("websites_to_watch", [])
+        selected_sites = self.user_config.get("websites_to_watch", [])
 
         for name, key in self.sites.items():
             cb = QCheckBox(name)
@@ -124,7 +125,7 @@ class SettingsPage(QWidget):
 
         # Checkbox
         self.check_send_email = QCheckBox("Envoyer les résultats par mail")
-        self.check_send_email.setChecked(self.config.get("send_email", False))
+        self.check_send_email.setChecked(self.user_config.get("send_email", False))
         self.check_send_email.setStyleSheet("""
             QCheckBox {
                 spacing: 5px;
@@ -169,7 +170,7 @@ class SettingsPage(QWidget):
         """)
 
         # Définir la valeur actuelle en fonction du .json
-        current_value = self.config.get("cache_duration", 1)  # valeur int
+        current_value = self.user_config.get("cache_duration", 1)  # valeur int
         # Chercher le texte correspondant
         for text, val in self.cache_options.items():
             if val == current_value:
@@ -211,7 +212,7 @@ class SettingsPage(QWidget):
     # LANGUE
     # -------------------
     def set_language(self, code):
-        self.config.set("language", code)
+        self.user_config.set("language", code)
 
     # -------------------
     # SAVE SETTINGS
@@ -223,10 +224,10 @@ class SettingsPage(QWidget):
         for name, key in self.sites.items():   
             if self.site_checkboxes[key].isChecked():
                 selected_sites.append(name)
-        self.config.set("websites_to_watch", selected_sites)
+        self.user_config.set("websites_to_watch", selected_sites)
 
         # EMAILS + CACHE
-        self.config.set("cache_duration", self.cache_options[self.cache_duration.currentText()])
-        self.config.set("send_email", self.check_send_email.isChecked())
+        self.user_config.set("cache_duration", self.cache_options[self.cache_duration.currentText()])
+        self.user_config.set("send_email", self.check_send_email.isChecked())
 
         self.settings_saved.emit()

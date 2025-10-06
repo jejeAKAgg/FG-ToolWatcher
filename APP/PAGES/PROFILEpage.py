@@ -15,13 +15,15 @@ EMAIL_REGEX = re.compile(r"^[^@\s]+@[^@\s]+\.[a-zA-Z0-9]+$")
 class ProfilePage(QWidget):
     user_saved = Signal()  # signal à émettre quand l'utilisateur valide
 
-    def __init__(self, update_button, profile_button, settings_button, config, parent=None):
+    def __init__(self, update_button, profile_button, settings_button, user_config, catalog_config, parent=None):
         super().__init__(parent)
 
         self.update_button = update_button
         self.profile_button = profile_button
         self.settings_button = settings_button
-        self.config = config
+        
+        self.user_config = user_config
+        self.catalog_config = catalog_config
 
         layout = QVBoxLayout(self)
         layout.setSpacing(5)
@@ -66,19 +68,19 @@ class ProfilePage(QWidget):
 
         # Prénom
         first_layout, self.first_name_input = create_input(
-            "Prénom :", self.config.get("user_firstname", "")
+            "Prénom :", self.user_config.get("user_firstname", "")
         )
         layout.addLayout(first_layout)
 
         # Nom
         last_layout, self.last_name_input = create_input(
-            "Nom :", self.config.get("user_lastname", "")
+            "Nom :", self.user_config.get("user_lastname", "")
         )
         layout.addLayout(last_layout)
 
         # E-mail
         email_layout, self.email_input = create_input(
-            "Adresse e-mail :", self.config.get("user_mail", ""), width=500
+            "Adresse e-mail :", self.user_config.get("user_mail", ""), width=500
         )
         layout.addLayout(email_layout)
 
@@ -116,7 +118,7 @@ class ProfilePage(QWidget):
             self.lang_buttons[code] = btn
 
         # Pré-sélection d’après le JSON ou FR par défaut
-        self.lang_buttons[self.config.get("language", "FR")].setChecked(True)
+        self.lang_buttons[self.user_config.get("language", "FR")].setChecked(True)
         layout.addLayout(lang_layout)
 
         layout.addSpacerItem(QSpacerItem(20, 20, QSizePolicy.Policy.Minimum, QSizePolicy.Policy.Expanding))
@@ -139,7 +141,7 @@ class ProfilePage(QWidget):
         layout.addStretch()
 
     def set_language(self, code):
-        self.config.set("language", code)
+        self.user_config.set("language", code)
 
     def save_user(self):
         first_name = self.first_name_input.text().strip()
@@ -155,9 +157,9 @@ class ProfilePage(QWidget):
             return
 
         # Sauvegarde dans la config
-        self.config.set("user_firstname", first_name)
-        self.config.set("user_lastname", last_name)
-        self.config.set("user_mail", email)
+        self.user_config.set("user_firstname", first_name)
+        self.user_config.set("user_lastname", last_name)
+        self.user_config.set("user_mail", email)
 
         self.user_saved.emit()
 

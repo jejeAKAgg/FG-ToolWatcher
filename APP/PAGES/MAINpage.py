@@ -41,17 +41,19 @@ class MainPage(QWidget):
 
     calibration_requested = Signal()
 
-    def __init__(self, update_button, profile_button, settings_button, config, parent=None):
+    def __init__(self, update_button, profile_button, settings_button, user_config, catalog_config, parent=None):
         super().__init__(parent)
 
         self.update_button = update_button
         self.settings_button = settings_button
         self.profile_button = profile_button
 
-        self.config = config
+        self.user_config = user_config
+        self.catalog_config = catalog_config
 
         # --- Thread watcher ---
-        self.watcher_thread = WatcherThread(config=self.config)
+        self.watcher_thread = WatcherThread(config=self.user_config)
+        
         self.watcher_thread.progress.connect(self.update_progress)
         self.watcher_thread.finished.connect(self.on_watcher_finished)
 
