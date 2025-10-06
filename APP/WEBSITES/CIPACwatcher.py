@@ -208,6 +208,9 @@ def CIPACwatcher(ITEMs, config):
                 products.append(data)
             time.sleep(random.uniform(1.5, 3))
     
+    except Exception as e:
+        Logger.error(f"Erreur fatale dans CIPACwatcher: {e}")
+    
     finally:
         if 'driver' in locals() and driver:
             driver.quit()
