@@ -1,20 +1,21 @@
 # -*- mode: python ; coding: utf-8 -*-
 
 a = Analysis(
-    ['WatcherGUI.py', 'Watcher.py'],
+    ['WatcherGUI.py', 'APP/Watcher.py'],
     pathex=[],
     binaries=[],
     datas=[
         ('APP/*', 'APP/'),
         ('APP/ASSETS/*', 'APP/ASSETS/'),
+        ('APP/ASSETS/ICONS/*', 'APP/ASSETS/ICONS/'),
+        ('APP/ASSETS/LAYOUTS/*', 'APP/ASSETS/LAYOUTS/'),
+        ('APP/ASSETS/WIDGETS/*', 'APP/ASSETS/WIDGETS/'),
         ('APP/CONFIGS/*', 'APP/CONFIGS/'),
-        ('APP/LAYOUTS/*, 'APP/LAYOUTS/'),
         ('APP/PAGES/*', 'APP/PAGES/'),
         ('APP/SERVICES/*', 'APP/SERVICES/'),
         ('APP/UTILS/*', 'APP/UTILS/'),
         ('APP/WEBSITES/*', 'APP/WEBSITES/'),
-        ('APP/WIDGETS/*', 'APP/WIDGETS/'),
-        ('Watcher.py', '.'),
+        ('APP/Watcher.py', '.'),
         ('WatcherGUI.py', '.')
     ],
     hiddenimports=[],
@@ -47,5 +48,5 @@ exe = EXE(
     target_arch=None,
     codesign_identity=None,
     entitlements_file=None,
-    icon='ASSETS/FG-TWico.ico',
+    icon='APP/ASSETS/ICONS/FG-TWico.ico',
 )
