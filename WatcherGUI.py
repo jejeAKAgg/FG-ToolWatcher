@@ -11,17 +11,19 @@ from APP.PAGES.PROFILEpage import *
 from APP.PAGES.SETTINGSpage import *
 from APP.PAGES.SETUPpage import *
 
-from APP.SERVICES.BUGreport import *
-from APP.WIDGETS.FADEtransition import FadeTransition
-from APP.WIDGETS.MAINbackground import BackgroundOverlay
-from APP.WIDGETS.PUSHbuttons import CustomPushButton
+from APP.ASSETS.LAYOUTS.BOTTOMbuttons import create_bottom_buttons
+from APP.ASSETS.LAYOUTS.TOPbuttons import create_top_buttons
+from APP.ASSETS.LAYOUTS.TOPheader import create_header
 
-from APP.LAYOUTS.BOTTOMbuttons import create_bottom_buttons
-from APP.LAYOUTS.TOPbuttons import create_top_buttons
-from APP.LAYOUTS.TOPheader import create_header
+from APP.ASSETS.WIDGETS.FADEtransition import FadeTransition
+from APP.ASSETS.WIDGETS.MAINbackground import BackgroundOverlay
+from APP.ASSETS.WIDGETS.PUSHbuttons import CustomPushButton
 
 from APP.SERVICES.__init__ import *
+from APP.SERVICES.BUGreport import *
+from APP.SERVICES.SHEETSmanager import *
 from APP.SERVICES.USERconfig import *
+
 from APP.UTILS.LOGmaker import *
 from APP.UTILS.TOOLSbox import *
 
@@ -34,7 +36,7 @@ class WatcherGUI(QWidget):
         super().__init__()
         
         self.USERconfig = UserConfig(USER_CONFIG_PATH)
-        self.USERconfig.load()
+        self.MPNconfig = MPNConfig(MPN_CONFIG_PATH)
         
         make_dirs()
         
@@ -43,34 +45,34 @@ class WatcherGUI(QWidget):
         self.setFixedSize(1000, 700)
 
         # === Window ICON === 
-        icon_path = os.path.join(BASE_TEMP_PATH, "APP", "ASSETS", "FG-TWicoBG.ico")
+        icon_path = os.path.join(BASE_TEMP_PATH, "APP", "ASSETS", "ICONS", "FG-TWicoBG.ico")
         if os.path.exists(icon_path):
             self.setWindowIcon(QIcon(icon_path))
 
         # === APP Background ===
         self.background_widget = BackgroundOverlay(
-            bg_path=os.path.join(BASE_TEMP_PATH, "APP", "ASSETS", "FGbackground.jpg"),
+            bg_path=os.path.join(BASE_TEMP_PATH, "APP", "ASSETS", "ICONS", "FGbackground.jpg"),
             parent=self
         )
         self.background_widget.setGeometry(0, 0, self.width(), self.height())
         self.background_widget.lower()
 
         # === TOP BAR & HEADER ===
-        self.update_button = CustomPushButton(os.path.join(BASE_TEMP_PATH, "APP", "ASSETS", "update.ico"), tip="Mise à jour")
-        self.profile_button = CustomPushButton(os.path.join(BASE_TEMP_PATH, "APP", "ASSETS", "profile.ico"), tip="Profil")
-        self.settings_button = CustomPushButton(os.path.join(BASE_TEMP_PATH, "APP", "ASSETS", "settings.ico"), tip="Paramètres")
+        self.update_button = CustomPushButton(os.path.join(BASE_TEMP_PATH, "APP", "ASSETS", "ICONS", "update.ico"), tip="Mise à jour")
+        self.profile_button = CustomPushButton(os.path.join(BASE_TEMP_PATH, "APP", "ASSETS", "ICONS", "profile.ico"), tip="Profil")
+        self.settings_button = CustomPushButton(os.path.join(BASE_TEMP_PATH, "APP", "ASSETS", "ICONS", "settings.ico"), tip="Paramètres")
         
         self.update_button.clicked.connect(self.toggle_setup)
         self.profile_button.clicked.connect(self.toggle_profile)
         self.settings_button.clicked.connect(self.toggle_settings)
 
         TOP_BAR = create_top_buttons(self.update_button, self.profile_button, self.settings_button)
-        HEADER = create_header("FG-ToolWatcher", os.path.join(BASE_TEMP_PATH, "APP", "ASSETS", "FG-TWicoBG.ico"))
+        HEADER = create_header("FG-ToolWatcher", os.path.join(BASE_TEMP_PATH, "APP", "ASSETS", "ICONS", "FG-TWicoBG.ico"))
 
         # === BOTTOM BAR ===
-        self.info_button = CustomPushButton(os.path.join(BASE_TEMP_PATH, "APP", "ASSETS", "info.ico"), tip="À propos")
-        self.ticket_button = CustomPushButton(os.path.join(BASE_TEMP_PATH, "APP", "ASSETS", "problem.ico"), tip="Signaler un problème")
-        self.github_button = CustomPushButton(os.path.join(BASE_TEMP_PATH, "APP", "ASSETS", "github.ico"), tip="GitHub")
+        self.info_button = CustomPushButton(os.path.join(BASE_TEMP_PATH, "APP", "ASSETS", "ICONS", "info.ico"), tip="À propos")
+        self.ticket_button = CustomPushButton(os.path.join(BASE_TEMP_PATH, "APP", "ASSETS", "ICONS", "problem.ico"), tip="Signaler un problème")
+        self.github_button = CustomPushButton(os.path.join(BASE_TEMP_PATH, "APP", "ASSETS", "ICONS", "github.ico"), tip="GitHub")
 
         self.info_button.clicked.connect(lambda: self.show_info(version="V0.1"))
         self.ticket_button.clicked.connect(lambda: self.show_ticket())
@@ -90,7 +92,7 @@ class WatcherGUI(QWidget):
         self.setup_page = SetupPage(update_button=self.update_button, profile_button=self.profile_button, settings_button=self.settings_button, parent=self.stack_container)
         self.profile_page = ProfilePage(update_button=self.update_button, profile_button=self.profile_button, settings_button=self.settings_button, config=self.USERconfig, parent=self.stack_container)
         self.main_page = MainPage(update_button=self.update_button, profile_button=self.profile_button, settings_button=self.settings_button, config=self.USERconfig, parent=self.stack_container)
-        self.calibration_page = CalibrationPage(update_button=self.update_button, profile_button=self.profile_button, settings_button=self.settings_button, config=self.USERconfig, parent=self.stack_container)
+        self.calibration_page = CalibrationPage(update_button=self.update_button, profile_button=self.profile_button, settings_button=self.settings_button, user_config=self.USERconfig, mpn_config=self.MPNconfig, parent=self.stack_container)
         self.settings_page = SettingsPage(update_button=self.update_button, profile_button=self.profile_button, settings_button=self.settings_button, config=self.USERconfig, parent=self.stack_container)
 
         self.transition = FadeTransition(self.stack)
@@ -142,7 +144,7 @@ class WatcherGUI(QWidget):
 
 
     def show_info(self, version=1.0, ID=None):
-        QMessageBox.information(self, "À propos", f"Créé par Jérôme LECHAT\nVersion : {version}\nID : {ID}")
+        QMessageBox.information(self, "À propos", f"Créé par LECHAT Jérôme \nVersion : {version}\nID : {ID}")
     
     def show_ticket(self):
         BugReportDialog(self.USERconfig, parent=self).exec()
