@@ -15,7 +15,7 @@ class UserConfig:
     def __init__(self, path: str):
         self.path = path
         self.config = {}
-        self.load()  # Charge ou crée la config au démarrage
+        #self.load()
 
     def load(self):
         """

@@ -28,7 +28,7 @@ class MPNConfig:
         self.mpns: List[str] = []
 
         # Chargement automatique au démarrage
-        self.load()
+        #self.load()
 
     # === LOCAL FILE ===
     def load(self):
