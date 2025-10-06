@@ -7,13 +7,22 @@ class FadeTransition:
         self.stacked = stacked_widget
         self._current_group = None  # garder une référence sinon GC tue l’anim
 
-    def fade_to(self, new_widget, duration=800, on_finished=None):
+    def fade_to(self, new_widget, duration=800, on_start=None, on_finished=None):
         old_widget = self.stacked.currentWidget()
         if not old_widget or old_widget == new_widget:
+            if on_start:
+                on_start()
             self.stacked.setCurrentWidget(new_widget)
             if on_finished:
                 on_finished()
             return
+
+        # Si on_start existe → exécuter avant toute animation
+        if on_start:
+            try:
+                on_start()
+            except Exception as e:
+                print(f"[FadeTransition] Erreur dans on_start: {e}")
 
         # Effets d’opacité
         old_effect = QGraphicsOpacityEffect(old_widget)
