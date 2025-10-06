@@ -3,7 +3,7 @@
 from PySide6.QtCore import Qt, QThread, Signal
 from PySide6.QtWidgets import QWidget, QVBoxLayout, QLabel
 
-from APP.WIDGETS.SPINNERbar import Spinner
+from APP.ASSETS.WIDGETS.SPINNERbar import Spinner
 from APP.SERVICES.__init__ import *
 from APP.UTILS.LOGmaker import *
 from APP.UTILS.TOOLSinstaller import *

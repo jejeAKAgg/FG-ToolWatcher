@@ -2,15 +2,15 @@
 
 import os
 
-import Watcher
+import APP.Watcher as Watcher
 
 from PySide6.QtCore import QThread, Signal
 from PySide6.QtWidgets import (
     QWidget, QVBoxLayout, QHBoxLayout
 )
 
-from APP.WIDGETS.MAINbuttons import CustomToolButton
-from APP.WIDGETS.PROGRESSbar import CustomProgressBar
+from APP.ASSETS.WIDGETS.MAINbuttons import CustomToolButton
+from APP.ASSETS.WIDGETS.PROGRESSbar import CustomProgressBar
 
 from APP.SERVICES.__init__ import *
 from APP.UTILS.TOOLSbox import *
@@ -58,17 +58,17 @@ class MainPage(QWidget):
         # --- Boutons Start/Stop/Calibrage ---
         self.start_button = CustomToolButton(
             text="Start",
-            icon_path=os.path.join(BASE_TEMP_PATH, "APP", "ASSETS", "play.ico"),
+            icon_path=os.path.join(BASE_TEMP_PATH, "APP", "ASSETS", "ICONS", "play.ico"),
             gradient=("#4caf50", "#2e7d32")
         )
         self.stop_button = CustomToolButton(
             text="Stop",
-            icon_path=os.path.join(BASE_TEMP_PATH, "APP", "ASSETS", "stop.ico"),
+            icon_path=os.path.join(BASE_TEMP_PATH, "APP", "ASSETS", "ICONS", "stop.ico"),
             gradient=("#e53935", "#b71c1c")
         )
         self.calibrate_button = CustomToolButton(
             text="REFs/Articles",
-            icon_path=os.path.join(BASE_TEMP_PATH, "APP", "ASSETS", "MPN.ico"),
+            icon_path=os.path.join(BASE_TEMP_PATH, "APP", "ASSETS", "ICONS", "MPN.ico"),
             gradient=("#137BD6", "#218DEB")
         )
         self.stop_button.setEnabled(False)

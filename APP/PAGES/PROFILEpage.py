@@ -4,7 +4,7 @@ from PySide6.QtWidgets import (
     QSpacerItem, QSizePolicy, QHBoxLayout, QPushButton
 )
 from PySide6.QtGui import QIcon
-from APP.WIDGETS.PUSHbuttons import CustomPushButton
+from APP.ASSETS.WIDGETS.PUSHbuttons import CustomPushButton
 from APP.SERVICES.__init__ import *
 import os
 import re
@@ -91,7 +91,7 @@ class ProfilePage(QWidget):
         self.lang_buttons = {}
         for code, icon_file in [("FR", "french.ico"), ("EN", "english.ico"), ("NL", "netherlands.ico")]:
             btn = QPushButton()
-            icon_path = os.path.join(BASE_TEMP_PATH, "APP", "ASSETS", icon_file)
+            icon_path = os.path.join(BASE_TEMP_PATH, "APP", "ASSETS", "ICONS", icon_file)
             btn.setIcon(QIcon(icon_path))
             btn.setIconSize(QSize(32, 32))
             btn.setCheckable(True)
@@ -123,7 +123,7 @@ class ProfilePage(QWidget):
 
         # Bouton sauvegarder centré
         self.save_button = CustomPushButton(
-            os.path.join(BASE_TEMP_PATH, "APP", "ASSETS", "save.ico"),
+            os.path.join(BASE_TEMP_PATH, "APP", "ASSETS", "ICONS", "save.ico"),
             width=150, height=50,
             bg_color="#eb6134", hover_color="#78351f"
         )
