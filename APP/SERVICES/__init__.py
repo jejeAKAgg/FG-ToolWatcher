@@ -40,6 +40,7 @@ if sys.platform.startswith("win"):
     USER_SUBFOLDER = os.path.join(BASE_SYSTEM_PATH, "DATA", "USER")
 
     USER_CONFIG_PATH = os.path.join(USER_SUBFOLDER, "settings.json")
+    MPN_CONFIG_PATH = os.path.join(USER_SUBFOLDER, "MPNs.json")
 
 elif sys.platform.startswith("linux"):
     BASE_SYSTEM_PATH = os.path.dirname(sys.executable) if getattr(sys, 'frozen', False) else os.path.abspath(os.path.join(os.path.dirname(__file__), "..", ".."))
@@ -49,9 +50,9 @@ elif sys.platform.startswith("linux"):
     CHROMIUM_ZIP_NAME = "chrome-linux.zip"
     CHROMEDRIVER_ZIP_NAME = "chromedriver_linux64.zip"
     
-    CHROME_PATH = os.path.join(BASE_SYSTEM_PATH, "CORE", "chrome-win", "chrome.exe")
+    CHROME_PATH = os.path.join(BASE_SYSTEM_PATH, "CORE", "chrome-linux", "chrome")
     CHROME_PROFILE_PATH = os.path.join(BASE_SYSTEM_PATH, "CORE", "chrome_profile")
-    CHROMEDRIVER_PATH = os.path.join(BASE_SYSTEM_PATH, "CORE", "chromedriver_win32", "chromedriver.exe")
+    CHROMEDRIVER_PATH = os.path.join(BASE_SYSTEM_PATH, "CORE", "chromedriver_linux64", "chromedriver")
     
     PYTHON_EXE = sys.executable
     
@@ -63,6 +64,7 @@ elif sys.platform.startswith("linux"):
     USER_SUBFOLDER = os.path.join(BASE_SYSTEM_PATH, "DATA", "USER")
 
     USER_CONFIG_PATH = os.path.join(USER_SUBFOLDER, "settings.json")
+    MPN_CONFIG_PATH = os.path.join(USER_SUBFOLDER, "MPNs.json")
 
 else:
     raise RuntimeError(f"Système non supporté: {sys.platform}")
@@ -78,32 +80,3 @@ def make_dirs():
     os.makedirs(RESULTS_SUBFOLDER, exist_ok=True)
     os.makedirs(RESULTS_SUBFOLDER_TEMP, exist_ok=True)
     os.makedirs(USER_SUBFOLDER, exist_ok=True)
-
-def make_user_config():
-    DEFAULT_SETTINGS = {
-        "language": "FR",
-        "send_email": False,
-        "email_list": []
-    }
-
-    folder = os.path.dirname(USER_CONFIG_PATH)
-    if folder:
-        os.makedirs(folder, exist_ok=True)
-
-    # Si le fichier existe déjà → on charge et on complète
-    if os.path.exists(USER_CONFIG_PATH):
-        with open(USER_CONFIG_PATH, "r", encoding="utf-8") as f:
-            try:
-                user_settings = json.load(f)
-            except json.JSONDecodeError:
-                user_settings = {}
-    else:
-        user_settings = {}
-
-    # Fusion : priorité aux valeurs déjà présentes, mais ajout des nouvelles clés par défaut
-    updated_settings = {**DEFAULT_SETTINGS, **user_settings}
-
-    # Si les deux dicts sont différents → écraser avec les paramètres à jour
-    if updated_settings != user_settings:
-        with open(USER_CONFIG_PATH, "w", encoding="utf-8") as f:
-            json.dump(updated_settings, f, indent=4)
