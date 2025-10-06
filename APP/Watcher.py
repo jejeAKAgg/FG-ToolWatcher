@@ -18,11 +18,13 @@ Logger = logger("WATCHER")
 
 
 def main_watcher(config, progress_callback=None):
+    
     """
     Lancement du watcher principal.
     :param config: dict contenant les options utilisateur
     :param progress_callback: fonction pour suivre la progression (0-100)
     """
+    
     Logger.info("Démarrage de Watcher...")
 
     # --- Détermination des sites à surveiller ---
