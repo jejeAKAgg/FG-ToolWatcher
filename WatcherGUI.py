@@ -6,7 +6,7 @@ from PySide6.QtGui import QIcon, QDesktopServices
 from PySide6.QtWidgets import QApplication, QWidget, QVBoxLayout, QStackedLayout, QMessageBox
 
 from APP.PAGES.MAINpage import *
-from APP.PAGES.MPNpage import *
+from APP.PAGES.CATALOGpage import *
 from APP.PAGES.PROFILEpage import *
 from APP.PAGES.SETTINGSpage import *
 from APP.PAGES.SETUPpage import *
@@ -36,9 +36,7 @@ class WatcherGUI(QWidget):
         super().__init__()
         
         self.USERconfig = UserConfig(USER_CONFIG_PATH)
-        self.MPNconfig = MPNConfig(MPN_CONFIG_PATH)
-        
-        make_dirs()
+        self.CATALOGconfig = MPNConfig(CATALOG_CONFIG_PATH)
         
         self.setWindowTitle("FG-ToolWatcher")
         self.setGeometry(300, 300, 1000, 700)
@@ -89,13 +87,13 @@ class WatcherGUI(QWidget):
         self.stack = QStackedLayout()
         self.stack_container = QWidget()
 
-        self.setup_page = SetupPage(update_button=self.update_button, profile_button=self.profile_button, settings_button=self.settings_button, parent=self.stack_container)
-        self.profile_page = ProfilePage(update_button=self.update_button, profile_button=self.profile_button, settings_button=self.settings_button, config=self.USERconfig, parent=self.stack_container)
-        self.main_page = MainPage(update_button=self.update_button, profile_button=self.profile_button, settings_button=self.settings_button, config=self.USERconfig, parent=self.stack_container)
-        self.calibration_page = CalibrationPage(update_button=self.update_button, profile_button=self.profile_button, settings_button=self.settings_button, user_config=self.USERconfig, mpn_config=self.MPNconfig, parent=self.stack_container)
-        self.settings_page = SettingsPage(update_button=self.update_button, profile_button=self.profile_button, settings_button=self.settings_button, config=self.USERconfig, parent=self.stack_container)
-
         self.transition = FadeTransition(self.stack)
+
+        self.setup_page = SetupPage(update_button=self.update_button, profile_button=self.profile_button, settings_button=self.settings_button, user_config=self.USERconfig, catalog_config=self.CATALOGconfig, parent=self.stack_container)
+        self.profile_page = ProfilePage(update_button=self.update_button, profile_button=self.profile_button, settings_button=self.settings_button, user_config=self.USERconfig, catalog_config=self.CATALOGconfig, parent=self.stack_container)
+        self.main_page = MainPage(update_button=self.update_button, profile_button=self.profile_button, settings_button=self.settings_button, user_config=self.USERconfig, catalog_config=self.CATALOGconfig, parent=self.stack_container)
+        self.catalog_page = CatalogPage(update_button=self.update_button, profile_button=self.profile_button, settings_button=self.settings_button, user_config=self.USERconfig, catalog_config=self.CATALOGconfig, parent=self.stack_container)
+        self.settings_page = SettingsPage(update_button=self.update_button, profile_button=self.profile_button, settings_button=self.settings_button, user_config=self.USERconfig, catalog_config=self.CATALOGconfig, parent=self.stack_container)
 
         self.setup_page.setup_finished.connect(lambda: self.transition.fade_to(self.profile_page if not self.USERconfig.get("user_mail") else self.main_page, on_finished=lambda: self._update_top_buttons()))
         self.profile_page.user_saved.connect(lambda: self.transition.fade_to(self.main_page, on_finished=lambda: self._update_top_buttons()))
@@ -106,7 +104,7 @@ class WatcherGUI(QWidget):
         self.stack.addWidget(self.setup_page)       # index 0
         self.stack.addWidget(self.profile_page)     # index 1
         self.stack.addWidget(self.main_page)        # index 2
-        self.stack.addWidget(self.calibration_page) # index 3
+        self.stack.addWidget(self.catalog_page)     # index 3
         self.stack.addWidget(self.settings_page)    # index 4
 
         self.stack_container.setLayout(self.stack)
@@ -140,7 +138,7 @@ class WatcherGUI(QWidget):
         self.transition.fade_to(self.profile_page, on_finished=lambda: self._update_top_buttons())
 
     def toggle_calibration(self):
-        self.transition.fade_to(self.calibration_page, on_finished=lambda: self._update_top_buttons())
+        self.transition.fade_to(self.catalog_page, on_start=lambda: self.catalog_page.refresh_list(), on_finished=lambda: self._update_top_buttons())
 
 
     def show_info(self, version=1.0, ID=None):
@@ -183,7 +181,7 @@ class WatcherGUI(QWidget):
             self.settings_button.setText("")
             self.update_button.setEnabled(True)
             self.profile_button.setEnabled(True)
-        elif current_page == self.calibration_page:
+        elif current_page == self.catalog_page:
             self.settings_button.setEnabled(True)
             self.settings_button.setText("Menu")
             self.update_button.setEnabled(False)
