@@ -40,7 +40,7 @@ if sys.platform.startswith("win"):
     USER_SUBFOLDER = os.path.join(BASE_SYSTEM_PATH, "DATA", "USER")
 
     USER_CONFIG_PATH = os.path.join(USER_SUBFOLDER, "settings.json")
-    MPN_CONFIG_PATH = os.path.join(USER_SUBFOLDER, "MPNs.json")
+    CATALOG_CONFIG_PATH = os.path.join(USER_SUBFOLDER, "MPNs.json")
 
 elif sys.platform.startswith("linux"):
     BASE_SYSTEM_PATH = os.path.dirname(sys.executable) if getattr(sys, 'frozen', False) else os.path.abspath(os.path.join(os.path.dirname(__file__), "..", ".."))
@@ -64,7 +64,7 @@ elif sys.platform.startswith("linux"):
     USER_SUBFOLDER = os.path.join(BASE_SYSTEM_PATH, "DATA", "USER")
 
     USER_CONFIG_PATH = os.path.join(USER_SUBFOLDER, "settings.json")
-    MPN_CONFIG_PATH = os.path.join(USER_SUBFOLDER, "MPNs.json")
+    CATALOG_CONFIG_PATH = os.path.join(USER_SUBFOLDER, "MPNs.json")
 
 else:
     raise RuntimeError(f"Système non supporté: {sys.platform}")
