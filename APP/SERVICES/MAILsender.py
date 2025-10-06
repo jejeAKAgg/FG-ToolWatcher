@@ -7,12 +7,14 @@ from APP.UTILS.LOGmaker import logger
 
 
 class MailService:
+    
     """
     Service dédié à l'envoi d'emails via SMTP (par défaut Gmail SSL).
     Gère les envois simples ou multiples, avec ou sans pièce jointe.
     """
 
     def __init__(self, sender_email: str, password: str, smtp_server: str = "smtp.gmail.com", smtp_port: int = 465):
+        
         """
         Initialise le service d'envoi de mails.
 
@@ -22,13 +24,17 @@ class MailService:
             smtp_server (str): Serveur SMTP (par défaut Gmail).
             smtp_port (int): Port SMTP (465 pour SSL).
         """
+        
+        self.logger = logger("MailService")
+
         self.sender_email = sender_email
         self.password = password
         self.smtp_server = smtp_server
         self.smtp_port = smtp_port
-        self.logger = logger("MailService")
+        
 
     def _create_message(self, recipients, subject, body, attachments=None, html=False) -> EmailMessage:
+        
         """
         Crée un objet EmailMessage prêt à être envoyé.
 
@@ -39,6 +45,7 @@ class MailService:
             attachments (list[str] | None): Liste de chemins de fichiers à attacher.
             html (bool): True si le corps doit être envoyé en HTML.
         """
+
         msg = EmailMessage()
         msg["Subject"] = subject
         msg["From"] = self.sender_email
@@ -63,6 +70,7 @@ class MailService:
         return msg
 
     def send_mail(self, recipients, subject: str, body: str, attachments=None, html=False):
+        
         """
         Envoie un email.
 
@@ -73,6 +81,7 @@ class MailService:
             attachments (list[str] | None): Liste de fichiers à attacher.
             html (bool): Active l'envoi en HTML.
         """
+        
         msg = self._create_message(recipients, subject, body, attachments, html)
 
         try:
