@@ -15,3 +15,5 @@ xlsxwriter
 PySide6
 psutil
 rapidfuzz
+lxml
+cloudscraper
