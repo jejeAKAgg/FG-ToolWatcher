@@ -20,9 +20,9 @@ from APP.ASSETS.WIDGETS.MAINbackground import BackgroundOverlay
 from APP.ASSETS.WIDGETS.PUSHbuttons import CustomPushButton
 
 from APP.SERVICES.__init__ import *
-from APP.SERVICES.BUGreport import *
-from APP.SERVICES.SHEETSmanager import *
-from APP.SERVICES.USERconfig import *
+from APP.SERVICES.TICKETservice import *
+from APP.SERVICES.CATALOGservice import *
+from APP.SERVICES.USERservice import *
 
 from APP.UTILS.LOGmaker import *
 from APP.UTILS.TOOLSbox import *
@@ -35,8 +35,8 @@ class WatcherGUI(QWidget):
     def __init__(self):
         super().__init__()
         
-        self.USERconfig = UserConfig(USER_CONFIG_PATH)
-        self.CATALOGconfig = MPNConfig(CATALOG_CONFIG_PATH)
+        self.USERconfig = UserService(USER_CONFIG_PATH)
+        self.CATALOGconfig = CatalogService(CATALOG_CONFIG_PATH)
         
         self.setWindowTitle("FG-ToolWatcher")
         self.setGeometry(300, 300, 1000, 700)
@@ -145,7 +145,7 @@ class WatcherGUI(QWidget):
         QMessageBox.information(self, "À propos", f"Créé par LECHAT Jérôme \nVersion : {version}\nID : {ID}")
     
     def show_ticket(self):
-        BugReportDialog(self.USERconfig, parent=self).exec()
+        TicketService(self.USERconfig, parent=self).exec()
     
     def show_github(self):
         QDesktopServices.openUrl(QUrl("https://github.com/jejeAKAgg/FG-ToolWatcher"))
