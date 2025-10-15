@@ -50,12 +50,18 @@ class FGloader:
         ]
         self.NAMESPACESurl = {'sitemap': 'http://www.sitemaps.org/schemas/sitemap/0.9'}
         self.CATEGORYnames: List[str] = [
-            'vêtements-et-protections', 'vêtements-et-protections.html',
-            'outillage', 'outillage.html',
-            'consommables-pour-machines', 'consommables-pour-machines.html',
-            'chimie-et-fixation', 'chimie-et-fixation.html',
-            'électricité', 'électricité.html',
+            'aération-et-ventilation', 'aération-et-ventilation.html',
             'bâtiment', 'bâtiment.html',
+            'chassis', 'chassis.html',
+            'chimie-et-fixation', 'chimie-et-fixation.html',
+            'consommables-pour-machines', 'consommables-pour-machines.html',
+            'décoration', 'décoration.html',
+            'électricité', 'électricité.html',
+            'meuble-et-aménagement', 'meuble-et-aménagement.html',
+            'outillage', 'outillage.html',
+            'porte', 'porte.html',
+            'sécurité-électronique', 'sécurité-électronique.html',
+            'vêtements-et-protections', 'vêtements-et-protections.html',
         ]
         self.URLs: List[str] = []
 
