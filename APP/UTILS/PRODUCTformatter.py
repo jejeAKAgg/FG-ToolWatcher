@@ -1,19 +1,9 @@
 import numpy as np
 import re
-import time
 
 from bs4 import BeautifulSoup
 
-from typing import Optional
-
 from APP.UTILS.LOGmaker import *
-
-
-
-# ====================
-#     LOGGER SETUP
-# ====================
-Logger = logger("PRODUCTformatter")
 
 
 # =======================
@@ -28,6 +18,10 @@ KNOWN_BRANDS = [
 ]
 
 BLACKLIST_TERMS = ["ral", "color", "silirub", "silicone", "acrylique", "cartouche", "colle"]
+
+REF_PATTERN = re.compile(r'\b[A-Z0-9\-\/]{4,15}\b')
+POWER_OR_DIMENSION_PATTERN = re.compile(r'^\d+[\s]?(W|V|MM|AH|A|KG|M|CM|ML|G)$')
+PACKS_OR_OTHER_PATTERN = ["SDS-MAX", "SDS-PLUS", "LXT", "LI-ION", "BOSCH", "MAKITA"]
 
 
 # ============================
@@ -49,11 +43,11 @@ def standardize_name(product_name: str, html: str | None = None) -> str:
     """
 
     brand = extract_brand_from_all_sources(product_name, html)
-    model = extract_product_name(product_name)
+    model, extracted_ref = extract_product_name(product_name)
 
     if brand:
-        return f"{brand} - {model.upper()}"
-    return model.upper()
+        return f"[{extracted_ref}] {brand} - {model.upper()}"
+    return f"[{extracted_ref}] {model.upper()}".strip()
 
 def extract_brand(product_name: str) -> str | None:
     
@@ -113,6 +107,10 @@ def clean_product_name(product_name: str) -> str:
     
     """
 
+    EXTRACTEDref = None
+    VALIDrefs = []
+
+
     name = product_name.strip()
 
     # Supprime le contenu entre parenthèses
@@ -134,7 +132,35 @@ def clean_product_name(product_name: str) -> str:
     # Remplace les guillemets droits par des apostrophes pour éviter les problèmes Excel
     name = name.replace('"', "'")
 
-    return name.strip()
+    # --- NOUVELLE LOGIQUE D'EXTRACTION DE RÉFÉRENCE ---
+    ref_matches = REF_PATTERN.findall(name)
+    
+    for candidate in ref_matches:
+        # A. Condition pour REJETER les puissances/dimensions (Ex: '900W')
+        # On vérifie si la chaîne correspond au pattern de rejet.
+        if POWER_OR_DIMENSION_PATTERN.match(candidate.upper()):
+            continue # Ignorer et passer au candidat suivant
+
+        if candidate.upper() in PACKS_OR_OTHER_PATTERN:
+            continue
+            
+        # B. Condition pour ACCEPTER : Doit contenir au moins une lettre pour être un code produit (ex: RP0900J)
+        if any(c.isalpha() for c in candidate):
+            VALIDrefs.append(candidate.upper())
+
+    
+    # --- 3. TRAITEMENT du MPN trouvé (s'il existe) ---
+    if VALIDrefs:
+
+        EXTRACTEDref = max(VALIDrefs, key=len)
+
+        pattern = re.compile(re.escape(EXTRACTEDref), 0)
+        name = pattern.sub('', name).strip()
+        
+    else:
+        name = name
+
+    return name.strip(), EXTRACTEDref
 
 def extract_product_name(product_name: str) -> str:
     
@@ -150,14 +176,20 @@ def extract_product_name(product_name: str) -> str:
     """
 
     brand = extract_brand(product_name)
-    cleaned = clean_product_name(product_name)
+    cleaned, extracted_ref = clean_product_name(product_name)
 
     if brand:
         # Supprime la marque du nom s'il y a correspondance
         pattern = re.compile(re.escape(brand), re.IGNORECASE)
         cleaned = pattern.sub('', cleaned).strip()
 
-    return cleaned.title()
+    return cleaned.title(), extracted_ref
+
+def extract_product_ref(product_name: str) -> str:
+    _, extracted_ref = clean_product_name(product_name)
+
+    return extracted_ref
+
 
 def parse_price(text: str | None) -> float | None:
 
@@ -240,202 +272,3 @@ def format_price_for_excel(price: float | None) -> float:
         return round(float(str(price).replace(",", ".")), 2)
     except (TypeError, ValueError):
         return np.nan
-
-# ============================
-#   REFs EXTRACTOR FUNCTIONS
-# ============================
-def extract_cipac_ref(soup):
-
-    """
-    Extracts the CIPAC reference from the parsed HTML.
-
-    Args:
-        soup (BeautifulSoup): Parsed HTML of the product page.
-
-    Returns:
-        str | None: CIPAC reference or None if not found.
-    
-    """
-
-    p_ref = soup.find('p', class_='ref')
-    if p_ref:
-        text = p_ref.get_text(separator=' ').strip()  # on remplace les <br> par des espaces
-        # Regex pour récupérer la valeur après "Réf. :"
-        match = re.search(r'Réf\. :\s*(.+)', text)
-        if match:
-            return match.group(1).strip()
-        
-    return None
-
-def extract_clabots_ref(soup):
-
-    """
-    Extracts the supplier reference for Clabots products.
-
-    Args:
-        soup (BeautifulSoup): Parsed HTML.
-
-    Returns:
-        str | None: Supplier reference or None if not found.
-    
-    """
-
-    rows = soup.select('div.attribute-table__row')
-    for row in rows:
-        label = row.select_one('div.attribute-table__column__label')
-        value = row.select_one('div.attribute-table__column__value')
-        if label and value:
-            if label.get_text(strip=True) == "Code article du fournisseur":
-                return value.get_text(strip=True)
-    return None
-
-def extract_fixami_ref(soup):
-
-    """
-    Extracts the Fixami model code from HTML.
-
-    Args:
-        soup (BeautifulSoup): Parsed HTML.
-
-    Returns:
-        str | None: Model code or None if not found.
-    
-    """
-
-    dt = soup.find('dt', string=lambda x: x and "Code du modèle" in x)
-    if dt:
-        dd = dt.find_next_sibling('dd')
-        if dd:
-            p = dd.find('p', attrs={'type': 'BODY_BOLD'})
-            if p:
-                return p.get_text(strip=True)
-    return None
-
-def extract_klium_ref(soup):
-
-    """
-    Extracts the Klium supplier reference from HTML, removing brand prefix.
-
-    Args:
-        soup (BeautifulSoup): Parsed HTML.
-
-    Returns:
-        str | None: Supplier reference or None if not found.
-    
-    """
-
-    supplier_ref_li = soup.find('li', id='supplier_reference_value')
-    if supplier_ref_li:
-        span = supplier_ref_li.find('span')
-        if span:
-            span.extract()  # enlève le span
-        
-        ref_text = supplier_ref_li.get_text(strip=True)
-
-        # Supprimer la marque si elle est en début de chaîne (insensible à la casse)
-        for brand in KNOWN_BRANDS:
-            if ref_text.lower().startswith(brand.lower() + ' '):
-                # Enlever la marque + espace
-                ref_text = ref_text[len(brand)+1:]
-                break
-        
-        return ref_text
-    return None
-
-def extract_lecot_ref(soup):
-
-    """
-    Extracts the Lecot supplier reference from HTML.
-
-    Args:
-        soup (BeautifulSoup): Parsed HTML.
-
-    Returns:
-        str | None: Supplier reference or None if not found.
-    
-    """
-
-    rows = soup.select('tr.properties-row')
-    for row in rows:
-        label = row.select_one('th.properties-label')
-        value = row.select_one('td.properties-value')
-        if label and value:
-            if label.get_text(strip=True).lower() == "numéro de fournisseur":
-                return value.get_text(strip=True)
-    return None
-
-
-# ============================
-#  OFFERS EXTRACTOR FUNCTIONS
-# ============================
-def extract_offers_FIXAMI(soup: BeautifulSoup) -> Optional[str]:
-
-    """
-    Extracts quantity/price offers from Fixami product page.
-
-    Args:
-        soup (BeautifulSoup): Parsed HTML.
-
-    Returns:
-        str: Offers formatted as 'quantity: price€ (discount)', or '-' if none found.
-    
-    """
-
-    offers = []
-
-    for offer_block in soup.select("div.sc-cd80083d-1"):
-        quantity_label = offer_block.select_one("label.sc-cd80083d-2")
-        price_label = offer_block.select_one("label.sc-cd80083d-4")
-        discount_label = offer_block.select_one("label.sc-cd80083d-5")
-
-        if quantity_label and price_label:
-            quantity_text = quantity_label.get_text(strip=True)
-            price_text = price_label.get_text(strip=True).replace(',', '.')
-
-            try:
-                price = float(price_text)
-            except ValueError:
-                continue
-
-            discount_text = f" ({discount_label.get_text(strip=True)})" if discount_label else ""
-            offers.append(f"{quantity_text}: {price:.2f}€{discount_text}")
-
-    return "\n".join(offers) if offers else "-"
-
-def extract_offers_KLIUM(soup: BeautifulSoup) -> Optional[str]:
-
-    """
-    Extracts quantity/price offers from KLIUM product page.
-
-    Args:
-        soup (BeautifulSoup): Parsed HTML.
-
-    Returns:
-        str: Offers formatted as 'quantity: price€ (discount)', or '-' if none found.
-    
-    """
-
-    offers = []
-
-    # Sélectionne tous les blocs d'offres
-    for offer_div in soup.select("div.prod_discount_btn"):
-        label = offer_div.find("label", class_="prod_discount_label")
-        if not label:
-            continue
-        
-        quantity_span = label.select_one("span.label-discount-text")
-        price_span = label.select_one("span.label-discount-price")
-        discount_span = label.select_one("span.label-discount.discounted-price")
-
-        if quantity_span and price_span:
-            quantity_text = quantity_span.get_text(strip=True)
-            price_text = price_span.get_text(strip=True).replace('\xa0', '').replace(',', '.').replace('€', '')
-            try:
-                price = float(price_text)
-            except ValueError:
-                continue
-
-            discount_text = f" ({discount_span.get_text(strip=True)})" if discount_span else ""
-            offers.append(f"{quantity_text}: {price:.2f}€{discount_text}")
-
-    return "\n".join(offers) if offers else "-"
