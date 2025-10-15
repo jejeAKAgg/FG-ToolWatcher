@@ -1,7 +1,7 @@
 import os
 import json
 
-class UserConfig:
+class UserService:
     DEFAULT_SETTINGS = {
         "language": "FR",
         "user_firstname": "",
