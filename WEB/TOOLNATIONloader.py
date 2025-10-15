@@ -28,9 +28,11 @@ from APP.UTILS.PRODUCTformatter import *
 
 
 class TOOLNATIONloader:
+    
     """
-    Classe pour télécharger et extraire les URL d'un fichier Sitemap XML.
+    Class to download and extract product URLs and data from Fernand GEORGES.
     """
+
     def __init__(self):
 
         # === LOGGER SETUP ===
@@ -44,16 +46,14 @@ class TOOLNATIONloader:
         self.SAVE_THRESHOLD = 500
         self.WAIT_TIME = 3
 
-        self.PRODUCTS: List[str] = []
-
         # === INTERNAL PARAMETER(S) ===
-        self.SITEMAPurls = [
+        self.SITEMAPurls: List[str] = [
             'https://www.toolnation.fr/pub/sitemap/sitemap_fr_1.xml',
             'https://www.toolnation.fr/pub/sitemap/sitemap_fr_2.xml',
             'https://www.toolnation.fr/pub/sitemap/sitemap_fr_3.xml'
         ]
         self.NAMESPACESurl = {'sitemap': 'http://www.sitemaps.org/schemas/sitemap/0.9'}
-        self.CATEGORYnames = [
+        self.CATEGORYnames: List[str] = [
             'accessoire', 'accessoires.html',
             'accessoires', 'accessoires.html',
             'actualites', 'actualites.html',
@@ -223,33 +223,25 @@ class TOOLNATIONloader:
     def _save_batch(self, csv_path: str, batch_data: List[dict], is_emergency: bool = False):
         
         """
-        Sauvegarde le lot de données actuel en le concaténant avec la base de données existante.
+        Saves the current batch of data by appending it to the existing database file.
+        This avoids RAM saturation (pd.concat).
         """
         
         NEWdf = pd.DataFrame(batch_data)
         
         if not os.path.exists(csv_path):
-            # CAS 1: Nouvelle base de données (écriture simple)
             NEWdf.to_csv(csv_path, index=False, encoding='utf-8-sig')
-            self.logger.info(f"New DB created with {len(NEWdf.index)} lines.")
+            self.logger.info(f"New DB created. Total lines: {len(NEWdf.index)}")
+            
             return
 
-        # CAS 2: Reprise (concaténation)
         try:
-            # Charger l'ancienne DB
-            OLDdf = pd.read_csv(csv_path, encoding='utf-8-sig', usecols=NEWdf.columns)
-            
-            # Concaténer
-            FINALdf = pd.concat([OLDdf, NEWdf], ignore_index=True)
-            
-            # Sauvegarder la totalité du DataFrame
-            FINALdf.to_csv(csv_path, index=False, encoding='utf-8-sig')
+            NEWdf.to_csv(csv_path, mode='a', header=not os.path.exists(csv_path), index=False, encoding='utf-8-sig')
             
             if not is_emergency:
-                self.logger.info(f"Batch saved. Total lines: {len(FINALdf.index)}.")
+                self.logger.info(f"Batch saved.")
             
         except Exception as e:
-            # Cette erreur est rare mais possible si le CSV a été corrompu entre-temps.
             self.logger.error(f"CRITICAL: Failed to merge batch due to {e}. New lines might be lost.")
         
 
@@ -277,13 +269,10 @@ class TOOLNATIONloader:
                 for loc_tag in soup.find_all('loc'):
                     PRODUCTurl = unquote(loc_tag.text.strip())
 
-                    if PRODUCTurl.endswith('/'):
+                    if PRODUCTurl.endswith(('/', '.jpg', '.jpeg', '.png', '.gif', '.pdf')):
                         continue
 
-                    if PRODUCTurl.endswith('.jpg'):
-                        continue
-
-                    if [w for w in PRODUCTurl.split('/') if w][1] not in ["www.toolnation.fr"]:
+                    if [w for w in PRODUCTurl.split('/') if w][1] not in [('www.toolnation.fr', 'toolnation.fr')]:
                         continue
 
                     if [w for w in PRODUCTurl.split('/') if w][2] in self.CATEGORYnames:
@@ -390,38 +379,57 @@ class TOOLNATIONloader:
         CSVpathDB = os.path.join(DATABASE_FOLDER, "TOOLNATIONproductsDB.csv")
         DBurls = self._load_DBurls(CSVpathDB)
 
+        PRODUCTS: List[dict] = []
+
         try:
 
             for SITEMAPurl in self.SITEMAPurls:
                 self._extract_SITEMAPurls(SITEMAPurl)
 
-            self.logger.info(f"Found link(s): {len(self.URLs)}")
-
             self.URLs = [url for url in self.URLs if url not in DBurls]
+
+            self.logger.info(f"Found link(s): {len(self.URLs)}")
 
             if self.URLs:
                 for PRODUCTurl in self.URLs:
-                    data = self._ONLINEextract_FINALproduct(PRODUCTurl)
+                    try:
 
-                    print(data)     # [TESTING ONLY]
-                    
-                    self.PRODUCTS.append(data)
+                        data = self._ONLINEextract_FINALproduct(PRODUCTurl)
 
-                    self.SAVE_COUNTER+=1
-
-                    if self.SAVE_COUNTER >= self.SAVE_THRESHOLD:
-                        self._save_batch(CSVpathDB, self.PRODUCTS)
+                        print(data)     # [TESTING ONLY]
                         
-                        self.PRODUCTS = []
-                        self.SAVE_COUNTER = 0
-                    
-                    time.sleep(random.uniform(0.5, 1)) # Loading time (STABILITY)
+                        PRODUCTS.append(data)
+
+                        self.SAVE_COUNTER+=1
+
+                        if self.SAVE_COUNTER >= self.SAVE_THRESHOLD:
+                            self._save_batch(CSVpathDB, PRODUCTS)
+                            
+                            self.SAVE_COUNTER = 0
+                            PRODUCTS = []
+                        
+                        time.sleep(random.uniform(0.5, 1)) # Loading time (STABILITY)
+
+                    except Exception as e:
+                        self.logger.error(f"An unexpected error occurred for URL {PRODUCTurl}: {e}")
+                        continue
                 
-                if self.PRODUCTS:
-                    self._save_batch(CSVpathDB, self.PRODUCTS)
+                if PRODUCTS:
+                    self._save_batch(CSVpathDB, PRODUCTS)
+
+                    self.SAVE_COUNTER = 0
+                    PRODUCTS = []
         
         except Exception as e:
             self.logger.error(f"Critical error for TOOLNATIONloader: {e}")
+
+            if PRODUCTS: # EMERGENCY SAVE
+                self._save_batch(CSVpathDB, PRODUCTS, is_emergency=True)
+
+                self.SAVE_COUNTER = 0
+                PRODUCTS = []
+
+                self.logger.warning("Emergency save triggered due to critical error.")
 
         self.logger.info("TOOLNATIONloader process terminated...")
 

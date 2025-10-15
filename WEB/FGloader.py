@@ -26,9 +26,11 @@ from APP.UTILS.PRODUCTformatter import *
 
 
 class FGloader:
+    
     """
-    Classe pour télécharger et extraire les URL d'un fichier Sitemap XML.
+    Class to download and extract product URLs and data from Fernand GEORGES.
     """
+
     def __init__(self):
 
         # === LOGGER SETUP ===
@@ -43,11 +45,18 @@ class FGloader:
         self.WAIT_TIME = 3
 
         # === INTERNAL PARAMETER(S) ===
-        self.SITEMAPurls = [
-            'https://www.georges.be/fr-be/sitemap_0.xml'
+        self.SITEMAPurls: List[str] = [
+            'https://www.georges.be/fr-be/sitemap_0.xml',
         ]
         self.NAMESPACESurl = {'sitemap': 'http://www.sitemaps.org/schemas/sitemap/0.9'}
-        self.CATEGORYnames = ['vêtements-et-protections', 'outillage', 'consommables-pour-machines', 'chimie-et-fixation', 'électricité', 'bâtiment']
+        self.CATEGORYnames: List[str] = [
+            'vêtements-et-protections', 'vêtements-et-protections.html',
+            'outillage', 'outillage.html',
+            'consommables-pour-machines', 'consommables-pour-machines.html',
+            'chimie-et-fixation', 'chimie-et-fixation.html',
+            'électricité', 'électricité.html',
+            'bâtiment', 'bâtiment.html',
+        ]
         self.URLs: List[str] = []
 
         # === PARAMETERS & OPTIONS SETUP (CloudSCRAPER) ===
@@ -126,28 +135,28 @@ class FGloader:
         self.logger.info(f"Fetching sitemap: {link}...")
         
         try:
-            # 1. Utiliser cloudscraper pour le téléchargement
+
             response = self.requests.get(link, headers=self.REQUESTS_HEADERS)
             response.raise_for_status()
 
             time.sleep(self.WAIT_TIME)
 
-            # 2. Vérifier si le contenu est compressé (le sitemap de Clabots l'est)
             if link.endswith('.gz'):
                 self.logger.info("Content is GZIP compressed. Decompressing...")
-                # gzip.decompress prend le contenu binaire (response.content)
                 decompressed_content = gzip.decompress(response.content)
-                # Le convertir en chaîne de caractères (utf-8 est standard pour XML)
+
                 return decompressed_content.decode('utf-8')
             else:
-                # Sinon, retourner le texte normal
+
                 return response.text
                 
         except requests.exceptions.HTTPError as e:
             self.logger.error(f"HTTP Error {e.response.status_code} on sitemap: {link}")
+            
             return None
         except Exception as e:
             self.logger.error(f"Error during decompression/fetch: {e}")
+            
             return None
         
     def _load_DBurls(self, csv_path: str) -> set:
@@ -158,12 +167,9 @@ class FGloader:
         
         if os.path.exists(csv_path):
             try:
-                # Charger uniquement la colonne ArticleURL pour la rapidité
                 df_existing = pd.read_csv(csv_path, usecols=['ArticleURL'], encoding='utf-8-sig')
                 
-                # Le convertir en un ensemble (set) pour des recherches ultra-rapides (O(1))
                 existing_urls = set(df_existing['ArticleURL'].astype(str).tolist())
-                
                 self.logger.info(f"Existing database found: {len(existing_urls)} URLs already processed.")
                 return existing_urls
             except Exception as e:
@@ -174,14 +180,15 @@ class FGloader:
     def _save_batch(self, csv_path: str, batch_data: List[dict], is_emergency: bool = False):
         
         """
-        Sauvegarde le lot de données actuel en le concaténant avec la base de données existante.
+        Saves the current batch of data by appending it to the existing database file.
+        This avoids RAM saturation (pd.concat).
         """
         
         NEWdf = pd.DataFrame(batch_data)
         
         if not os.path.exists(csv_path):
             NEWdf.to_csv(csv_path, index=False, encoding='utf-8-sig')
-            self.logger.info(f"New DB created. Total lines: {len(NEWdf)}")
+            self.logger.info(f"New DB created. Total lines: {len(NEWdf.index)}")
             
             return
 
@@ -189,7 +196,7 @@ class FGloader:
             NEWdf.to_csv(csv_path, mode='a', header=not os.path.exists(csv_path), index=False, encoding='utf-8-sig')
             
             if not is_emergency:
-                self.logger.info(f"Batch saved. Total lines: {len(NEWdf)}.")
+                self.logger.info(f"Batch saved.")
             
         except Exception as e:
             self.logger.error(f"CRITICAL: Failed to merge batch due to {e}. New lines might be lost.")
@@ -219,14 +226,22 @@ class FGloader:
                 for loc_tag in soup.find_all('loc'):
                     PRODUCTurl = unquote(loc_tag.text.strip())
 
-                    if PRODUCTurl.endswith('/'):
+                    if PRODUCTurl.endswith(('/', '.jpg', '.jpeg', '.png', '.gif', '.pdf')):
                         continue
 
-                    if len(PRODUCTurl.split('/')) <= 4:
+                    if [w for w in PRODUCTurl.split('/') if w][1] not in ('www.georges.be', 'georges.be'):
+                        continue
+
+                    if [w for w in PRODUCTurl.split('/') if w][2] in ['en-be', 'nl-be']:
                         continue
                             
-                    if [w for w in PRODUCTurl.split('/') if w][3] in self.CATEGORYnames:
-                        self.URLs.append(PRODUCTurl)
+                    if [w for w in PRODUCTurl.split('/') if w][3] not in self.CATEGORYnames:
+                        continue
+
+                    if len([w for w in PRODUCTurl.split('/') if w]) <= 3:
+                        continue
+
+                    self.URLs.append(PRODUCTurl)
 
                 break
             
@@ -277,7 +292,7 @@ class FGloader:
 
                 PRODUCTvar['Article'] = (
                     (name := soup.find("h1", class_="font-product-title"))
-                    and name.get_text(strip=True).replace("\"", "\"\"")
+                    and (name.get_text(strip=True).replace("\"", "\"\""))
                 )
                 PRODUCTvar['Local REF'] = (
                     (ref_tag := soup.find("span", class_="value", itemprop="productID")) 
@@ -328,7 +343,7 @@ class FGloader:
         CSVpathDB = os.path.join(DATABASE_FOLDER, "FGproductsDB.csv")
         DBurls = self._load_DBurls(CSVpathDB)
 
-        PRODUCTS: List[str] = []
+        PRODUCTS: List[dict] = []
 
         try:
 
@@ -364,6 +379,8 @@ class FGloader:
                 
                 if PRODUCTS:
                     self._save_batch(CSVpathDB, PRODUCTS)
+                    
+                    self.SAVE_COUNTER = 0
                     PRODUCTS = []
         
         except Exception as e:
@@ -371,6 +388,9 @@ class FGloader:
 
             if PRODUCTS: # EMERGENCY SAVE
                 self._save_batch(CSVpathDB, PRODUCTS, is_emergency=True)
+
+                self.SAVE_COUNTER = 0
+                PRODUCTS = []
 
                 self.logger.warning("Emergency save triggered due to critical error.")
 

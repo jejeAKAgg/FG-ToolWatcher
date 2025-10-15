@@ -27,10 +27,11 @@ from APP.UTILS.PRODUCTformatter import *
 
 
 class KLIUMloader:
+    
     """
-    Classe pour télécharger et extraire les URL d'un fichier Sitemap XML.
-    Utilise WebDriver pour contourner Cloudflare et extraire les fiches produits.
+    Class to download and extract product URLs and data from Fernand GEORGES.
     """
+
     def __init__(self):
 
         # === LOGGER SETUP ===
@@ -40,10 +41,12 @@ class KLIUMloader:
         self.ATTEMPT = 0
         self.MAX_RETRIES = 3
         self.RETRY_DELAY = 5
+        self.SAVE_COUNTER = 0
+        self.SAVE_THRESHOLD = 500
         self.WAIT_TIME = 3
 
         # === INTERNAL PARAMETER(S) ===
-        self.SITEMAPurls = [
+        self.SITEMAPurls: List[str] = [
             'https://www.klium.be/download/feeds/sitemap/www.klium.be/Sitemapp1.xml',
             'https://www.klium.be/download/feeds/sitemap/www.klium.be/Sitemapp2.xml',
             'https://www.klium.be/download/feeds/sitemap/www.klium.be/Sitemapp3.xml',
@@ -54,8 +57,10 @@ class KLIUMloader:
             'https://www.klium.be/download/feeds/sitemap/www.klium.be/Sitemapp8.xml',
             'https://www.klium.be/download/feeds/sitemap/www.klium.be/Sitemapp9.xml',
             'https://www.klium.be/download/feeds/sitemap/www.klium.be/Sitemapp10.xml',
-            'https://www.klium.be/download/feeds/sitemap/www.klium.be/Sitemapp11.xml'
+            'https://www.klium.be/download/feeds/sitemap/www.klium.be/Sitemapp11.xml',
         ]
+        self.NAMESPACESurl = {'sitemap': 'http://www.sitemaps.org/schemas/sitemap/0.9'}
+        self.CATEGORYnames: List[str] = []
         self.URLs: List[str] = []
 
         # === PARAMETERS & OPTIONS SETUP (CloudSCRAPER) ===
@@ -189,12 +194,37 @@ class KLIUMloader:
                 return set()
         return set()
     
+    def _save_batch(self, csv_path: str, batch_data: List[dict], is_emergency: bool = False):
+        
+        """
+        Saves the current batch of data by appending it to the existing database file.
+        This avoids RAM saturation (pd.concat).
+        """
+        
+        NEWdf = pd.DataFrame(batch_data)
+        
+        if not os.path.exists(csv_path):
+            NEWdf.to_csv(csv_path, index=False, encoding='utf-8-sig')
+            
+            self.logger.info(f"New DB created with {len(NEWdf.index)} lines.")
+            return
+
+        try:
+            NEWdf.to_csv(csv_path, mode='a', header=not os.path.exists(csv_path), index=False, encoding='utf-8-sig')
+            
+            if not is_emergency:
+                self.logger.info(f"Batch saved.")
+            
+        except Exception as e:
+            # Cette erreur est rare mais possible si le CSV a été corrompu entre-temps.
+            self.logger.error(f"CRITICAL: Failed to merge batch due to {e}. New lines might be lost.")
+    
 
     # Méthode modifiée pour l'extraction du sitemap enfant (utilise driver)
     def _extract_SITEMAPurls(self, link):
         
         """
-        Télécharge le sitemap et extrait toutes les URL <loc>.
+        Downloads the sitemap and extracts all <loc> URLs (applying filtering logic).
         """
         
         self.logger.info(f"Téléchargement du sitemap : {link}...")
@@ -215,18 +245,24 @@ class KLIUMloader:
                 for loc_tag in soup.find_all('loc'):
                     PRODUCTurl = unquote(loc_tag.text.strip())
 
-                    if PRODUCTurl.endswith('/'):
+                    if PRODUCTurl.endswith(('/', '.jpg', '.jpeg', '.png', '.gif', '.pdf')):
                         continue
 
-                    if PRODUCTurl.split('/')[2] not in ["www.klium.be"]:
+                    if [w for w in PRODUCTurl.split('/') if w][1] not in ('www.klium.be', 'klium.be'):
                         continue
 
-                    if PRODUCTurl.split('/')[3] in ["en", "nl"]:
+                    if [w for w in PRODUCTurl.split('/') if w][2] in ['en', 'nl']:
+                        continue
+
+                    if [w for w in PRODUCTurl.split('/') if w][3] in self.CATEGORYnames:
+                        continue
+
+                    if len([w for w in PRODUCTurl.split('/') if w]) > 4:
                         continue
 
                     self.URLs.append(PRODUCTurl)
 
-                return self.URLs
+                break
             
             except Exception as e:
                 self.logger.warning(f"Erreur lors de l'extraction des données: {e}")
@@ -269,8 +305,6 @@ class KLIUMloader:
                 ARTICLEpage = response.content
 
                 #self.logger.info(ARTICLEpage)     # [TESTING ONLY]
-
-                print(ARTICLEpage)
 
                 soup = BeautifulSoup(ARTICLEpage, "html.parser")
 
@@ -318,54 +352,60 @@ class KLIUMloader:
     def run(self):
 
         CSVpathDB = os.path.join(DATABASE_FOLDER, "KLIUMproductsDB.csv")
-
         DBurls = self._load_DBurls(CSVpathDB)
 
-        products = []
+        PRODUCTS: List[dict] = []
 
         try:
-
             for SITEMAPurl in self.SITEMAPurls:
                 self._extract_SITEMAPurls(SITEMAPurl)
 
-            self.logger.info(f"Nombre de lien(s) touvé(s): {len(self.URLs)}")
-
             self.URLs = [url for url in self.URLs if url not in DBurls]
+
+            self.logger.info(f"Nombre de lien(s) touvé(s): {len(self.URLs)}")
 
             if self.URLs:
                 for PRODUCTurl in self.URLs:
-                    data = self._ONLINEextract_FINALproduct(PRODUCTurl)
+                    try:
+                        data = self._ONLINEextract_FINALproduct(PRODUCTurl)
 
-                    print(data)     # [TESTING ONLY]
+                        print(data)     # [TESTING ONLY]
+                        
+                        PRODUCTS.append(data)
 
-                    products.append(data)
+                        self.SAVE_COUNTER+=1
 
-                    time.sleep(random.uniform(0.5, 1)) # Loading time (STABILITY)
+                        if self.SAVE_COUNTER >= self.SAVE_THRESHOLD:
+                            self._save_batch(CSVpathDB, PRODUCTS)
+                            
+                            self.SAVE_COUNTER = 0
+                            PRODUCTS = []
+                        
+                        time.sleep(random.uniform(0.5, 1)) # Loading time (STABILITY)
+
+                    except Exception as e:
+                        self.logger.error(f"An unexpected error occurred for URL {PRODUCTurl}: {e}")
+                        continue
+
+                if PRODUCTS:
+                    self._save_batch(CSVpathDB, PRODUCTS)
+
+                    self.SAVE_COUNTER = 0
+                    PRODUCTS = []
         
         except Exception as e:
-            self.logger.error(f"Erreur fatale dans KLIUMloader: {e}")
+            self.logger.error(f"Critical error for KLIUMloader: {e}")
 
-        NEWdf = pd.DataFrame(products)
+            if PRODUCTS: # EMERGENCY SAVE
+                self._save_batch(CSVpathDB, PRODUCTS, is_emergency=True)
 
-        if not DBurls: # Initiating new DB
-            FINALdf = NEWdf
-        
-        else: # Loading existing DB
-            try:
-                OLDdf = pd.read_csv(CSVpathDB, encoding='utf-8-sig', usecols=NEWdf.columns) # Loading only needed columns
-                FINALdf = pd.concat([OLDdf, NEWdf], ignore_index=True)
-                
-                self.logger.info(f"Database updated.")
-            
-            except Exception as e:
-                FINALdf = NEWdf
+                self.SAVE_COUNTER = 0
+                PRODUCTS = []
 
-                self.logger.error(f"Critical error with the database: {e}. Saving new DB only.") 
+                self.logger.warning("Emergency save triggered due to critical error.")
 
-        # Saving
-        FINALdf.to_csv(CSVpathDB, index=False, encoding='utf-8-sig')
+        self.logger.info("KLIUMloader process terminated...")
 
-        self.logger.info("CLABOTSloader process terminated...")
 
 
 # === Independent running system ===

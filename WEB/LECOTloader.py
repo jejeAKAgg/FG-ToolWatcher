@@ -1,30 +1,26 @@
-# APP/WEBSITES/CIPACwatcher.py
+# WEB/LECOTloader.py
 import os
 import sys
 import time
 
-import numpy as np
+import cloudscraper
+import gzip
 import pandas as pd
 import random
-
 import requests
 
 from bs4 import BeautifulSoup
-
 from datetime import datetime
-
 from typing import List
+from urllib.parse import unquote
 
 from selenium import webdriver
 from selenium.webdriver.chrome.options import Options
 from selenium.webdriver.chrome.service import Service
+from selenium.webdriver.common.by import By
 
-from urllib.parse import unquote
 
 from APP.SERVICES.__init__ import *
-
-from APP.SERVICES.CACHEservice import CacheService
-from APP.SERVICES.MATCHERservice import MatcherService
 
 from APP.UTILS.LOGmaker import *
 from APP.UTILS.PRODUCTformatter import *
@@ -37,20 +33,39 @@ class LECOTloader:
     def __init__(self):
 
         # === LOGGER SETUP ===
-        self.logger = logger("KLIUMloader")
+        self.logger = logger("LECOTloader")
 
         # === INTERNAL VARIABLE(S) ===
         self.ATTEMPT = 0
         self.MAX_RETRIES = 3
         self.RETRY_DELAY = 5
+        self.SAVE_COUNTER = 0
+        self.SAVE_THRESHOLD = 500
+        self.WAIT_TIME = 3
 
         # === INTERNAL PARAMETER(S) ===
-        self.SITEMAPurl = 'https://www.klium.be/sitemap.xml'
+        self.SITEMAPurls: List[str] = [
+            'https://lecot.be/media/sitemap/lecot-b2b-fr-be-products-sitemap_1.xml',
+            'https://lecot.be/media/sitemap/lecot-b2b-fr-be-products-sitemap_2.xml',
+        ]
         self.NAMESPACESurl = {'sitemap': 'http://www.sitemaps.org/schemas/sitemap/0.9'}
-        self.SITEMAPurls_child = []
-        self.URLs = []
+        self.CATEGORYnames: List[str] = [
+            'configurateur-hettich', 'configurateur-hettich.html'
+        ]
+        self.URLs: List[str] = []
 
-        # === PARAMETERS & OPTIONS SETUP ===
+        # === PARAMETERS & OPTIONS SETUP (CloudSCRAPER) ===
+        self.requests = cloudscraper.create_scraper()
+
+        self.REQUESTS_HEADERS = {
+            'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/114.0.0.0 Safari/537.36',
+            'Referer': 'https://lecot.be/fr-be/',
+            'Accept-Language': 'fr-FR,fr;q=0.9,en-US;q=0.8,en;q=0.7',
+            'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,*/*;q=0.8',
+            'Connection': 'keep-alive'
+        }
+
+        # === PARAMETERS & OPTIONS SETUP (Selenium) ===
         self.options = Options()
 
         self.options.add_argument(f"--user-data-dir={CHROME_PROFILE_PATH}")
@@ -79,23 +94,6 @@ class LECOTloader:
         else:
             self.service = None
 
-        self.REQUESTS_HEADERS = {
-            # Maintenez le User-Agent
-            'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/114.0.0.0 Safari/537.36',
-            
-            # AJOUTER le Referer pour simuler une navigation depuis la page d'accueil
-            'Referer': 'https://www.klium.be/', 
-            
-            # AJOUTER l'Accept-Encoding (compression)
-            'Accept-Encoding': 'gzip, deflate, br', 
-            
-            # Maintenez les autres headers...
-            'Accept-Language': 'fr-FR,fr;q=0.9,en-US;q=0.8,en;q=0.7',
-            'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,*/*;q=0.8',
-            'Connection': 'keep-alive'
-        }
-
-
     
     def _init_driver(self):
         return webdriver.Chrome(options=self.options, service=self.service)
@@ -115,63 +113,105 @@ class LECOTloader:
             - If button is not found or already accepted, logs info.
         """
         
-        pass
+        try:
+            accept_button = driver.find_element(By.ID, "CybotCookiebotDialogBodyLevelButtonLevelOptinAllowAll")
+            if accept_button.is_displayed():
+                accept_button.click()
+                self.logger.info(f"Cookies accepted for LECOT: {driver.current_url}.")
+                time.sleep(5)
+        except Exception:
+            self.logger.info(f"No cookies to accept or already accepted for LECOT: {driver.current_url}.")
     
-
-    def _extract_childSITEMAPSurls(self, driver) -> List[str]:
+    def _fetch_and_decompress_sitemap(self, link: str):
         
         """
-        Télécharge le sitemap et extrait toutes les URL <loc>.
+        Downloads the sitemap (which may be a compressed .gz file) and returns the decompressed XML content.
+
+        Args:
+            link (str): The URL of the sitemap file (e.g., 'sitemap-index-1.xml' or 'sitemap-index-1.xml.gz').
+
+        Returns:
+            str | None: The decompressed XML content as a string, or None if the download or decompression fails.
+        """
+
+        self.logger.info(f"Fetching sitemap: {link}...")
+        
+        try:
+            # 1. Utiliser cloudscraper pour le téléchargement
+            response = self.requests.get(link, headers=self.REQUESTS_HEADERS)
+            response.raise_for_status()
+
+            time.sleep(self.WAIT_TIME)
+
+            # 2. Vérifier si le contenu est compressé (le sitemap de Clabots l'est)
+            if link.endswith('.gz'):
+                self.logger.info("Content is GZIP compressed. Decompressing...")
+                # gzip.decompress prend le contenu binaire (response.content)
+                decompressed_content = gzip.decompress(response.content)
+                # Le convertir en chaîne de caractères (utf-8 est standard pour XML)
+                return decompressed_content.decode('utf-8')
+            else:
+                # Sinon, retourner le texte normal
+                return response.text
+                
+        except requests.exceptions.HTTPError as e:
+            self.logger.error(f"HTTP Error {e.response.status_code} on sitemap: {link}")
+            return None
+        except Exception as e:
+            self.logger.error(f"Error during decompression/fetch: {e}")
+            return None
+
+    def _load_DBurls(self, csv_path: str) -> set:
+        
+        """
+        Loads already processed URLs from the existing DB for restart logic (cache checker).
         """
         
-        self.logger.info(f"Téléchargement du sitemap : {self.SITEMAPurl}...")
-
-        # === INTERNAL VARIABLE(S) ===
-        self.ATTEMPT = 0
-        self.MAX_RETRIES = 3
-        self.RETRY_DELAY = 5
-
-        # === SEARCH ENGINE ===
-        while self.ATTEMPT < self.MAX_RETRIES:
+        if os.path.exists(csv_path):
             try:
-
-                driver.get(self.SITEMAPurl)
+                # Charger uniquement la colonne ArticleURL pour la rapidité
+                df_existing = pd.read_csv(csv_path, usecols=['ArticleURL'], encoding='utf-8-sig')
                 
-                time.sleep(5)  # Loading time (JS)
-
-                ARTICLEpage = driver.page_source
-
-                soup = BeautifulSoup(ARTICLEpage, "xml")
-
-                for loc_tag in soup.find_all('loc')[:11]:
-                    PRODUCTurl = unquote(loc_tag.text.strip())
-
-                    if PRODUCTurl.endswith('/'):
-                        continue
-
-                    if PRODUCTurl.split('/')[3] in ["en", "nl"]:
-                        continue
-
-                    self.SITEMAPurls_child.append(PRODUCTurl)
-
-                return self.SITEMAPurls_child
-            
+                # Le convertir en un ensemble (set) pour des recherches ultra-rapides (O(1))
+                existing_urls = set(df_existing['ArticleURL'].astype(str).tolist())
+                
+                self.logger.info(f"Existing database found: {len(existing_urls)} URLs already processed.")
+                return existing_urls
             except Exception as e:
-                self.logger.warning(f"Erreur lors de l'extraction des données: {e}")
-                
-                self.ATTEMPT+=1
-                if self.ATTEMPT == self.MAX_RETRIES:
-                    self.logger.warning(f"Abandon après {self.MAX_RETRIES} tentatives")
-
-                    return []
-                
-                else:
-                    time.sleep(self.RETRY_DELAY)
-
-    def _extract_SITEMAPurls(self, link, driver):
+                self.logger.warning(f"Error loading existing DB: {e}. Full restart needed.")
+                return set()
+        return set()
+    
+    def _save_batch(self, csv_path: str, batch_data: List[dict], is_emergency: bool = False):
         
         """
-        Télécharge le sitemap et extrait toutes les URL <loc>.
+        Saves the current batch of data by appending it to the existing database file.
+        This avoids RAM saturation (pd.concat).
+        """
+        
+        NEWdf = pd.DataFrame(batch_data)
+        
+        if not os.path.exists(csv_path):
+            NEWdf.to_csv(csv_path, index=False, encoding='utf-8-sig')
+            
+            self.logger.info(f"New DB created with {len(NEWdf.index)} lines.")
+            return
+
+        try:
+            NEWdf.to_csv(csv_path, mode='a', header=not os.path.exists(csv_path), index=False, encoding='utf-8-sig')
+            
+            if not is_emergency:
+                self.logger.info(f"Batch saved.")
+            
+        except Exception as e:
+            # Cette erreur est rare mais possible si le CSV a été corrompu entre-temps.
+            self.logger.error(f"CRITICAL: Failed to merge batch due to {e}. New lines might be lost.")
+
+
+    def _extract_SITEMAPurls(self, link):
+        
+        """
+        Downloads the sitemap and extracts all <loc> URLs (applying filtering logic).
         """
         
         self.logger.info(f"Téléchargement du sitemap : {link}...")
@@ -184,22 +224,26 @@ class LECOTloader:
         # === SEARCH ENGINE ===
         while self.ATTEMPT < self.MAX_RETRIES:
             try:
-                
-                driver.get(link)
-                
-                time.sleep(5)  # Loading time (JS)
-
-                ARTICLEpage = driver.page_source
+                ARTICLEpage = self._fetch_and_decompress_sitemap(link) 
 
                 soup = BeautifulSoup(ARTICLEpage, "xml")
 
                 for loc_tag in soup.find_all('loc'):
                     PRODUCTurl = unquote(loc_tag.text.strip())
 
-                    if PRODUCTurl.endswith('/'):
+                    if PRODUCTurl.endswith(('/', '.jpg', '.jpeg', '.png', '.gif', '.pdf')):
                         continue
 
-                    if PRODUCTurl.split('/')[3] in ["en", "nl"]:
+                    if [w for w in PRODUCTurl.split('/') if w][1] not in ('www.lecot.be', 'lecot.be'):
+                        continue
+
+                    if [w for w in PRODUCTurl.split('/') if w][2] in ['en-be', 'en-nl', 'nl-be', 'nl-nl']:
+                        continue
+
+                    if [w for w in PRODUCTurl.split('/') if w][3] in self.CATEGORYnames:
+                        continue
+
+                    if len([w for w in PRODUCTurl.split('/') if w]) > 4:
                         continue
 
                     self.URLs.append(PRODUCTurl)
@@ -219,7 +263,7 @@ class LECOTloader:
                     time.sleep(self.RETRY_DELAY)
     
 
-    def _ONLINEextract_FINALproduct(self, link, driver):
+    def _ONLINEextract_FINALproduct(self, link):
 
         # === INTERNAL VARIABLE(S) ===
         self.ATTEMPT = 0
@@ -228,7 +272,7 @@ class LECOTloader:
 
         # === INTERNAL PARAMETER(S) ===
         PRODUCTvar = {
-            'Article': "Produit indisponible",
+            'Article': "-",
             'Base Price (HTVA)': "-",
             'Base Price (TVA)': "-",
             'ArticleURL': link,
@@ -239,11 +283,14 @@ class LECOTloader:
         while self.ATTEMPT < self.MAX_RETRIES:
             try:
 
-                driver.get(link)
+                response = self.requests.get(link, headers=self.REQUESTS_HEADERS) 
+                response.raise_for_status()
                 
-                time.sleep(1)  # Loading time (JS)
+                time.sleep(self.WAIT_TIME)  # Loading time (JS)
 
-                ARTICLEpage = driver.page_source
+                ARTICLEpage = response.content
+
+                #self.logger.info(ARTICLEpage)     # [TESTING ONLY]
 
                 soup = BeautifulSoup(ARTICLEpage, "html.parser")
 
@@ -283,42 +330,60 @@ class LECOTloader:
 
     def run(self):
 
-        CSVpathDB = os.path.join(DATABASE_FOLDER, "KLIUMproductsDB.csv")
+        CSVpathDB = os.path.join(DATABASE_FOLDER, "LECOTproductsDB.csv")
+        DBurls = self._load_DBurls(CSVpathDB)
 
-        products = []
+        PRODUCTS: List[dict] = []
 
         try:
+            for SITEMAPurl in self.SITEMAPurls:
+                self._extract_SITEMAPurls(SITEMAPurl)
 
-            WEBdriver = self._init_driver()
+            self.URLs = [url for url in self.URLs if url not in DBurls]
 
-            childSITEMAPSurls = self._extract_childSITEMAPSurls(driver=WEBdriver)
+            self.logger.info(f"Nombre de lien(s) touvé(s): {len(self.URLs)}")
 
-            self.logger.info(f"Nombre de lien(s) de sitemap trouvé(s): {len(childSITEMAPSurls)}")
+            if self.URLs:
+                for PRODUCTurl in self.URLs:
+                    try:
+                        data = self._ONLINEextract_FINALproduct(PRODUCTurl)
 
-            if childSITEMAPSurls:
-                for childSITEMAPurl in childSITEMAPSurls:
-                    self._extract_SITEMAPurls(link=childSITEMAPurl, driver=WEBdriver)
+                        print(data)     # [TESTING ONLY]
+                        
+                        PRODUCTS.append(data)
 
-                self.logger.info(f"Nombre de lien(s) trouvé(s): {len(self.URLs)}")
+                        self.SAVE_COUNTER+=1
 
-                if self.URLs:
-                    for PRODUCTurl in self.URLs:
-                        data = self._ONLINEextract_FINALproduct(link=PRODUCTurl, driver=WEBdriver)
-                        print(data)
+                        if self.SAVE_COUNTER >= self.SAVE_THRESHOLD:
+                            self._save_batch(CSVpathDB, PRODUCTS)
+                            
+                            self.SAVE_COUNTER = 0
+                            PRODUCTS = []
+                        
+                        time.sleep(random.uniform(0.5, 1)) # Loading time (STABILITY)
 
-                        if data is not None:
-                            products.append(data)
+                    except Exception as e:
+                        self.logger.error(f"An unexpected error occurred for URL {PRODUCTurl}: {e}")
+                        continue
 
-                        time.sleep(random.uniform(1, 1.5))
+                if PRODUCTS:
+                    self._save_batch(CSVpathDB, PRODUCTS)
+
+                    self.SAVE_COUNTER = 0
+                    PRODUCTS = []
         
         except Exception as e:
-            self.logger.error(f"Erreur fatale dans FGloader: {e}")
+            self.logger.error(f"Critical error for LECOTloader: {e}")
 
+            if PRODUCTS: # EMERGENCY SAVE
+                self._save_batch(CSVpathDB, PRODUCTS, is_emergency=True)
 
-        df = pd.DataFrame(products)
-        df.to_csv(CSVpathDB, index=False, encoding='utf-8-sig')
+                self.SAVE_COUNTER = 0
+                PRODUCTS = []
 
-        self.logger.info("Processus FGloader terminé...")
+                self.logger.warning("Emergency save triggered due to critical error.")
+
+        self.logger.info("LECOTloader process terminated...")
 
 
 

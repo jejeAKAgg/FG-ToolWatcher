@@ -28,9 +28,11 @@ from APP.UTILS.PRODUCTformatter import *
 
 
 class FIXAMIloader:
+    
     """
-    Classe pour télécharger et extraire les URL d'un fichier Sitemap XML.
+    Class to download and extract product URLs and data from Fernand GEORGES.
     """
+
     def __init__(self):
 
         # === LOGGER SETUP ===
@@ -44,16 +46,14 @@ class FIXAMIloader:
         self.SAVE_THRESHOLD = 500
         self.WAIT_TIME = 3
 
-        self.PRODUCTS: List[str] = []
-
         # === INTERNAL PARAMETER(S) ===
-        self.SITEMAPurls = [
+        self.SITEMAPurls: List[str] = [
             'https://www.fixami.be/single-sitemap?file=salesChannel-9de899910ab34fbd8a41563711c5f261-1d5cf9aa726a4968ab4fad445565607f/9de899910ab34fbd8a41563711c5f261-sitemap-www-fixami-be-fr-1.xml.gz',
             'https://www.fixami.be/single-sitemap?file=salesChannel-9de899910ab34fbd8a41563711c5f261-1d5cf9aa726a4968ab4fad445565607f/9de899910ab34fbd8a41563711c5f261-sitemap-www-fixami-be-fr-2.xml.gz',
-            'https://www.fixami.be/single-sitemap?file=salesChannel-9de899910ab34fbd8a41563711c5f261-1d5cf9aa726a4968ab4fad445565607f/9de899910ab34fbd8a41563711c5f261-sitemap-www-fixami-be-fr-3.xml.gz'
+            'https://www.fixami.be/single-sitemap?file=salesChannel-9de899910ab34fbd8a41563711c5f261-1d5cf9aa726a4968ab4fad445565607f/9de899910ab34fbd8a41563711c5f261-sitemap-www-fixami-be-fr-3.xml.gz',
         ]
         self.NAMESPACESurl = {'sitemap': 'http://www.sitemaps.org/schemas/sitemap/0.9'}
-        self.CATEGORYnames = [
+        self.CATEGORYnames: List[str] = [
             'accessoire', 'accessoires.html',
             'accessoires', 'accessoires.html',
             'actualites', 'actualites.html',
@@ -95,7 +95,8 @@ class FIXAMIloader:
             'promotion', 'promotion.html',
             'promotions', 'promotions.html',
             'service-client', 'service-client.html',
-            'transports-et-atelier', 'transports-et-atelier.html']
+            'transports-et-atelier', 'transports-et-atelier.html',
+        ]
         self.URLs: List[str] = []
 
         # === PARAMETERS & OPTIONS SETUP (CloudSCRAPER) ===
@@ -230,30 +231,23 @@ class FIXAMIloader:
     def _save_batch(self, csv_path: str, batch_data: List[dict], is_emergency: bool = False):
         
         """
-        Sauvegarde le lot de données actuel en le concaténant avec la base de données existante.
+        Saves the current batch of data by appending it to the existing database file.
+        This avoids RAM saturation (pd.concat).
         """
         
         NEWdf = pd.DataFrame(batch_data)
         
         if not os.path.exists(csv_path):
-            # CAS 1: Nouvelle base de données (écriture simple)
             NEWdf.to_csv(csv_path, index=False, encoding='utf-8-sig')
+            
             self.logger.info(f"New DB created with {len(NEWdf.index)} lines.")
             return
 
-        # CAS 2: Reprise (concaténation)
         try:
-            # Charger l'ancienne DB
-            OLDdf = pd.read_csv(csv_path, encoding='utf-8-sig', usecols=NEWdf.columns)
-            
-            # Concaténer
-            FINALdf = pd.concat([OLDdf, NEWdf], ignore_index=True)
-            
-            # Sauvegarder la totalité du DataFrame
-            FINALdf.to_csv(csv_path, index=False, encoding='utf-8-sig')
+            NEWdf.to_csv(csv_path, mode='a', header=not os.path.exists(csv_path), index=False, encoding='utf-8-sig')
             
             if not is_emergency:
-                self.logger.info(f"Batch saved. Total lines: {len(FINALdf.index)}.")
+                self.logger.info(f"Batch saved.")
             
         except Exception as e:
             # Cette erreur est rare mais possible si le CSV a été corrompu entre-temps.
@@ -284,10 +278,10 @@ class FIXAMIloader:
                 for loc_tag in soup.find_all('loc'):
                     PRODUCTurl = unquote(loc_tag.text.strip())
 
-                    if PRODUCTurl.endswith('/'):
+                    if PRODUCTurl.endswith(('/', '.jpg', '.jpeg', '.png', '.gif', '.pdf')):
                         continue
 
-                    if [w for w in PRODUCTurl.split('/') if w][1] not in ["www.fixami.be"]:
+                    if [w for w in PRODUCTurl.split('/') if w][1] not in ('www.fixami.be', 'fixami.be'):
                         continue
 
                     if [w for w in PRODUCTurl.split('/') if w][3] in self.CATEGORYnames:
@@ -299,7 +293,6 @@ class FIXAMIloader:
                     self.URLs.append(PRODUCTurl)
 
                 break
-
             
             except Exception as e:
                 self.logger.warning(f"Error during sitemap extraction: {e}")
@@ -393,38 +386,56 @@ class FIXAMIloader:
         CSVpathDB = os.path.join(DATABASE_FOLDER, "FIXAMIproductsDB.csv")
         DBurls = self._load_DBurls(CSVpathDB)
 
+        PRODUCTS: List[dict] = []
+
         try:
 
             for SITEMAPurl in self.SITEMAPurls:
                 self._extract_SITEMAPurls(SITEMAPurl)
 
-            self.logger.info(f"Found link(s): {len(self.URLs)}")
-
             self.URLs = [url for url in self.URLs if url not in DBurls]
+
+            self.logger.info(f"Found link(s): {len(self.URLs)}")
 
             if self.URLs:
                 for PRODUCTurl in self.URLs:
-                    data = self._ONLINEextract_FINALproduct(PRODUCTurl)
+                    try:
+                        data = self._ONLINEextract_FINALproduct(PRODUCTurl)
 
-                    print(data)     # [TESTING ONLY]
-                    
-                    self.PRODUCTS.append(data)
-
-                    self.SAVE_COUNTER+=1
-
-                    if self.SAVE_COUNTER >= self.SAVE_THRESHOLD:
-                        self._save_batch(CSVpathDB, self.PRODUCTS)
+                        print(data)     # [TESTING ONLY]
                         
-                        self.PRODUCTS = []
-                        self.SAVE_COUNTER = 0
-                    
-                    time.sleep(random.uniform(0.5, 1)) # Loading time (STABILITY)
+                        PRODUCTS.append(data)
+
+                        self.SAVE_COUNTER+=1
+
+                        if self.SAVE_COUNTER >= self.SAVE_THRESHOLD:
+                            self._save_batch(CSVpathDB, PRODUCTS)
+                            
+                            self.SAVE_COUNTER = 0
+                            PRODUCTS = []
+                        
+                        time.sleep(random.uniform(0.5, 1)) # Loading time (STABILITY)
+
+                    except Exception as e:
+                        self.logger.error(f"An unexpected error occurred for URL {PRODUCTurl}: {e}")
+                        continue
                 
-                if self.PRODUCTS:
-                    self._save_batch(CSVpathDB, self.PRODUCTS)
+                if PRODUCTS:
+                    self._save_batch(CSVpathDB, PRODUCTS)
+
+                    self.SAVE_COUNTER = 0
+                    PRODUCTS = []
         
         except Exception as e:
             self.logger.error(f"Critical error for FIXAMIloader: {e}")
+
+            if PRODUCTS: # EMERGENCY SAVE
+                self._save_batch(CSVpathDB, PRODUCTS, is_emergency=True)
+
+                self.SAVE_COUNTER = 0
+                PRODUCTS = []
+
+                self.logger.warning("Emergency save triggered due to critical error.")
 
         self.logger.info("FIXAMIloader process terminated...")
 
