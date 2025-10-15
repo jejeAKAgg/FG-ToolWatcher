@@ -22,15 +22,17 @@ class WatcherThread(QThread):
     error = Signal(str)
     progress = Signal(int)
 
-    def __init__(self, config):
+    def __init__(self, user_config: dict, catalog_config: dict):
         super().__init__()
 
-        self.config = config
+        self.user_config = user_config
+        self.catalog_config = catalog_config
 
     def run(self):
         try:
             Watcher.main_watcher(
-                config=self.config,
+                user_config=self.user_config,
+                catalog_config=self.catalog_config, 
                 progress_callback=self.progress.emit,
             )
         except Exception as e:
@@ -52,7 +54,7 @@ class MainPage(QWidget):
         self.catalog_config = catalog_config
 
         # --- Thread watcher ---
-        self.watcher_thread = WatcherThread(config=self.user_config)
+        self.watcher_thread = WatcherThread(user_config=self.user_config, catalog_config=self.catalog_config)
         
         self.watcher_thread.progress.connect(self.update_progress)
         self.watcher_thread.finished.connect(self.on_watcher_finished)
