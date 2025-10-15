@@ -6,7 +6,7 @@ from typing import List
 from APP.SERVICES.__init__ import *
 
 
-class MPNConfig:
+class CatalogService:
     """
     Gère la lecture, écriture et synchronisation des MPN
     entre la Google Sheet et un cache local JSON.
