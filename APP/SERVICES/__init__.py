@@ -1,14 +1,8 @@
 # UTILS/__init__.py
 import os
 import sys
-import json
 
 from APP.UTILS.LOGmaker import *
-
-# ====================
-#     LOGGER SETUP
-# ====================
-Logger = logger("FOLDERSinitializer")
 
 
 # ====================
@@ -31,6 +25,8 @@ if sys.platform.startswith("win"):
     PYTHON_ZIP_PATH = os.path.join(BASE_SYSTEM_PATH, "CORE", PYTHON_ZIP_NAME)
     BASE_PYTHON_URL = f"https://www.python.org/ftp/python/{PYTHON_VERSION}/{PYTHON_ZIP_NAME}"
     PYTHON_EXE = os.path.join(BASE_SYSTEM_PATH, "CORE", "python", "python.exe") if getattr(sys, 'frozen', False) else sys.executable
+
+    DATABASE_FOLDER = os.path.join(BASE_TEMP_PATH, "APP", "DATABASE")
 
     CORE_FOLDER = os.path.join(BASE_SYSTEM_PATH, "CORE")
     DATA_FOLDER = os.path.join(BASE_SYSTEM_PATH, "DATA")
@@ -55,6 +51,8 @@ elif sys.platform.startswith("linux"):
     CHROMEDRIVER_PATH = os.path.join(BASE_SYSTEM_PATH, "CORE", "chromedriver_linux64", "chromedriver")
     
     PYTHON_EXE = sys.executable
+
+    DATABASE_FOLDER = os.path.join(BASE_TEMP_PATH, "APP", "DATABASE")
     
     CORE_FOLDER = os.path.join(BASE_SYSTEM_PATH, "CORE")
     DATA_FOLDER = os.path.join(BASE_SYSTEM_PATH, "DATA")
