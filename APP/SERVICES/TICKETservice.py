@@ -10,7 +10,7 @@ from APP.SERVICES.__init__ import *
 from APP.UTILS.TOOLSbox import *
 
 
-class BugReportDialog(QDialog):
+class TicketService(QDialog):
     def __init__(self, config, parent=None):
         super().__init__(parent)
 
