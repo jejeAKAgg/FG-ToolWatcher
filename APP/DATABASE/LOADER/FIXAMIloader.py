@@ -284,6 +284,9 @@ class FIXAMIloader:
                     if [w for w in PRODUCTurl.split('/') if w][1] not in ('www.fixami.be', 'fixami.be'):
                         continue
 
+                    if [w for w in PRODUCTurl.split('/') if w][2] in ('en', 'nl'):
+                        continue
+
                     if [w for w in PRODUCTurl.split('/') if w][3] in self.CATEGORYnames:
                         continue
 
