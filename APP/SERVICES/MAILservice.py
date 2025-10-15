@@ -9,24 +9,28 @@ from APP.UTILS.LOGmaker import logger
 class MailService:
     
     """
-    Service dédié à l'envoi d'emails via SMTP (par défaut Gmail SSL).
-    Gère les envois simples ou multiples, avec ou sans pièce jointe.
+    Service dedicated to sending emails via SMTP (default: Gmail SSL).
+    Supports single or multiple recipients, with or without attachments.
+    
     """
 
     def __init__(self, sender_email: str, password: str, smtp_server: str = "smtp.gmail.com", smtp_port: int = 465):
         
         """
-        Initialise le service d'envoi de mails.
+        Initializes the mail sending service.
 
         Args:
-            sender_email (str): Adresse email de l'expéditeur.
-            password (str): Mot de passe ou App Password (recommandé pour Gmail).
-            smtp_server (str): Serveur SMTP (par défaut Gmail).
-            smtp_port (int): Port SMTP (465 pour SSL).
+            sender_email (str): The sender's email address.
+            password (str): The email account password or app-specific password (recommended for Gmail).
+            smtp_server (str): SMTP server address (default: Gmail).
+            smtp_port (int): SMTP port (default: 465 for SSL).
+        
         """
         
+        # === LOGGER SETUP ===
         self.logger = logger("MailService")
 
+        # === INPUT VARIABLES ===
         self.sender_email = sender_email
         self.password = password
         self.smtp_server = smtp_server
@@ -36,17 +40,23 @@ class MailService:
     def _create_message(self, recipients, subject, body, attachments=None, html=False) -> EmailMessage:
         
         """
-        Crée un objet EmailMessage prêt à être envoyé.
+        Builds an EmailMessage object ready to be sent.
 
         Args:
-            recipients (str | list[str]): Destinataire(s).
-            subject (str): Sujet du mail.
-            body (str): Corps du mail.
-            attachments (list[str] | None): Liste de chemins de fichiers à attacher.
-            html (bool): True si le corps doit être envoyé en HTML.
+            recipients (str | list[str]): Recipient(s) email address(es).
+            subject (str): Email subject.
+            body (str): Email body (plain text or HTML).
+            attachments (list[str] | None): List of file paths to attach.
+            html (bool): Whether to send the body as HTML.
+
+        Returns:
+            EmailMessage: The prepared email message.
+        
         """
 
         msg = EmailMessage()
+        
+        # === PARAMETERS SETUP  ===
         msg["Subject"] = subject
         msg["From"] = self.sender_email
         msg["To"] = recipients if isinstance(recipients, str) else ", ".join(recipients)
@@ -56,7 +66,7 @@ class MailService:
         else:
             msg.set_content(body)
 
-        # Ajout des pièces jointes
+        # === ATTACHMENTS ===
         if attachments:
             for filepath in attachments:
                 if not os.path.exists(filepath):
@@ -72,14 +82,18 @@ class MailService:
     def send_mail(self, recipients, subject: str, body: str, attachments=None, html=False):
         
         """
-        Envoie un email.
+        Sends an email via SMTP (SSL).
 
         Args:
-            recipients (str | list[str]): Adresse(s) email des destinataires.
-            subject (str): Sujet du mail.
-            body (str): Corps du mail (texte ou HTML).
-            attachments (list[str] | None): Liste de fichiers à attacher.
-            html (bool): Active l'envoi en HTML.
+            recipients (str | list[str]): Recipient(s) email address(es).
+            subject (str): Email subject.
+            body (str): Email body content.
+            attachments (list[str] | None): List of file paths to attach.
+            html (bool): Whether to send the body as HTML.
+
+        Raises:
+            Exception: If the email fails to send, the error is logged but not re-raised.
+        
         """
         
         msg = self._create_message(recipients, subject, body, attachments, html)
