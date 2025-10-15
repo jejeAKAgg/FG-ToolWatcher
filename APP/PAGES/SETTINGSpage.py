@@ -117,6 +117,7 @@ class SettingsPage(QWidget):
 
         # === EMAILS & CACHE === #
         self.cache_options = {
+            "0 jour": 0,
             "1 jour": 1,
             "3 jours": 3,
             "7 jours": 7,
