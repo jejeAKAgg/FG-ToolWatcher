@@ -64,6 +64,32 @@ elif sys.platform.startswith("linux"):
     USER_CONFIG_PATH = os.path.join(USER_SUBFOLDER, "settings.json")
     CATALOG_CONFIG_PATH = os.path.join(USER_SUBFOLDER, "MPNs.json")
 
+elif sys.platform.startswith("darwin"):
+    BASE_SYSTEM_PATH = os.path.dirname(sys.executable) if getattr(sys, 'frozen', False) else os.path.abspath(os.path.join(os.path.dirname(__file__), "..", ".."))
+    BASE_TEMP_PATH = sys._MEIPASS if getattr(sys, 'frozen', False) else ""
+
+    BASE_CHROMIUM_URL = ""
+    CHROMIUM_ZIP_NAME = ""
+    CHROMEDRIVER_ZIP_NAME = ""
+
+    CHROME_PATH = ""
+    CHROME_PROFILE_PATH = ""
+    CHROMEDRIVER_PATH = os.path.join(BASE_SYSTEM_PATH, "CORE", "chromedriver_linux64", "chromedriver")
+
+    PYTHON_EXE = sys.executable
+
+    DATABASE_FOLDER = os.path.join(BASE_TEMP_PATH, "APP", "DATABASE")
+
+    CORE_FOLDER = os.path.join(BASE_SYSTEM_PATH, "CORE")
+    DATA_FOLDER = os.path.join(BASE_SYSTEM_PATH, "DATA")
+    LOGS_SUBFOLDER = os.path.join(BASE_SYSTEM_PATH, "DATA", "LOGS")
+    RESULTS_SUBFOLDER = os.path.join(BASE_SYSTEM_PATH, "DATA", "RESULTS")
+    RESULTS_SUBFOLDER_TEMP = os.path.join(RESULTS_SUBFOLDER, "TEMP")
+    USER_SUBFOLDER = os.path.join(BASE_SYSTEM_PATH, "DATA", "USER")
+
+    USER_CONFIG_PATH = os.path.join(USER_SUBFOLDER, "settings.json")
+    CATALOG_CONFIG_PATH = os.path.join(USER_SUBFOLDER, "MPNs.json")
+
 else:
     raise RuntimeError(f"Système non supporté: {sys.platform}")
 
