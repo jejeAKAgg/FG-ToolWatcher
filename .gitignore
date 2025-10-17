@@ -28,5 +28,9 @@ __pycache__
 */__pycache__/
 */__pycache__/*
 
+# PYTHON tests cache files/folders
+.pytest_cache/
+.pytest_cache/*
+
 # Temporary files
 downloaded_files/
