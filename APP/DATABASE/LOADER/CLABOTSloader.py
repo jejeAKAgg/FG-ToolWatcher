@@ -290,7 +290,7 @@ class CLABOTSloader:
 
                 PRODUCTvar['Article'] = (
                     (name := (soup.find("h1", class_="page-title") or soup.find("h1"))) 
-                    and (name.get_text(strip=True).replace("\"", "\"\""))
+                    and (name.get_text(strip=True).replace("\"", "\"\"").strip('"'))
                 )
 
                 HTVA, TVA = calculate_missing_price(
@@ -316,6 +316,8 @@ class CLABOTSloader:
                     return PRODUCTvar
                 else:
                     self.logger.warning(f"HTTP Error ({response.status_code}) for {link}: {http_err}")
+
+                    return PRODUCTvar
             
             except Exception as e:
                 self.logger.warning(f"Error during data extraction for product {link}: {e}")

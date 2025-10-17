@@ -310,7 +310,7 @@ class KLIUMloader:
 
                 PRODUCTvar['Article'] = (
                     (name := soup.find("h1", id="product_name_value"))
-                    and name.get_text(strip=True).replace("\"", "\"\"")
+                    and (name.get_text(strip=True).replace("\"", "\"\"").strip('"'))
                 )
 
                 HTVA, TVA = calculate_missing_price(
@@ -336,6 +336,8 @@ class KLIUMloader:
                     return PRODUCTvar 
                 else:
                     self.logger.warning(f"Erreur HTTP ({response.status_code}) pour {link}: {http_err}")
+
+                    return PRODUCTvar
             
             except Exception as e:
                 self.logger.warning(f"Erreur lors de l'extraction des données pour le produit {link}: {e}")

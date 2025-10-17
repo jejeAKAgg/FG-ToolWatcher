@@ -45,12 +45,111 @@ class LECOTloader:
 
         # === INTERNAL PARAMETER(S) ===
         self.SITEMAPurls: List[str] = [
-            'https://lecot.be/media/sitemap/lecot-b2b-fr-be-products-sitemap_1.xml',
-            'https://lecot.be/media/sitemap/lecot-b2b-fr-be-products-sitemap_2.xml',
+            'https://shop.lecot.be/sitemap/salesChannel-62a4f8977cbe4817b8955353b2ace1c8-a7f1e6a55f0e4b5ea0019f7d4991e7cb/62a4f8977cbe4817b8955353b2ace1c8-sitemap-shop-lecot-be-fr-be-1.xml.gz',
         ]
         self.NAMESPACESurl = {'sitemap': 'http://www.sitemaps.org/schemas/sitemap/0.9'}
         self.CATEGORYnames: List[str] = [
-            'configurateur-hettich', 'configurateur-hettich.html'
+            'accessoires-marques', 'accessoires-marques.html',
+            'airpress-slider', 'airpress-slider.html',
+            'alle-acties', 'alle-acties.html',
+            'a-propos-de-lecot.shop', 'a-propos-de-lecot.shop.html',
+            'arlu-slider', 'arlu-slider.html',
+            'artline-slider', 'artline-slider.html',
+            'atg-slider', 'atg-slider.html',
+            'base-slider', 'base-slider.html',
+            'b-c-slider', 'b-c-slider.html',
+            'blaklader-slider', 'blaklader-slider.html',
+            'blackweek', 'blackweek.html',
+            'black-week-categories', 'black-week-categories.html',
+            'black-week-marques', 'black-week-marques.html',
+            'bosch-categories', 'bosch-categories.html',
+            'brennenstuhl-slider', 'brennenstuhl-slider.html',
+            'brigadedeforce-x-lecot.shop', 'brigadedeforce-x-lecot.shop.html',
+            'brigade-de-force-x-lecot.shop', 'brigade-de-force-x-lecot.shop.html',
+            'carat-slider', 'carat-slider.html',
+            'categorie', 'categorie.html',
+            'categories', 'categories.html',
+            'colorline-slider', 'colorline-slider.html',
+            'conditions-de-garantie', 'conditions-de-garantie.html',
+            'conditions-d-utilisation', 'conditions-d-utilisation.html',
+            'conditions-generales', 'conditions-generales.html',
+            'configurateur-hettich', 'configurateur-hettich.html',
+            'cookies', 'cookies.html',
+            'delai-de-livraison-estime', 'delai-de-livraison-estime.html',
+            'delta-plus-slider', 'delta-plus-slider.html',
+            'detectaplast-slider', 'detectaplast-slider.html',
+            'dewalt-slider', 'dewalt-slider.html',
+            'dl-chemicals-slider', 'dl-chemicals-slider.html',
+            'dormakaba-slider', 'dormakaba-slider.html',
+            'erko-slider', 'erko-slider.hmtl',
+            'facom-slider', 'facom-slider.html',
+            'fein-slider', 'fein-slider.html',
+            'festool-slider', 'festool-slider.html',
+            'filiales', 'filiales.html',
+            'fischer-slider', 'fischer-slider.html',
+            'fixations-marques', 'fixations-marques.html',
+            'futech-slider', 'futech-slider.html',
+            'gardena-slider', 'gardena-slider.html',
+            'geze-slider', 'geze-slider.html',
+            'hdd-slider', 'hdd-slider.html',
+            'heller-slider', 'heller-slider.html',
+            'herock-slider', 'herock-slider.html',
+            'hikoki-slider', 'hikoki-slider',
+            'hpx-slider', 'hpx-slider.html',
+            'jardin-categories', 'jardin-categories.html',
+            'kaercher-slider', 'kaercher-slider.html',
+            'knipex-slider', 'knipex-slider.html',
+            'ko-ken-slider', 'ko-ken-slider.html',
+            'kraeftwerk-slider', 'kraeftwerk-slider.html',
+            'ledlenser-slider', 'ledlenser-slider.html',
+            'ledrope-pro-slider', 'ledrope-pro-slider.html',
+            'leica-slider', 'leica-slider.html',
+            'lemaitre-slider', 'lemaitre-slider.html',
+            'lot2023-fr', 'lot2023-fr.html',
+            'lumx-slider', 'lumx-slider.html',
+            'machines-de-jardinage-marques', 'machines-de-jardinage-marques.html',
+            'machines-marques', 'machines-marques.html',
+            'makita-slider', 'makita-slider.html',
+            'makita-tuin-slider', 'makita-tuin-slider.html',
+            'marques', 'marques.html',
+            'metabo-slider', 'metabo-slider.html',
+            'milwaukee-slider', 'milwaukee-slider.html',
+            'navigation', 'navigation.html',
+            'nouvel-assortiment', 'nouvel-assortiment.html',
+            'outils-a-main-marques', 'outils-a-main-marques.html',
+            'outils-electriques-marques', 'outils-electriques-marques.html',
+            'outils-sur-batterie-marques', 'outils-sur-batterie-marques.html',
+            'outlet', 'outlet.html',
+            'outlet-categories', 'outlet-categories.html',
+            'outlet-marques', 'outlet-marques.html',
+            'paslode-slider', 'paslode-slider.html',
+            'polet-slider', 'polet-slider.html',
+            'politique-de-confidentialite', 'politique-de-confidentialite.html',
+            'preview', 'preview.html',
+            'produits-chimiques-marques', 'produits-chimiques-marques.html',
+            'protection-et-vetements-marques', 'protection-et-vetements-marques.html',
+            'puma-slider', 'puma-slider.html',
+            'quincaillerie-de-batiment-marques', 'quincaillerie-de-batiment-marques.html',
+            'rectavit-slider', 'rectavit-slider.html',
+            'safety-jogger-slider', 'safety-jogger-slider.html',
+            'scangrip-slider', 'scangrip-slider.html',
+            'service-client', 'service-client.html',
+            'soldes-categories', 'soldes-categories.html',
+            'soldes-marques', 'soldes-marques.html',
+            'soudal-slider', 'soudal-slider.html',
+            'spit-slider', 'spit-slider.html',
+            'stanley-slider', 'stanley-slider.html',
+            'stihl-slider', 'stihl-slider.html',
+            'stockage', 'stockage.html',
+            'stroxx-slider', 'stroxx-slider.html',
+            'stroxx-merken-slider', 'stroxx-merken-slider.html',
+            'tec7-slider', 'tec7-slider.html',
+            'tourex-slider', 'tourex-slider.html',
+            'toutes-les-actions', 'toutes-les-actions.html',
+            'wd-40-slider', 'wd-40-slider.html',
+            'wera-slider', 'wera-slider.html',
+            '15-daagse-storage-merken', '15-daagse-storage-merken.html',
+            '3m-slider', '3m-slider.html',
         ]
         self.URLs: List[str] = []
 
@@ -234,7 +333,7 @@ class LECOTloader:
                     if PRODUCTurl.endswith(('/', '.jpg', '.jpeg', '.png', '.gif', '.pdf')):
                         continue
 
-                    if [w for w in PRODUCTurl.split('/') if w][1] not in ('www.lecot.be', 'lecot.be'):
+                    if [w for w in PRODUCTurl.split('/') if w][1] not in ('www.shop.lecot.be', 'shop.lecot.be'):
                         continue
 
                     if [w for w in PRODUCTurl.split('/') if w][2] in ['en-be', 'en-nl', 'nl-be', 'nl-nl']:
@@ -290,13 +389,13 @@ class LECOTloader:
 
                 ARTICLEpage = response.content
 
-                #self.logger.info(ARTICLEpage)     # [TESTING ONLY]
+                self.logger.info(ARTICLEpage)     # [TESTING ONLY]
 
                 soup = BeautifulSoup(ARTICLEpage, "html.parser")
 
                 PRODUCTvar['Article'] = (
-                    (name := soup.find("h1", id="product_name_value"))
-                    and name.get_text(strip=True).replace("\"", "\"\"")
+                    (name := soup.find("h1", class_="page-title"))
+                    and (name.get_text(strip=True).replace("\"", "\"\"").strip('"'))
                 )
 
                 HTVA, TVA = calculate_missing_price(
@@ -315,6 +414,16 @@ class LECOTloader:
 
                 return PRODUCTvar
             
+            except requests.exceptions.HTTPError as http_err:
+                if response.status_code == 404:
+                    self.logger.error(f"Lien invalide (404 Not Found). Abandon immédiat: {link}")
+                    
+                    return PRODUCTvar 
+                else:
+                    self.logger.warning(f"Erreur HTTP ({response.status_code}) pour {link}: {http_err}")
+
+                    return PRODUCTvar
+            
             except Exception as e:
                 self.logger.warning(f"Erreur lors de l'extraction des données pour le produit {link}: {e}")
                 
@@ -322,7 +431,7 @@ class LECOTloader:
                 if self.ATTEMPT == self.MAX_RETRIES:
                     self.logger.warning(f"Abandon après {self.MAX_RETRIES} tentatives pour produit {link}")
 
-                    return None
+                    return PRODUCTvar
                 
                 else:
                     time.sleep(self.RETRY_DELAY)

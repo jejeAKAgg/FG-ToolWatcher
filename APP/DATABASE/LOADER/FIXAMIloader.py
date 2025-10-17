@@ -345,7 +345,7 @@ class FIXAMIloader:
                 PRODUCTvar['Article'] = (
                     (json_tag := soup.find('script', {'id': 'product-offer-json-ld', 'type': 'application/ld+json'}))
                     and (data := json.loads(json_tag.string))
-                    and data.get('name')
+                    and (data.get('name'))
                 )
 
                 HTVA, TVA = calculate_missing_price(
@@ -370,6 +370,8 @@ class FIXAMIloader:
                     return PRODUCTvar
                 else:
                     self.logger.warning(f"HTTP Error ({response.status_code}) for {link}: {http_err}")
+
+                    return PRODUCTvar
             
             except Exception as e:
                 self.logger.warning(f"Error during data extraction for product {link}: {e}")

@@ -298,7 +298,7 @@ class FGloader:
 
                 PRODUCTvar['Article'] = (
                     (name := soup.find("h1", class_="font-product-title"))
-                    and (name.get_text(strip=True).replace("\"", "\"\""))
+                    and (name.get_text(strip=True).replace("\"", "\"\"").strip('"'))
                 )
                 PRODUCTvar['Local REF'] = (
                     (ref_tag := soup.find("span", class_="value", itemprop="productID")) 
@@ -330,6 +330,8 @@ class FGloader:
                     return PRODUCTvar
                 else:
                     self.logger.warning(f"HTTP Error ({response.status_code}) for {link}: {http_err}")
+
+                    return PRODUCTvar
             
             except Exception as e:
                 self.logger.warning(f"Error during data extraction for product {link}: {e}")

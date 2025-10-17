@@ -95,7 +95,8 @@ class TOOLNATIONloader:
             'promotion', 'promotion.html',
             'promotions', 'promotions.html',
             'service-client', 'service-client.html',
-            'transports-et-atelier', 'transports-et-atelier.html']
+            'transports-et-atelier', 'transports-et-atelier.html',
+        ]
         self.URLs: List[str] = []
 
         # === PARAMETERS & OPTIONS SETUP (CloudSCRAPER) ===
@@ -272,7 +273,7 @@ class TOOLNATIONloader:
                     if PRODUCTurl.endswith(('/', '.jpg', '.jpeg', '.png', '.gif', '.pdf')):
                         continue
 
-                    if [w for w in PRODUCTurl.split('/') if w][1] not in [('www.toolnation.fr', 'toolnation.fr')]:
+                    if [w for w in PRODUCTurl.split('/') if w][1] not in ('www.toolnation.fr', 'toolnation.fr'):
                         continue
 
                     if [w for w in PRODUCTurl.split('/') if w][2] in self.CATEGORYnames:
@@ -333,7 +334,7 @@ class TOOLNATIONloader:
 
                 PRODUCTvar['Article'] = (
                     (name := soup.find("h1", itemprop="name"))
-                    and (name.get_text(strip=True).replace("\"", "\"\""))
+                    and (name.get_text(strip=True).replace("\"", "\"\"").strip('"'))
                 )
 
                 HTVA, TVA = calculate_missing_price(
@@ -360,6 +361,8 @@ class TOOLNATIONloader:
                     return PRODUCTvar
                 else:
                     self.logger.warning(f"HTTP Error ({response.status_code}) for {link}: {http_err}")
+
+                    return PRODUCTvar
             
             except Exception as e:
                 self.logger.warning(f"Error during data extraction for product {link}: {e}")
