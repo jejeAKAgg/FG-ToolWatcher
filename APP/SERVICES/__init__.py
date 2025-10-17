@@ -74,7 +74,7 @@ elif sys.platform.startswith("darwin"):
 
     CHROME_PATH = ""
     CHROME_PROFILE_PATH = ""
-    CHROMEDRIVER_PATH = os.path.join(BASE_SYSTEM_PATH, "CORE", "chromedriver_linux64", "chromedriver")
+    CHROMEDRIVER_PATH = ""
 
     PYTHON_EXE = sys.executable
 
