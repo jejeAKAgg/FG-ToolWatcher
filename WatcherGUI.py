@@ -5,6 +5,15 @@ from PySide6.QtCore import QUrl
 from PySide6.QtGui import QIcon, QDesktopServices
 from PySide6.QtWidgets import QApplication, QWidget, QVBoxLayout, QStackedLayout, QMessageBox
 
+# IMPORTING SERVICES AND UTILS FIRST
+from APP.SERVICES.__init__ import *
+from APP.SERVICES.CATALOGservice import CatalogService
+from APP.SERVICES.LOGservice import LogService
+from APP.SERVICES.TICKETservice import TicketService
+from APP.SERVICES.USERservice import UserService
+
+from APP.UTILS.TOOLSbox import *
+
 from APP.PAGES.MAINpage import *
 from APP.PAGES.CATALOGpage import *
 from APP.PAGES.PROFILEpage import *
@@ -19,13 +28,6 @@ from APP.ASSETS.WIDGETS.FADEtransition import FadeTransition
 from APP.ASSETS.WIDGETS.MAINbackground import BackgroundOverlay
 from APP.ASSETS.WIDGETS.PUSHbuttons import CustomPushButton
 
-from APP.SERVICES.__init__ import *
-from APP.SERVICES.TICKETservice import *
-from APP.SERVICES.CATALOGservice import *
-from APP.SERVICES.USERservice import *
-
-from APP.UTILS.LOGmaker import *
-from APP.UTILS.TOOLSbox import *
 
 
 # ===================
@@ -196,7 +198,15 @@ class WatcherGUI(QWidget):
 
 
 if __name__ == "__main__":
+    
+    # Initializing the application GUI
     app = QApplication(sys.argv)
     window = WatcherGUI()
     window.show()
+
+    # Initializing the logging system
+    log_manager = LogService()
+    if log_manager.init_logging():
+        LogService.logger("WatcherGUI").info("GUI application starting.")
+    
     sys.exit(app.exec())
