@@ -2,7 +2,6 @@
 import os
 import sys
 
-from APP.UTILS.LOGmaker import *
 
 
 # ====================
@@ -28,41 +27,40 @@ if sys.platform.startswith("win"):
 
     DATABASE_FOLDER = os.path.join(BASE_TEMP_PATH, "APP", "DATABASE")
 
-    CORE_FOLDER = os.path.join(BASE_SYSTEM_PATH, "CORE")
-    DATA_FOLDER = os.path.join(BASE_SYSTEM_PATH, "DATA")
-    LOGS_SUBFOLDER = os.path.join(BASE_SYSTEM_PATH, "DATA", "LOGS")
-    RESULTS_SUBFOLDER = os.path.join(BASE_SYSTEM_PATH, "DATA", "RESULTS")
+    USER_FOLDER = os.path.join(BASE_SYSTEM_PATH, "USER")
+    CORE_SUBFOLDER = os.path.join(BASE_SYSTEM_PATH, "USER", "CORE")
+    CONFIG_SUBFOLDER = os.path.join(BASE_SYSTEM_PATH, "USER", "CONFIG")
+    LOGS_SUBFOLDER = os.path.join(BASE_SYSTEM_PATH, "USER", "LOGS")
+    RESULTS_SUBFOLDER = os.path.join(BASE_SYSTEM_PATH, "USER", "RESULTS")
     RESULTS_SUBFOLDER_TEMP = os.path.join(RESULTS_SUBFOLDER, "TEMP")
-    USER_SUBFOLDER = os.path.join(BASE_SYSTEM_PATH, "DATA", "USER")
 
-    USER_CONFIG_PATH = os.path.join(USER_SUBFOLDER, "settings.json")
-    CATALOG_CONFIG_PATH = os.path.join(USER_SUBFOLDER, "MPNs.json")
+    USER_CONFIG_PATH = os.path.join(CONFIG_SUBFOLDER, "settings.json")
+    CATALOG_CONFIG_PATH = os.path.join(CONFIG_SUBFOLDER, "MPNs.json")
 
 elif sys.platform.startswith("linux"):
     BASE_SYSTEM_PATH = os.path.dirname(sys.executable) if getattr(sys, 'frozen', False) else os.path.abspath(os.path.join(os.path.dirname(__file__), "..", ".."))
     BASE_TEMP_PATH = sys._MEIPASS if getattr(sys, 'frozen', False) else ""
 
+    USER_FOLDER = os.path.join(BASE_SYSTEM_PATH, "USER")
+    CONFIG_SUBFOLDER = os.path.join(BASE_SYSTEM_PATH, "USER", "CONFIG")
+    CORE_SUBFOLDER = os.path.join(BASE_SYSTEM_PATH, "USER", "CORE")
+    LOGS_SUBFOLDER = os.path.join(BASE_SYSTEM_PATH, "USER", "LOGS")
+    RESULTS_SUBFOLDER = os.path.join(BASE_SYSTEM_PATH, "USER", "RESULTS")
+    RESULTS_SUBFOLDER_TEMP = os.path.join(RESULTS_SUBFOLDER, "TEMP")
+    
+    USER_CONFIG_PATH = os.path.join(CONFIG_SUBFOLDER, "settings.json")
+    CATALOG_CONFIG_PATH = os.path.join(CONFIG_SUBFOLDER, "MPNs.json")
+
+
     BASE_CHROMIUM_URL = "https://commondatastorage.googleapis.com/chromium-browser-snapshots/Linux_x64/"
     CHROMIUM_ZIP_NAME = "chrome-linux.zip"
     CHROMEDRIVER_ZIP_NAME = "chromedriver_linux64.zip"
     
-    CHROME_PATH = os.path.join(BASE_SYSTEM_PATH, "CORE", "chrome-linux", "chrome")
-    CHROME_PROFILE_PATH = os.path.join(BASE_SYSTEM_PATH, "CORE", "chrome_profile")
-    CHROMEDRIVER_PATH = os.path.join(BASE_SYSTEM_PATH, "CORE", "chromedriver_linux64", "chromedriver")
+    CHROME_PATH = os.path.join(CORE_SUBFOLDER, "chrome-linux", "chrome")
+    CHROME_PROFILE_PATH = os.path.join(CORE_SUBFOLDER, "chrome_profile")
+    CHROMEDRIVER_PATH = os.path.join(CORE_SUBFOLDER, "chromedriver_linux64", "chromedriver")
     
-    PYTHON_EXE = sys.executable
-
-    DATABASE_FOLDER = os.path.join(BASE_TEMP_PATH, "APP", "DATABASE")
-    
-    CORE_FOLDER = os.path.join(BASE_SYSTEM_PATH, "CORE")
-    DATA_FOLDER = os.path.join(BASE_SYSTEM_PATH, "DATA")
-    LOGS_SUBFOLDER = os.path.join(BASE_SYSTEM_PATH, "DATA", "LOGS")
-    RESULTS_SUBFOLDER = os.path.join(BASE_SYSTEM_PATH, "DATA", "RESULTS")
-    RESULTS_SUBFOLDER_TEMP = os.path.join(RESULTS_SUBFOLDER, "TEMP")
-    USER_SUBFOLDER = os.path.join(BASE_SYSTEM_PATH, "DATA", "USER")
-
-    USER_CONFIG_PATH = os.path.join(USER_SUBFOLDER, "settings.json")
-    CATALOG_CONFIG_PATH = os.path.join(USER_SUBFOLDER, "MPNs.json")
+    PYTHON_EXE = sys.executable  
 
 elif sys.platform.startswith("darwin"):
     BASE_SYSTEM_PATH = os.path.dirname(sys.executable) if getattr(sys, 'frozen', False) else os.path.abspath(os.path.join(os.path.dirname(__file__), "..", ".."))
@@ -80,15 +78,15 @@ elif sys.platform.startswith("darwin"):
 
     DATABASE_FOLDER = os.path.join(BASE_TEMP_PATH, "APP", "DATABASE")
 
-    CORE_FOLDER = os.path.join(BASE_SYSTEM_PATH, "CORE")
-    DATA_FOLDER = os.path.join(BASE_SYSTEM_PATH, "DATA")
-    LOGS_SUBFOLDER = os.path.join(BASE_SYSTEM_PATH, "DATA", "LOGS")
-    RESULTS_SUBFOLDER = os.path.join(BASE_SYSTEM_PATH, "DATA", "RESULTS")
+    USER_FOLDER = os.path.join(BASE_SYSTEM_PATH, "USER")
+    CORE_SUBFOLDER = os.path.join(BASE_SYSTEM_PATH, "USER", "CORE")
+    CONFIG_SUBFOLDER = os.path.join(BASE_SYSTEM_PATH, "USER", "CONFIG")
+    LOGS_SUBFOLDER = os.path.join(BASE_SYSTEM_PATH, "USER", "LOGS")
+    RESULTS_SUBFOLDER = os.path.join(BASE_SYSTEM_PATH, "USER", "RESULTS")
     RESULTS_SUBFOLDER_TEMP = os.path.join(RESULTS_SUBFOLDER, "TEMP")
-    USER_SUBFOLDER = os.path.join(BASE_SYSTEM_PATH, "DATA", "USER")
 
-    USER_CONFIG_PATH = os.path.join(USER_SUBFOLDER, "settings.json")
-    CATALOG_CONFIG_PATH = os.path.join(USER_SUBFOLDER, "MPNs.json")
+    USER_CONFIG_PATH = os.path.join(CONFIG_SUBFOLDER, "settings.json")
+    CATALOG_CONFIG_PATH = os.path.join(CONFIG_SUBFOLDER, "MPNs.json")
 
 else:
     raise RuntimeError(f"Système non supporté: {sys.platform}")
@@ -98,9 +96,9 @@ else:
 #   FUNCTION(S)
 # ===============
 def make_dirs():
-    os.makedirs(CORE_FOLDER, exist_ok=True)
-    os.makedirs(DATA_FOLDER, exist_ok=True)
+    os.makedirs(USER_FOLDER, exist_ok=True)
+    os.makedirs(CONFIG_SUBFOLDER, exist_ok=True)
+    os.makedirs(CORE_SUBFOLDER, exist_ok=True)
     os.makedirs(LOGS_SUBFOLDER, exist_ok=True)
     os.makedirs(RESULTS_SUBFOLDER, exist_ok=True)
     os.makedirs(RESULTS_SUBFOLDER_TEMP, exist_ok=True)
-    os.makedirs(USER_SUBFOLDER, exist_ok=True)

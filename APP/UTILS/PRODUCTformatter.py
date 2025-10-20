@@ -3,8 +3,6 @@ import re
 
 from bs4 import BeautifulSoup
 
-from APP.UTILS.LOGmaker import *
-
 
 # =======================
 #  GLOBAL VARIABLE SETUP

@@ -23,7 +23,7 @@ from selenium.webdriver.common.by import By
 
 from APP.SERVICES.__init__ import *
 
-from APP.UTILS.LOGmaker import *
+from APP.SERVICES.LOGservice import LogService
 from APP.UTILS.PRODUCTformatter import *
 
 
@@ -36,7 +36,7 @@ class FIXAMIloader:
     def __init__(self):
 
         # === LOGGER SETUP ===
-        self.logger = logger("FIXAMIloader")
+        self.logger = LogService.logger("FIXAMIloader")
 
         # === INTERNAL VARIABLE(S) ===
         self.ATTEMPT = 0

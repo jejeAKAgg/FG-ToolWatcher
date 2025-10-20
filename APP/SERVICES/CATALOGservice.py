@@ -17,7 +17,7 @@ class CatalogService:
         self.path = path
         self.scope = [
             'https://spreadsheets.google.com/feeds',
-            'https://www.googleapis.com/auth/drive'
+            'https://www.googleapis.com/auth/drive',
         ]
 
         creds_path = os.path.join(BASE_TEMP_PATH, "APP", "CONFIGS", "BOTconfig.json")

@@ -1,22 +1,17 @@
-import os
-
 import json
 import platform
 import psutil
 
 import signal
-import smtplib
 
-from email.message import EmailMessage
-
-from APP.UTILS.LOGmaker import *
+from APP.SERVICES.LOGservice import LogService
 
 
 
 # ====================
 #     LOGGER SETUP
 # ====================
-Logger = logger("TOOLSbox")
+Logger = LogService.logger("TOOLSbox")
 
 
 # ====================

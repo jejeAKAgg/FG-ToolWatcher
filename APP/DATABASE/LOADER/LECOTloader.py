@@ -22,7 +22,7 @@ from selenium.webdriver.common.by import By
 
 from APP.SERVICES.__init__ import *
 
-from APP.UTILS.LOGmaker import *
+from APP.SERVICES.LOGservice import LogService
 from APP.UTILS.PRODUCTformatter import *
 
 
@@ -33,7 +33,7 @@ class LECOTloader:
     def __init__(self):
 
         # === LOGGER SETUP ===
-        self.logger = logger("LECOTloader")
+        self.logger = LogService.logger("LECOTloader")
 
         # === INTERNAL VARIABLE(S) ===
         self.ATTEMPT = 0

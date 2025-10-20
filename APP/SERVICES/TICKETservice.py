@@ -7,8 +7,6 @@ from PySide6.QtWidgets import QDialog, QVBoxLayout, QLabel, QTextEdit, QPushButt
 
 from APP.SERVICES.__init__ import *
 
-from APP.UTILS.TOOLSbox import *
-
 
 class TicketService(QDialog):
     def __init__(self, config, parent=None):
@@ -43,16 +41,8 @@ class TicketService(QDialog):
             return
 
         try:
-            MAILconfig = JSONloader(os.path.join(BASE_TEMP_PATH, "APP", "CONFIGS", "EMAILconfig.json"))
+            #MAILconfig = JSONloader(os.path.join(BASE_TEMP_PATH, "APP", "CONFIGS", "EMAILconfig.json"))
             body = f"De: {self.config.get('user_lastname')} {self.config.get('user_firstname')}.\n\n Description du problème:\n{desc}.\n\n\n Contact: {self.config.get('user_mail')}"
-            MAILsender(
-                sender_email=MAILconfig["Source"],
-                password=MAILconfig["Password"],
-                recipient_email=MAILconfig["Target_REPORT"],
-                subject=MAILconfig["Subject_REPORT"],
-                body=body,
-                filename=log_file
-            )
             QMessageBox.information(self, "Succès", "Le rapport a été envoyé avec succès.")
             self.accept()
 

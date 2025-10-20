@@ -3,7 +3,7 @@ import smtplib
 
 from email.message import EmailMessage
 
-from APP.UTILS.LOGmaker import logger
+from APP.SERVICES.LOGservice import LogService
 
 
 class MailService:
@@ -28,7 +28,7 @@ class MailService:
         """
         
         # === LOGGER SETUP ===
-        self.logger = logger("MailService")
+        self.logger = LogService.logger("MailService")
 
         # === INPUT VARIABLES ===
         self.sender_email = sender_email

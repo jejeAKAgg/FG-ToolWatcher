@@ -3,13 +3,14 @@
 from PySide6.QtCore import Qt, QThread, Signal
 from PySide6.QtWidgets import QWidget, QVBoxLayout, QLabel
 
+from APP.SERVICES.LOGservice import LogService
+
 from APP.ASSETS.WIDGETS.SPINNERbar import Spinner
 from APP.SERVICES.__init__ import *
-from APP.UTILS.LOGmaker import *
 from APP.UTILS.TOOLSinstaller import *
 
 
-Logger = logger("SETUP")
+Logger = LogService.logger("SETUP")
 
 class SetupThread(QThread):
     message = Signal(str)
@@ -25,8 +26,8 @@ class SetupThread(QThread):
             ("Vérification de l'intégrité des dossiers et fichiers de l'application...", make_dirs),
             ("Initialisation de la configuration utilisateur...", lambda: self.user_config.load()),
             ("Initialisation du catalogue d'articles...", lambda: self.catalog_config.load()),
-            ("Vérification de Chromium...", getCHROMIUMpackage),
             
+            #("Vérification de Chromium...", getCHROMIUMpackage),              [TEST ONLY]
             #("Vérification de Python...", getPYTHONpackage),                  [TEST ONLY]
             #("Vérification de pip/ensurepip...", getPIPpackage),              [TEST ONLY]
             #("Vérification des packages requis...", getREQUIREMENTSpackage),  [TEST ONLY]

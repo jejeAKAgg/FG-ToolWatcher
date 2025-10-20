@@ -21,7 +21,7 @@ from selenium.webdriver.chrome.service import Service
 
 from APP.SERVICES.__init__ import *
 
-from APP.UTILS.LOGmaker import *
+from APP.SERVICES.LOGservice import LogService
 from APP.UTILS.PRODUCTformatter import *
 
 
@@ -34,7 +34,7 @@ class FGloader:
     def __init__(self):
 
         # === LOGGER SETUP ===
-        self.logger = logger("FGloader")
+        self.logger = LogService.logger("FGloader")
 
         # === INTERNAL VARIABLE(S) ===
         self.ATTEMPT = 0

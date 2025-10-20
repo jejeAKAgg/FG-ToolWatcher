@@ -8,13 +8,13 @@ import urllib.request
 import zipfile
 
 from APP.SERVICES.__init__ import *
-from APP.UTILS.LOGmaker import *
+from APP.SERVICES.LOGservice import LogService
 
 
 # ====================
 #     LOGGER SETUP
 # ====================
-Logger = logger("TOOLinstaller")
+Logger = LogService.logger("TOOLinstaller")
 
 
 # ========================

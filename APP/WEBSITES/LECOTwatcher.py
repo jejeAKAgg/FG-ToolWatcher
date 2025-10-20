@@ -24,7 +24,7 @@ from APP.SERVICES.__init__ import *
 from APP.SERVICES.CACHEservice import CacheService
 from APP.SERVICES.MATCHERservice import MatcherService
 
-from APP.UTILS.LOGmaker import *
+from APP.SERVICES.LOGservice import LogService
 from APP.UTILS.PRODUCTformatter import *
 
 
@@ -32,7 +32,7 @@ class LECOTwatcher:
     def __init__(self, items, user_config: dict, catalog_config: dict):
         
         # === LOGGER SETUP ===
-        self.logger = logger("LECOT")
+        self.logger = LogService.logger("LECOT")
         
         # === INPUT VARIABLES ===
         self.items = items

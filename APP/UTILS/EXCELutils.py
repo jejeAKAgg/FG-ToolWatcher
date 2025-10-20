@@ -11,14 +11,14 @@ from gspread.exceptions import APIError, WorksheetNotFound
 from gspread_dataframe import set_with_dataframe
 
 from APP.SERVICES.__init__ import *
-from APP.UTILS.LOGmaker import *
+from APP.SERVICES.LOGservice import LogService
 
 
 
 # ====================
 #     LOGGER SETUP
 # ====================
-Logger = logger("EXCELutils")
+Logger = LogService.logger("EXCELutils")
 
 
 # ====================

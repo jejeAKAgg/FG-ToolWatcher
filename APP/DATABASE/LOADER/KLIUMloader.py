@@ -22,7 +22,7 @@ from selenium.webdriver.common.by import By
 
 from APP.SERVICES.__init__ import *
 
-from APP.UTILS.LOGmaker import *
+from APP.SERVICES.LOGservice import LogService
 from APP.UTILS.PRODUCTformatter import *
 
 
@@ -35,7 +35,7 @@ class KLIUMloader:
     def __init__(self):
 
         # === LOGGER SETUP ===
-        self.logger = logger("KLIUMloader")
+        self.logger = LogService.logger("KLIUMloader")
 
         # === INTERNAL VARIABLE(S) ===
         self.ATTEMPT = 0
