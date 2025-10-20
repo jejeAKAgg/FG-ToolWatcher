@@ -21,6 +21,8 @@ DATA/
 DATA/*
 LOGS/
 LOGS/*
+USER/
+USER/*
 
 # PYTHON cache files/folders
 __pycache__
