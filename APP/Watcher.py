@@ -4,7 +4,7 @@ import os
 from APP.SERVICES.__init__ import *
 from APP.SERVICES.MAILservice import *
 
-from APP.UTILS.LOGmaker import *
+from APP.SERVICES.LOGservice import LogService
 from APP.UTILS.EXCELutils import *
 from APP.UTILS.TOOLSbox import *
 
@@ -41,7 +41,7 @@ class WatcherManager:
         """
 
         # === LOGGER SETUP ===
-        self.logger = logger("WATCHER")
+        self.logger = LogService.logger("WATCHER")
 
         # === INPUT VARIABLE(S) ===
         self.user_config = user_config
