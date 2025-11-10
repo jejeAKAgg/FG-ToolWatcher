@@ -1,0 +1,45 @@
+{
+    "credits.text": "Created by LECHAT Jérôme",
+
+    "save.button": "Save",
+    
+    "box_info_type.text": "Information",
+    "box_error_type.text": "Error",
+    "box_advertisement_title.text": "Attention",
+
+    "tip_update.button": "Refresh/Update",
+    "tip_profile.button": "My Profile",
+    "tip_settings.button": "Settings",
+    "tip_info.button": "About",
+    "tip_ticket.button": "Report",
+    "tip_github.button": "GitHub",
+
+    "page_profile_informations.bar": "Your informations",
+    "page_profile_name.bar": "Name",
+    "page_profile_firstname.bar": "Firstname",
+    "page_profile_mail.bar": "E-mail",
+    "page_profile_error_incomplete.box": "All fields must be filled!",
+    "page_profile_error_mail.box": "Please enter a valid email address!",
+
+    "page_search_input.placeholder": "Enter the name of the tool to search...",
+    "page_search_no_result.box": "No results found for your search.",
+    "page_search_add.button": "Add",
+    "page_search_remove.button": "Remove",
+
+    "page_settings_cache_title": "Cache duration",
+    "page_settings_0day": "0 day(s)",
+    "page_settings_1day": "1 day(s)",
+    "page_settings_3days": "3 day(s)",
+    "page_settings_7days": "7 day(s)",
+    "page_settings_14days": "14 day(s)",
+    "page_settings_send_email": "Send e-mail with results",
+    
+    
+    "page_setup_start.text": "Preparing the application...",
+    "page_setup_complete.text": "Application is ready to use!",
+    "page_setup_step1.text": "Verification of application folders and files integrity...",
+    "page_setup_step2.text": "",
+    "page_setup_step3.text": "",
+    "page_setup_step4.text": "",
+    "page_setup_step5.text": ""
+}

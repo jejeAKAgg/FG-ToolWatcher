@@ -1,0 +1,45 @@
+{
+    "credits.text": "Gemaakt door LECHAT Jérôme",
+
+    "save.button": "Opslaan",
+    
+    "box_info_type.text": "Informatie",
+    "box_error_type.text": "Fout",
+    "box_advertisement_title.text": "Let op",
+
+    "tip_update.button": "Vernieuwen/Bijwerken",
+    "tip_profile.button": "Mijn Profiel",
+    "tip_settings.button": "Instellingen",
+    "tip_info.button": "Over",
+    "tip_ticket.button": "Rapporteren",
+    "tip_github.button": "GitHub",
+
+    "page_profile_informations.bar": "Uw gegevens",
+    "page_profile_name.bar": "Naam",
+    "page_profile_firstname.bar": "Voornaam",
+    "page_profile_mail.bar": "E-mail",
+    "page_profile_error_incomplete.box": "Alle velden moeten ingevuld zijn!",
+    "page_profile_error_mail.box": "Voer een geldig e-mailadres in!",
+
+    "page_search_input.placeholder": "Voer de naam van het gereedschap in...",
+    "page_search_no_result.box": "Geen resultaten gevonden voor uw zoekopdracht.",
+    "page_search_add.button": "Toevoegen",
+    "page_search_remove.button": "Verwijderen",
+
+    "page_settings_cache_title": "Cacheduur",
+    "page_settings_0day": "0 dag(en)",
+    "page_settings_1day": "1 dag(en)",
+    "page_settings_3days": "3 dag(en)",
+    "page_settings_7days": "7 dag(en)",
+    "page_settings_14days": "14 dag(en)",
+    "page_settings_send_email": "E-mail met resultaten verzenden",
+    
+    
+    "page_setup_start.text": "De applicatie wordt voorbereid...",
+    "page_setup_complete.text": "Applicatie is klaar voor gebruik!",
+    "page_setup_step1.text": "Integriteit van applicatiemappen en bestanden controleren...",
+    "page_setup_step2.text": "",
+    "page_setup_step3.text": "",
+    "page_setup_step4.text": "",
+    "page_setup_step5.text": ""
+}

@@ -1,0 +1,45 @@
+{
+    "credits.text": "Crée by LECHAT Jérôme",
+
+    "save.button": "Sauvegarder",
+    
+    "box_info_type.text": "Information",
+    "box_error_type.text": "Erreur",
+    "box_advertisement_title.text": "Attention",
+
+    "tip_update.button": "Rafraîchir/Mettre à jour",
+    "tip_profile.button": "Mon Profil",
+    "tip_settings.button": "Paramètres",
+    "tip_info.button": "A propos",
+    "tip_ticket.button": "Signaler",
+    "tip_github.button": "GitHub",
+
+    "page_profile_informations.bar": "Vos informations",
+    "page_profile_name.bar": "Nom",
+    "page_profile_firstname.bar": "Prénom",
+    "page_profile_mail.bar": "E-mail",
+    "page_profile_error_incomplete.box": "Tous les champs doivent être remplis!",
+    "page_profile_error_mail.box": "Veuillez entrer une adresse e-mail valide!",
+
+    "page_search_input.placeholder": "Entrez le nom de l'article/sa référence...",
+    "page_search_no_result.box": "Aucun résultat trouvé.",
+    "page_search_add.button": "Ajouter",
+    "page_search_remove.button": "Retirer",
+
+    "page_settings_cache_title": "Cache duration",
+    "page_settings_0day": "0 jour(s)",
+    "page_settings_1day": "1 jour(s)",
+    "page_settings_3days": "3 jour(s)",
+    "page_settings_7days": "7 jour(s)",
+    "page_settings_14days": "14 jour(s)",
+    "page_settings_send_email": "Envoyer un e-mail avec les résultats",
+    
+    
+    "page_setup_start.text": "Préparation de l'application...",
+    "page_setup_complete.text": "L'application est prête à être utilisée!",
+    "page_setup_step1.text": "Vérification de l'intégrité des dossiers et fichiers...",
+    "page_setup_step2.text": "",
+    "page_setup_step3.text": "",
+    "page_setup_step4.text": "",
+    "page_setup_step5.text": ""
+}
