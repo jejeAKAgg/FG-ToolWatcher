@@ -1,0 +1,34 @@
+# ======================================================
+#       1. PYTHON ENVIRONMENT & BUILD ARTIFACTS
+# ======================================================
+# Ignore the common legacy/IDE virtual environment names
+__TWlinux__/
+__TWwindows__/
+
+# Ignore Python cache, bytecode, and IDE folders
+__pycache__/
+*/__pycache__/
+*.pyc
+
+# Python testing artifacts
+.pytest_cache/
+*/.pytest_cache/
+
+# Build and distribution folder(s) for .exe creation
+/build/
+/dist/
+/FG-ToolWatcher.spec
+
+# ======================================================
+#  2. APPLICATION RUNTIME DATA (Generated & Sensitive)
+# ======================================================
+# Ignores all folder(s) created by the application at runtime
+/USER/
+
+# Ignores any temporary downloaded file(s)
+/downloaded_files/
+
+# ======================================================
+#             3. SECRETS & CONFIG TEMPLATES
+# ======================================================
+/__UTILS/secrets.json
