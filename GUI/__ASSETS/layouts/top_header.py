@@ -6,9 +6,11 @@ from PySide6.QtWidgets import QWidget, QHBoxLayout, QLabel
 
 
 def create_top_header(title_text, logo_path, logo_size=(120, 120)):
+    
     """
-    Crée un header avec logo + titre centré.
+    Creates a header with a logo + centered title.
     """
+    
     container = QWidget()
     layout = QHBoxLayout(container)
     layout.setContentsMargins(0,0,0,0)
@@ -21,7 +23,7 @@ def create_top_header(title_text, logo_path, logo_size=(120, 120)):
         logo_pixmap = QPixmap(logo_path).scaled(logo_size[0], logo_size[1], Qt.KeepAspectRatio, Qt.SmoothTransformation)
         logo_label.setPixmap(logo_pixmap)
 
-    # Titre
+    # Title
     title_label = QLabel(title_text)
     title_label.setAlignment(Qt.AlignVCenter | Qt.AlignLeft)
     title_label.setStyleSheet("""
@@ -34,7 +36,7 @@ def create_top_header(title_text, logo_path, logo_size=(120, 120)):
         }
     """)
 
-    # Ajouter les widgets au layout avec stretches pour centrer
+    # Add widgets to the layout with stretches for centering
     layout.addStretch()
     layout.addWidget(logo_label)
     layout.addWidget(title_label)

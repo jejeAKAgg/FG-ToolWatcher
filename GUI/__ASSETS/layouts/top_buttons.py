@@ -1,12 +1,12 @@
-# APP/layouts/TOPbuttons.py
+# GUI/__ASSETS/layouts/top_buttons.py
 from PySide6.QtWidgets import QWidget, QHBoxLayout, QGridLayout
-from PySide6.QtCore import Qt # Nécessaire pour les alignements
+from PySide6.QtCore import Qt
 
 def create_top_buttons(update_button, profile_button, settings_button, english_button, french_button, netherlands_button):
     
     """
-    Crée la barre supérieure principale, avec la barre de langue
-    parfaitement centrée en utilisant un QGridLayout.
+    Creates the main top bar, with the language bar
+    perfectly centered using a QGridLayout.
     """
     
     container = QWidget()
