@@ -2,6 +2,8 @@
 import os
 import time
 
+import logging
+
 import cloudscraper
 import gzip
 import json
@@ -17,6 +19,11 @@ from urllib.parse import unquote
 from CORE.Services.setup import *
 from CORE.Services.parser import ProductDataParser
 
+
+
+# ======= LOGGING SYSTEM ========
+LOG = logging.getLogger(__name__)
+# ===============================
 
 class FIXAMIloader:
     
@@ -114,7 +121,7 @@ class FIXAMIloader:
             str | None: The decompressed XML content as a string, or None if the download or decompression fails.
         """
 
-        print(f"Fetching sitemap: {link}...")
+        LOG.info(f"Fetching sitemap: {link}...")
         
         try:
             response = self.requests.get(link, headers=self.REQUESTS_HEADERS)
@@ -123,18 +130,17 @@ class FIXAMIloader:
             time.sleep(self.WAIT_TIME)
 
             if link.endswith('.gz'):
-                print("Content is GZIP compressed. Decompressing...")
-
+                LOG.info("Content is GZIP compressed. Decompressing...")
                 decompressed_content = gzip.decompress(response.content)
                 return decompressed_content.decode('utf-8')
             else:
                 return response.text
                 
         except requests.exceptions.HTTPError as e:
-            print(f"HTTP Error {e.response.status_code} on sitemap: {link}")
+            LOG.exception(f"HTTP Error {e.response.status_code} on sitemap: {link}")
             return None
         except Exception as e:
-            print(f"Error during decompression/fetch: {e}")
+            LOG.exception(f"Error during decompression/fetch: {e}")
             return None
 
     def _load_DBurls(self, csv_path: str) -> set:
@@ -147,11 +153,10 @@ class FIXAMIloader:
             try:
                 df_existing = pd.read_csv(csv_path, usecols=['ArticleURL'], encoding='utf-8-sig')
                 existing_urls = set(df_existing['ArticleURL'].astype(str).tolist())   # Converting into set for better performance
-                
-                print(f"Existing database found: {len(existing_urls)} URLs already processed.")
+                LOG.info(f"Existing database found: {len(existing_urls)} URLs already processed.")
                 return existing_urls
             except Exception as e:
-                print(f"Error loading existing DB: {e}. Full restart needed.")
+                LOG.exception(f"Error loading existing DB: {e}. Full restart needed.")
                 return set()
         return set()
     
@@ -166,18 +171,17 @@ class FIXAMIloader:
         
         if not os.path.exists(csv_path):
             NEWdf.to_csv(csv_path, index=False, encoding='utf-8-sig')
-            
-            print(f"New DB created with {len(NEWdf.index)} lines.")
+            LOG.info(f"New DB created with {len(NEWdf.index)} lines.")
             return
 
         try:
             NEWdf.to_csv(csv_path, mode='a', header=not os.path.exists(csv_path), index=False, encoding='utf-8-sig')
             
             if not is_emergency:
-                print(f"Batch saved.")
+                LOG.info(f"Batch saved.")
             
         except Exception as e:
-            print(f"CRITICAL: Failed to merge batch due to {e}. New lines might be lost.")   # Low probability to happen
+            LOG.exception(f"CRITICAL: Failed to merge batch due to {e}. New lines might be lost.")   # Low probability to happen
         
 
     def _extract_SITEMAPurls(self, link):
@@ -186,7 +190,7 @@ class FIXAMIloader:
         Downloads the sitemap and extracts all <loc> URLs (applying filtering logic).
         """
         
-        print(f"Downloading sitemap: {link}...")
+        LOG.info(f"Downloading sitemap: {link}...")
 
         # === INTERNAL VARIABLE(S) ===
         self.ATTEMPT = 0
@@ -224,12 +228,11 @@ class FIXAMIloader:
                 break
             
             except Exception as e:
-                print(f"Error during sitemap extraction: {e}")
+                LOG.exception(f"Error during sitemap extraction: {e}")
                 
                 self.ATTEMPT+=1
                 if self.ATTEMPT == self.MAX_RETRIES:
-                    print(f"Abandoning after {self.MAX_RETRIES} attempts.")
-
+                    LOG.warning(f"Abandoning after {self.MAX_RETRIES} attempts.")
                     return []
                 
                 else:
@@ -263,10 +266,7 @@ class FIXAMIloader:
 
                 ARTICLEpage = response.content
 
-                #self.logger.info(ARTICLEpage)     # [TESTING ONLY]
-
                 soup = BeautifulSoup(ARTICLEpage, "html.parser")
-
 
                 PRODUCTvar['Article'] = (
                     (json_tag := soup.find('script', {'id': 'product-offer-json-ld', 'type': 'application/ld+json'}))
@@ -291,23 +291,19 @@ class FIXAMIloader:
             
             except requests.exceptions.HTTPError as http_err:
                 if response.status_code == 404:
-                    print(f"Invalid link (404 Not Found). Saving failure for future skip: {link}")
-                    
+                    LOG.exception(f"Invalid link (404 Not Found). Saving failure for future skip: {link}")
                     return PRODUCTvar
                 else:
-                    print(f"HTTP Error ({response.status_code}) for {link}: {http_err}")
-
+                    LOG.exception(f"HTTP Error ({response.status_code}) for {link}: {http_err}")
                     return PRODUCTvar
             
             except Exception as e:
-                print(f"Error during data extraction for product {link}: {e}")
+                LOG.exception(f"Error during data extraction for product {link}: {e}")
                 
                 self.ATTEMPT+=1
                 if self.ATTEMPT == self.MAX_RETRIES:
-                    print(f"Abandoning after {self.MAX_RETRIES} attempts for product {link}")
-
+                    LOG.warning(f"Abandoning after {self.MAX_RETRIES} attempts for product {link}")
                     return PRODUCTvar
-                
                 else:
                     time.sleep(self.RETRY_DELAY)
     
@@ -326,14 +322,14 @@ class FIXAMIloader:
 
             self.URLs = [url for url in self.URLs if url not in DBurls]
 
-            print(f"Found link(s): {len(self.URLs)}")
+            LOG.info(f"Found link(s): {len(self.URLs)}")
 
             if self.URLs:
                 for PRODUCTurl in self.URLs:
                     try:
                         data = self._ONLINEextract_FINALproduct(PRODUCTurl)
 
-                        print(data)     # [TESTING ONLY]
+                        LOG.debug(data)     # [TESTING ONLY]
                         
                         PRODUCTS.append(data)
 
@@ -348,7 +344,7 @@ class FIXAMIloader:
                         time.sleep(random.uniform(0.5, 1)) # Loading time (STABILITY)
 
                     except Exception as e:
-                        self.logger.error(f"An unexpected error occurred for URL {PRODUCTurl}: {e}")
+                        LOG.exception(f"An unexpected error occurred for URL {PRODUCTurl}: {e}")
                         continue
                 
                 if PRODUCTS:
@@ -358,7 +354,7 @@ class FIXAMIloader:
                     PRODUCTS = []
         
         except Exception as e:
-            print(f"Critical error for FIXAMIloader: {e}")
+            LOG.exception(f"Critical error for FIXAMIloader: {e}")
 
             if PRODUCTS: # EMERGENCY SAVE
                 self._save_batch(CSVpathDB, PRODUCTS, is_emergency=True)
@@ -366,9 +362,9 @@ class FIXAMIloader:
                 self.SAVE_COUNTER = 0
                 PRODUCTS = []
 
-                print("Emergency save triggered due to critical error.")
+                LOG.warning("Emergency save triggered due to critical error.")
 
-        print("FIXAMIloader process terminated...")
+        LOG.info("FIXAMIloader process terminated...")
 
 
 

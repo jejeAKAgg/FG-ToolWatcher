@@ -2,6 +2,8 @@
 import os
 import time
 
+import logging
+
 import cloudscraper
 import gzip
 import pandas as pd
@@ -17,6 +19,10 @@ from CORE.Services.setup import *
 from CORE.Services.parser import ProductDataParser
 
 
+
+# ======= LOGGING SYSTEM ========
+LOG = logging.getLogger(__name__)
+# ===============================
 
 class KLIUMloader:
     
@@ -79,7 +85,7 @@ class KLIUMloader:
             str | None: The decompressed XML content as a string, or None if the download or decompression fails.
         """
 
-        print(f"Fetching sitemap: {link}...")
+        LOG.info(f"Fetching sitemap: {link}...")
         
         try:
             response = self.requests.get(link, headers=self.REQUESTS_HEADERS)
@@ -88,7 +94,7 @@ class KLIUMloader:
             time.sleep(self.WAIT_TIME)
 
             if link.endswith('.gz'):
-                print("Content is GZIP compressed. Decompressing...")
+                LOG.info("Content is GZIP compressed. Decompressing...")
                 
                 decompressed_content = gzip.decompress(response.content)
                 return decompressed_content.decode('utf-8')
@@ -96,10 +102,10 @@ class KLIUMloader:
                 return response.text
                 
         except requests.exceptions.HTTPError as e:
-            print(f"HTTP Error {e.response.status_code} on sitemap: {link}")
+            LOG.exception(f"HTTP Error {e.response.status_code} on sitemap: {link}")
             return None
         except Exception as e:
-            print(f"Error during decompression/fetch: {e}")
+            LOG.exception(f"Error during decompression/fetch: {e}")
             return None
 
     def _load_DBurls(self, csv_path: str) -> set:
@@ -113,10 +119,10 @@ class KLIUMloader:
                 df_existing = pd.read_csv(csv_path, usecols=['ArticleURL'], encoding='utf-8-sig')
                 existing_urls = set(df_existing['ArticleURL'].astype(str).tolist())   # Converting into set for better performance
                 
-                print(f"Existing database found: {len(existing_urls)} URLs already processed.")
+                LOG.info(f"Existing database found: {len(existing_urls)} URLs already processed.")
                 return existing_urls
             except Exception as e:
-                print(f"Error loading existing DB: {e}. Full restart needed.")
+                LOG.exception(f"Error loading existing DB: {e}. Full restart needed.")
                 return set()
         return set()
     
@@ -132,17 +138,17 @@ class KLIUMloader:
         if not os.path.exists(csv_path):
             NEWdf.to_csv(csv_path, index=False, encoding='utf-8-sig')
             
-            print(f"New DB created with {len(NEWdf.index)} lines.")
+            LOG.info(f"New DB created with {len(NEWdf.index)} lines.")
             return
 
         try:
             NEWdf.to_csv(csv_path, mode='a', header=not os.path.exists(csv_path), index=False, encoding='utf-8-sig')
             
             if not is_emergency:
-                print(f"Batch saved.")
+                LOG.info(f"Batch saved.")
             
         except Exception as e:
-            print(f"CRITICAL: Failed to merge batch due to {e}. New lines might be lost.")   # Low probability to happen
+            LOG.exception(f"CRITICAL: Failed to merge batch due to {e}. New lines might be lost.")   # Low probability to happen
     
 
     # Méthode modifiée pour l'extraction du sitemap enfant (utilise driver)
