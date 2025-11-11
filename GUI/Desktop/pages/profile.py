@@ -1,6 +1,8 @@
 # GUI/Desktop/pages/profile.py
 import re
 
+import logging
+
 from PySide6.QtCore import Signal, Qt, Signal
 from PySide6.QtWidgets import (
     QWidget, QVBoxLayout, QLabel, QLineEdit, QMessageBox,
@@ -14,6 +16,10 @@ from CORE.Services.translator import TranslatorService
 from GUI.__ASSETS.widgets.push_buttons import CustomPushButton
 
 
+
+# ======= LOGGING SYSTEM ========
+LOG = logging.getLogger(__name__)
+# ===============================
 
 class ProfilePage(QWidget):
     

@@ -1,6 +1,8 @@
 # GUI/Desktop/pages/menu.py
 import os
 
+import logging
+
 import CORE.Manager as Manager
 
 from PySide6.QtCore import QThread, Signal
@@ -16,6 +18,10 @@ from GUI.__ASSETS.widgets.main_buttons import CustomMainButton
 from GUI.__ASSETS.widgets.regular_progress_bar import CustomProgressBar
 
 
+
+# ======= LOGGING SYSTEM ========
+LOG = logging.getLogger(__name__)
+# ===============================
 
 class MainPage(QWidget):
     
@@ -53,7 +59,7 @@ class MainPage(QWidget):
         self.watcher_thread.finished.connect(self.on_watcher_finished)
 
         # === WIDGETS UI ===
-        # --- Boutons Start/Stop/Calibrage ---
+        # --- Buttons Start/Stop/Calibrage ---
         self.start_button = CustomMainButton(
             text="Start",
             icon_path=os.path.join(ASSETS_FOLDER, "icons", "play.ico"),
@@ -71,11 +77,11 @@ class MainPage(QWidget):
         )
         self.stop_button.setEnabled(False)
 
-        # --- Barre de progression ---
+        # --- Progress bar ---
         self.progress_widget = CustomProgressBar()
 
         # === LAYOUT ===
-        # --- Layout boutons ---
+        # --- Layout Buttons ---
         buttons_layout = QHBoxLayout()
         buttons_layout.addStretch()
         buttons_layout.addWidget(self.start_button)
@@ -85,7 +91,7 @@ class MainPage(QWidget):
         buttons_layout.addWidget(self.calibrate_button)
         buttons_layout.addStretch()
 
-        # --- Layout principal ---
+        # --- Main Layout ---
         main_layout = QVBoxLayout(self)
         main_layout.setContentsMargins(20, 20, 20, 20)
         main_layout.setSpacing(15)
@@ -94,7 +100,7 @@ class MainPage(QWidget):
         main_layout.addWidget(self.progress_widget)
         main_layout.addStretch()
 
-        # === CONNEXIONS ===
+        # === CONNECTIONS ===
         self.start_button.clicked.connect(self.start_watcher)
         self.stop_button.clicked.connect(self.stop_watcher)
         self.calibrate_button.clicked.connect(self.request_calibration)
@@ -118,23 +124,20 @@ class MainPage(QWidget):
         """
         
         if self.watcher_thread.isRunning():
-            print("[MainPage] Requesting watcher thread interruption...") # Debug print
-            self.watcher_thread.requestInterruption() # Signal the thread to stop
-                    
-            print("[MainPage] Waiting for watcher thread to finish...") # Debug print
-
+            LOG.debug("Requesting watcher thread interruption...")          
+            self.watcher_thread.requestInterruption()
 
             if not self.watcher_thread.wait(5000): # Wait up to 5 seconds
+                LOG.warning("Watcher thread did not finish cleanly after 5s!")
                 self.watcher_thread.terminate()
                 self.watcher_thread.wait() # Waiting for force-terminate to be finished
-                print("[MainPage] Warning: Watcher thread did not finish cleanly after 5s!")
 
-            print("[MainPage] Watcher thread stopped.")
-
+            LOG.debug("Watcher thread stopped.")
             self.progress_widget.reset()
             self.set_controls_enabled(True)
+        
         else:
-             print("[MainPage] stop_watcher called but thread wasn't running.") # Debug print
+            LOG.debug("stop_watcher called but thread wasn't running.")
 
     def on_watcher_finished(self):
         
@@ -153,8 +156,7 @@ class MainPage(QWidget):
         Slot executed if the thread emits an error signal.
         """
         
-        print(f"Erreur du WatcherThread : {error_msg}")
-
+        LOG.exception(f"An error occured on WatcherThread : {error_msg}")
         self.set_controls_enabled(True)
         self.progress_widget.reset() # Reset the bar if an error occured
 
@@ -249,5 +251,5 @@ class WatcherThread(QThread):
         except Exception as e:
             if not self.isInterruptionRequested():
                 self.error.emit(str(e))
-                print(e)
-            print(e)
+                LOG.exception(e)
+            LOG.exception(e)

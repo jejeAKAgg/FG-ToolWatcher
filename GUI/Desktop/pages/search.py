@@ -1,4 +1,6 @@
 # GUI/Desktop/pages/search.py
+import logging
+
 import pandas as pd
 
 from PySide6.QtWidgets import (
@@ -13,6 +15,10 @@ from CORE.Services.translator import TranslatorService
 
 
 
+# ======= LOGGING SYSTEM ========
+LOG = logging.getLogger(__name__)
+# ===============================
+
 class SearchPage(QWidget):
     def __init__(self, config: UserService, translator: TranslatorService, parent=None):
         super().__init__(parent)
@@ -23,7 +29,6 @@ class SearchPage(QWidget):
 
         # === INTERNAL PARAMETER(S) ===
         self.completer_model = QStringListModel(self)
-
 
         # === MAIN LAYOUT ===
         main_layout = QVBoxLayout(self)
@@ -153,18 +158,16 @@ class SearchPage(QWidget):
         suggestions = []
         
         if os.path.exists(csv_path):
-            print(f"[SearchPage] Chargement du compléteur depuis : {csv_path}")
+            LOG.debug(f"Loading DB: {csv_path}")
             try:
-
                 df = pd.read_csv(csv_path, usecols=['Article'], encoding='utf-8-sig')
                 df.dropna(subset=['Article'], inplace=True)
-
                 suggestions = df['Article'].astype(str).unique().tolist()
-                print(f"[SearchPage] {len(suggestions)} suggestions chargées.")
+                LOG.debug(f"{len(suggestions)} suggestions loaded.")
             except Exception as e:
-                print(f"Erreur lors de la lecture du CSV pour le compléteur : {e}")
+                LOG.exception(f"An error occured during the CSV reading: {e}")
         else:
-            print(f"Avertissement : Fichier master DB introuvable pour le compléteur : {csv_path}")
+            LOG.warning(f"DB file not found: {csv_path}")
             
         # Updating model with new suggestions
         self.completer_model.setStringList(suggestions)

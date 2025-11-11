@@ -1,6 +1,8 @@
 # GUI/Desktop/pages/settings.py
 import os
 
+import logging
+
 from PySide6.QtWidgets import (
     QWidget, QVBoxLayout, QHBoxLayout, QCheckBox, QLabel, QSpacerItem,
     QSizePolicy, QComboBox
@@ -13,6 +15,11 @@ from CORE.Services.translator import TranslatorService
 
 from GUI.__ASSETS.widgets.push_buttons import CustomPushButton
 
+
+
+# ======= LOGGING SYSTEM ========
+LOG = logging.getLogger(__name__)
+# ===============================
 
 class SettingsPage(QWidget):
     

@@ -1,4 +1,6 @@
 # GUI/Desktop/pages/setup.py
+import logging
+
 from PySide6.QtCore import Qt, QThread, Signal
 from PySide6.QtWidgets import QWidget, QVBoxLayout, QLabel
 
@@ -9,6 +11,10 @@ from CORE.Services.translator import TranslatorService
 from GUI.__ASSETS.widgets.spinner_progress_bar import Spinner
 
 
+
+# ======= LOGGING SYSTEM ========
+LOG = logging.getLogger(__name__)
+# ===============================
 
 class SetupPage(QWidget):
 
@@ -142,4 +148,4 @@ class SetupThread(QThread):
 
 
         except Exception as e:
-            print(e)
+            LOG.exception(e)
