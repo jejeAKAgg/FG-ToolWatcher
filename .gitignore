@@ -28,6 +28,9 @@ __pycache__/
 # Ignores any temporary downloaded file(s)
 /downloaded_files/
 
+#Ignores any .csv file(s)
+*.csv
+
 # ======================================================
 #             3. SECRETS & CONFIG TEMPLATES
 # ======================================================
