@@ -56,11 +56,13 @@ def _configure_windows_paths(base_sys_path: str, base_temp_path: str) -> Dict[st
         "_USER_FOLDER": os.path.join(base_sys_path, "USER"),
         "_CORE_SUBFOLDER": os.path.join(base_sys_path, "USER", "CORE"),
         "_CONFIG_SUBFOLDER": os.path.join(base_sys_path, "USER", "CONFIG"),
+        "_DATA_SUBFOLDER": os.path.join(base_sys_path, "USER", "DATA"),
         "_LOGS_SUBFOLDER": os.path.join(base_sys_path, "USER", "LOGS"),
         "_RESULTS_SUBFOLDER": os.path.join(base_sys_path, "USER", "RESULTS"),
         "_RESULTS_SUBFOLDER_TEMP": os.path.join(base_sys_path, "USER", "RESULTS", "TEMP"),
 
         "_ASSETS_FOLDER": os.path.join(base_temp_path, "GUI", "__ASSETS"),
+        "_AI_FOLDER": os.path.join(base_temp_path, "CORE", "__AI"),
         "_DATABASE_FOLDER": os.path.join(base_temp_path, "CORE", "__DATABASES"),
         "_UTILS_FOLDER": os.path.join(base_temp_path, "CORE", "__UTILS"),
 
@@ -86,11 +88,13 @@ def _configure_linux_paths(base_sys_path: str, base_temp_path: str) -> Dict[str,
         "_USER_FOLDER": os.path.join(base_sys_path, "USER"),
         "_CORE_SUBFOLDER": os.path.join(base_sys_path, "USER", "CORE"),
         "_CONFIG_SUBFOLDER": os.path.join(base_sys_path, "USER", "CONFIG"),
+        "_DATA_SUBFOLDER": os.path.join(base_sys_path, "USER", "DATA"),
         "_LOGS_SUBFOLDER": os.path.join(base_sys_path, "USER", "LOGS"),
         "_RESULTS_SUBFOLDER": os.path.join(base_sys_path, "USER", "RESULTS"),
         "_RESULTS_SUBFOLDER_TEMP": os.path.join(base_sys_path, "USER", "RESULTS", "TEMP"),
 
         "_ASSETS_FOLDER": os.path.join(base_temp_path, "GUI", "__ASSETS"),
+        "_AI_FOLDER": os.path.join(base_temp_path, "CORE", "__AI"),
         "_DATABASE_FOLDER": os.path.join(base_temp_path, "CORE", "__DATABASES"),
         "_UTILS_FOLDER": os.path.join(base_temp_path, "CORE", "__UTILS"),
 
@@ -116,11 +120,13 @@ def _configure_darwin_paths(base_sys_path: str, base_temp_path: str) -> Dict[str
         "_USER_FOLDER": os.path.join(base_sys_path, "USER"),
         "_CORE_SUBFOLDER": os.path.join(base_sys_path, "USER", "CORE"),
         "_CONFIG_SUBFOLDER": os.path.join(base_sys_path, "USER", "CONFIG"),
+        "_DATA_SUBFOLDER": os.path.join(base_sys_path, "USER", "DATA"),
         "_LOGS_SUBFOLDER": os.path.join(base_sys_path, "USER", "LOGS"),
         "_RESULTS_SUBFOLDER": os.path.join(base_sys_path, "USER", "RESULTS"),
         "_RESULTS_SUBFOLDER_TEMP": os.path.join(base_sys_path, "USER", "RESULTS", "TEMP"),
 
         "_ASSETS_FOLDER": os.path.join(base_temp_path, "GUI", "__ASSETS"),
+        "_AI_FOLDER": os.path.join(base_temp_path, "CORE", "__AI"),
         "_DATABASE_FOLDER": os.path.join(base_temp_path, "CORE", "__DATABASES"),
         "_UTILS_FOLDER": os.path.join(base_temp_path, "CORE", "__UTILS"),
 
@@ -153,11 +159,13 @@ SECRETS_FOLDER = _OS_CONFIG["_SECRETS_FOLDER"]
 USER_FOLDER = _OS_CONFIG["_USER_FOLDER"]
 CORE_SUBFOLDER = _OS_CONFIG["_CORE_SUBFOLDER"]
 CONFIG_SUBFOLDER = _OS_CONFIG["_CONFIG_SUBFOLDER"]
+DATA_SUBFOLDER = _OS_CONFIG["_DATA_SUBFOLDER"]
 LOGS_SUBFOLDER = _OS_CONFIG["_LOGS_SUBFOLDER"]
 RESULTS_SUBFOLDER = _OS_CONFIG["_RESULTS_SUBFOLDER"]
 RESULTS_SUBFOLDER_TEMP = _OS_CONFIG["_RESULTS_SUBFOLDER_TEMP"]
 
 ASSETS_FOLDER = _OS_CONFIG["_ASSETS_FOLDER"]
+AI_FOLDER = _OS_CONFIG["_AI_FOLDER"]
 DATABASE_FOLDER = _OS_CONFIG["_DATABASE_FOLDER"]
 UTILS_FOLDER = _OS_CONFIG["_UTILS_FOLDER"]
 
@@ -173,6 +181,7 @@ def make_dirs():
     os.makedirs(USER_FOLDER, exist_ok=True)
     os.makedirs(CONFIG_SUBFOLDER, exist_ok=True)
     os.makedirs(CORE_SUBFOLDER, exist_ok=True)
+    os.makedirs(DATA_SUBFOLDER, exist_ok=True)
     os.makedirs(LOGS_SUBFOLDER, exist_ok=True)
     os.makedirs(RESULTS_SUBFOLDER, exist_ok=True)
     os.makedirs(RESULTS_SUBFOLDER_TEMP, exist_ok=True)
