@@ -32,7 +32,22 @@ LOG = logging.getLogger(__name__)
 # ===============================
 
 class WatcherGUI(QWidget):
+
+    """
+    Main Application Window (GUI) for FG-ToolWatcher.
+    Manages global navigation, language switching, and the primary application stack.
+    """
+
     def __init__(self, config_service: UserService, translator_service: TranslatorService):
+
+        """
+        Initializes the main GUI components, styles, and page stack.
+
+        Args:
+            config_service (UserService): Instance for handling user data and preferences.
+            translator_service (TranslatorService): Instance for handling multi-language support.
+        """
+
         super().__init__()
 
         # === INPUT VARIABLE(S) ===
@@ -61,14 +76,13 @@ class WatcherGUI(QWidget):
         self.background_widget.lower()
 
         # --- TOP BAR & HEADER ---
+        self.settings_button = CustomPushButton(icon_path=os.path.join(ASSETS_FOLDER, "icons", "settings.ico"), icon_size_width=35, icon_size_height=35, width=100, height=50, bg_color="#818386", hover_color="#6d6e70", text_color="#FFFFFF", alpha=0.5)
         self.update_button = CustomPushButton(icon_path=os.path.join(ASSETS_FOLDER, "icons", "update.ico"))
         self.profile_button = CustomPushButton(icon_path=os.path.join(ASSETS_FOLDER, "icons", "profile.ico"))
 
-        self.english_button = CustomPushButton(icon_path=os.path.join(ASSETS_FOLDER, "icons", "english.ico"), bg_color='#818386', hover_color='#6d6e70', width=50, height=35, alpha=0.5)
-        self.french_button = CustomPushButton(icon_path=os.path.join(ASSETS_FOLDER, "icons", "french.ico"), bg_color='#818386', hover_color='#6d6e70', width=50, height=35, alpha=0.5)
-        self.netherlands_button = CustomPushButton(icon_path=os.path.join(ASSETS_FOLDER, "icons", "netherlands.ico"), bg_color='#818386', hover_color='#6d6e70', width=50, height=35, alpha=0.5)
-
-        self.settings_button = CustomPushButton(icon_path=os.path.join(ASSETS_FOLDER, "icons", "settings.ico"))
+        self.english_button = CustomPushButton(icon_path=os.path.join(ASSETS_FOLDER, "icons", "english.ico"), width=55, height=35, bg_color='#818386', hover_color='#6d6e70',  text_color="#FFFFFF", alpha=0.5)
+        self.french_button = CustomPushButton(icon_path=os.path.join(ASSETS_FOLDER, "icons", "french.ico"), width=55, height=35, bg_color='#818386', hover_color='#6d6e70', text_color="#FFFFFF", alpha=0.5)
+        self.netherlands_button = CustomPushButton(icon_path=os.path.join(ASSETS_FOLDER, "icons", "netherlands.ico"), width=55, height=35, bg_color='#818386', hover_color='#6d6e70', text_color="#FFFFFF", alpha=0.5)
 
         self.update_button.setToolTip(self.translator.get("tip_update.button"))
         self.profile_button.setToolTip(self.translator.get("tip_profile.button"))
@@ -83,8 +97,8 @@ class WatcherGUI(QWidget):
 
         # --- BOTTOM BAR ---
         self.info_button = CustomPushButton(icon_path=os.path.join(ASSETS_FOLDER, "icons", "info.ico"))
-        self.ticket_button = CustomPushButton(icon_path=os.path.join(ASSETS_FOLDER, "icons", "problem.ico"))
-        self.github_button = CustomPushButton(icon_path=os.path.join(ASSETS_FOLDER, "icons", "github.ico"))
+        self.ticket_button = CustomPushButton(icon_path=os.path.join(ASSETS_FOLDER, "icons", "problem.ico"), icon_size_width=35, icon_size_height=35, width=100, height=50, bg_color="#818386", hover_color="#6d6e70", text_color="#FFFFFF", alpha=0.5)
+        self.github_button = CustomPushButton(icon_path=os.path.join(ASSETS_FOLDER, "icons", "github.ico"), icon_size_width=35, icon_size_height=35, width=100, height=50, bg_color="#818386", hover_color="#6d6e70", text_color="#FFFFFF", alpha=0.5)
 
         self.info_button.setToolTip(self.translator.get("tip_info.button"))
         self.ticket_button.setToolTip(self.translator.get("tip_ticket.button"))
@@ -115,7 +129,6 @@ class WatcherGUI(QWidget):
 
         self.setup_page.setup_finished.connect(lambda: self.transition.fade_to(self.profile_page if not self.configs.get("user_mail") else self.main_page, on_finished=lambda: self._update_top_buttons()))
         self.profile_page.configs_updated.connect(lambda: self.transition.fade_to(self.main_page, on_finished=lambda: self._update_top_buttons()))
-        self.settings_page.settings_saved.connect(lambda: self.transition.fade_to(self.main_page, on_finished=lambda: self._update_top_buttons()))
 
         self.stack.addWidget(self.setup_page)       # index 0
         self.stack.addWidget(self.profile_page)     # index 1
@@ -147,7 +160,7 @@ class WatcherGUI(QWidget):
         self.main_page.stop_button.clicked.connect(self._update_top_buttons)
 
 
-    # === FUNCTIONS ===
+    # === PUBLIC METHOD(S) ===
     def closeEvent(self, event: QCloseEvent):
         
         """
@@ -165,7 +178,6 @@ class WatcherGUI(QWidget):
 
         LOG.debug("[WatcherGUI] Accepting close event.")
         event.accept()
-
 
     def toggle_settings(self):        
         if self.stack.currentIndex() == 2:
@@ -198,6 +210,7 @@ class WatcherGUI(QWidget):
         QDesktopServices.openUrl(QUrl("https://github.com/jejeAKAgg/FG-ToolWatcher"))
     
 
+    # === PRIVATE METHOD(S) ===
     def _set_language(self, code: str):
         
         """
