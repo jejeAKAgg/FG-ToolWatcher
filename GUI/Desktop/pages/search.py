@@ -154,7 +154,7 @@ class SearchPage(QWidget):
         Load articles suggestions from 'FGproductsDB.csv' based on user input
         """
         
-        csv_path = os.path.join(DATABASE_FOLDER, "FGproductsDB.csv")
+        csv_path = os.path.join(DATA_SUBFOLDER, "FGproductsDB.csv")
         suggestions = []
         
         if os.path.exists(csv_path):
