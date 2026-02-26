@@ -5,13 +5,16 @@ import time
 import logging
 
 import cloudscraper
+import csv
 import gzip
+import json
 import pandas as pd
 import random
 import requests
 
 from bs4 import BeautifulSoup
 from datetime import datetime
+from functools import reduce
 from typing import List
 from urllib.parse import unquote
 
@@ -29,7 +32,7 @@ class TOOLNATIONloader:
     """
     Class to download and extract product URLs and data from TOOLNATION.
     """
-
+    
     def __init__(self):
 
         # === INTERNAL VARIABLE(S) ===
@@ -37,77 +40,62 @@ class TOOLNATIONloader:
         self.MAX_RETRIES = 3
         self.RETRY_DELAY = 5
         self.SAVE_COUNTER = 0
-        self.SAVE_THRESHOLD = 500
+        self.SAVE_THRESHOLD = 100
         self.WAIT_TIME = 3
 
         # === INTERNAL PARAMETER(S) ===
-        self.SITEMAPurls: List[str] = [
-            'https://www.toolnation.fr/pub/sitemap/sitemap_fr_1.xml',
-            'https://www.toolnation.fr/pub/sitemap/sitemap_fr_2.xml',
-            'https://www.toolnation.fr/pub/sitemap/sitemap_fr_3.xml'
-        ]
+        self.SITEMAPindex = 'https://www.toolnation.fr/sitemap/sitemap_fr_index.xml'
+        self.SITEMAPurls: List[str] = []
         self.NAMESPACESurl = {'sitemap': 'http://www.sitemaps.org/schemas/sitemap/0.9'}
-        self.CATEGORYnames: List[str] = [
-            'accessoire', 'accessoires.html',
-            'accessoires', 'accessoires.html',
-            'actualites', 'actualites.html',
-            'aide-contact', 'aide-contact.html',
-            'a-propos-de-fixami', 'a-propos-de-fixami.html',
-            'black-friday', 'black-friday.html',
-            'carte-cadeaux', 'carte-cadeaux.html',
-            'cartes-cadeaux', 'cartes-cadeaux.html',
-            'climatisations', 'climatisations.html',
-            'code-de-reduction', 'code-de-reduction.html',
-            'codes-de-reduction', 'codes-de-reduction.html',
-            'conseils', 'conseils.html',
-            'cookies', 'cookies.html',
-            'demander-a-payer-sur-facture', 'demander-a-payer-sur-facture.html',
-            'devis', 'devis.html',
-            'epi-et-vetements-de-travail', 'epi-et-vetements-de-travail.html',
-            'fixami', 'fixami.html',
-            'home', 'home.html',
-            'marques', 'marques.html',
-            'materiel-electrique', 'materiel-electrique.html',
-            'materiaux-de-fixation', 'materiaux-de-fixation.html',
-            'media', 'media.html',
-            'navigation', 'navigation.html',
-            'nettoyage', 'nettoyage.html',
-            'newsletter','newsletter.html',
-            'offre', 'offre.html',
-            'offres', 'offres.html',
-            'offres-du-jour', 'offres-du-jour.html',
-            'outils-a-main', 'outils-a-main.html',
-            'outils-de-jardinage', 'outils-de-jardinage.html',
-            'outils-de-mesure', 'outils-de-mesure.html',
-            'outils-electriques', 'outils-electriques.html',
-            'outils-pneumatiques', 'outils-pneumatiques.html',
-            'outil-sans-fil', 'outil-sans-fil.html',
-            'outils-sans-fil', 'outils-sans-fil.html',
-            'outlet', 'outlet.html',
-            'peinture-fournitures', 'peinture-fournitures.html',
-            'produits', 'produits.html',
-            'promotion', 'promotion.html',
-            'promotions', 'promotions.html',
-            'service-client', 'service-client.html',
-            'transports-et-atelier', 'transports-et-atelier.html',
-        ]
         self.URLs: List[str] = []
 
         # === INTERNAL SERVICE(S) ===
         self.parser = ProductDataParser(brands_file_path=os.path.join(UTILS_FOLDER, 'brands.json'))
 
         # === PARAMETERS & OPTIONS SETUP (CloudSCRAPER) ===
-        self.requests = cloudscraper.create_scraper()
+        self.requests = cloudscraper.create_scraper(
+            browser={
+                'browser': 'chrome',
+                'platform': 'windows',
+                'desktop': True
+            }
+        )
 
         self.REQUESTS_HEADERS = {
             'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/114.0.0.0 Safari/537.36',
             'Referer': 'https://www.toolnation.fr/',
             'Accept-Language': 'fr-FR,fr;q=0.9,en-US;q=0.8,en;q=0.7',
             'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,*/*;q=0.8',
-            'Connection': 'keep-alive'
+            'Connection': 'keep-alive',
+            'DNT': '1' # Do Not Track
         }
 
 
+    def _discover_sitemaps(self):
+        
+        """
+        Dynamically retrieves product sitemap URLs (Sitemapp) from the TOOLNATION sitemap index.
+        
+        """
+        
+        try:
+            response = self.requests.get(self.SITEMAPindex, headers=self.REQUESTS_HEADERS)
+            response.raise_for_status()
+            
+            soup = BeautifulSoup(response.content, "xml")
+            
+            # Filtering logic to keep only relevant product sitemaps (e.g., those containing '-fr-be-' and excluding irrelevant ones)
+            links = [
+                loc.text.strip() 
+                for loc in soup.find_all('loc')
+            ]
+
+            self.SITEMAPurls = links
+            LOG.info(f"Discovered {len(self.SITEMAPurls)} product sitemaps via the index.")
+        
+        except Exception as e:
+            LOG.error(f"Failed to retrieve TOOLNATION sitemap index: {e}")
+    
     def _fetch_and_decompress_sitemap(self, link: str):
         
         """
@@ -118,6 +106,7 @@ class TOOLNATIONloader:
 
         Returns:
             str | None: The decompressed XML content as a string, or None if the download or decompression fails.
+        
         """
 
         LOG.info(f"Fetching sitemap: {link}...")
@@ -130,7 +119,7 @@ class TOOLNATIONloader:
 
             if link.endswith('.gz'):
                 LOG.info("Content is GZIP compressed. Decompressing...")
-
+                
                 decompressed_content = gzip.decompress(response.content)
                 return decompressed_content.decode('utf-8')
             else:
@@ -147,6 +136,7 @@ class TOOLNATIONloader:
         
         """
         Loads already processed URLs from the existing DB for restart logic (cache checker).
+        
         """
         
         if os.path.exists(csv_path):
@@ -154,7 +144,7 @@ class TOOLNATIONloader:
                 df_existing = pd.read_csv(csv_path, usecols=['ArticleURL'], encoding='utf-8-sig')
                 existing_urls = set(df_existing['ArticleURL'].astype(str).tolist())   # Converting into set for better performance
                 
-                LOG.info(f"Existing database found: {len(existing_urls)} URLs already processed.")
+                LOG.info(f"Existing database found for {csv_path}: {len(existing_urls)} URLs already processed.")
                 return existing_urls
             except Exception as e:
                 LOG.exception(f"Error loading existing DB: {e}. Full restart needed.")
@@ -165,31 +155,63 @@ class TOOLNATIONloader:
         
         """
         Saves the current batch of data by appending it to the existing database file.
-        This avoids RAM saturation (pd.concat).
+        
         """
+
+        if not batch_data:
+            return
         
         NEWdf = pd.DataFrame(batch_data)
         
-        if not os.path.exists(csv_path):
-            NEWdf.to_csv(csv_path, index=False, encoding='utf-8-sig')
-            LOG.info(f"New DB created. Total lines: {len(NEWdf.index)}")
-            
-            return
+        COLS = ['EAN', 'MPN', 'Brand', 'Article', 'Base Price (HTVA)', 'Base Price (TVA)', 'ArticleURL', 'Checked on']
 
         try:
-            NEWdf.to_csv(csv_path, mode='a', header=not os.path.exists(csv_path), index=False, encoding='utf-8-sig')
+            # On boucle sur ta liste pour préparer chaque colonne selon son type
+            for col in COLS:
+                if col in NEWdf.columns:
+                    if "Price" in col:
+                        # C'est un prix : on force en float (SANS guillemets dans le CSV)
+                        NEWdf[col] = pd.to_numeric(NEWdf[col].astype(str).str.replace(',', '.'), errors='coerce').fillna(0.0).astype(float)
+                    else:
+                        # C'est du texte : on force en string (AVEC guillemets + conservation des 0)
+                        NEWdf[col] = NEWdf[col].astype(str)
+
+            # On réordonne les colonnes selon ta liste unique
+            NEWdf = NEWdf[COLS]
             
-            if not is_emergency:
-                LOG.info(f"Batch saved.")
-            
-        except Exception as e:
-            LOG.exception(f"CRITICAL: Failed to merge batch due to {e}. New lines might be lost.")   # Low probability to happen
+            file_exists = os.path.exists(csv_path)
+
+            if not file_exists:
+                NEWdf.to_csv(csv_path,
+                        index=False,
+                        encoding='utf-8-sig',
+                        quoting=csv.QUOTE_MINIMAL,
+                        quotechar='"'
+                )   
+                
+                LOG.info(f"New DB created with {len(NEWdf.index)} lines.")
+            else:
+                NEWdf.to_csv(csv_path,
+                        mode='a',
+                        header=not file_exists,
+                        index=False,
+                        encoding='utf-8-sig',
+                        quoting=csv.QUOTE_MINIMAL,
+                        quotechar='"'
+                )
+                
+                if not is_emergency:
+                    LOG.info(f"Batch saved.")
         
+        except Exception as e:
+            LOG.exception(f"CRITICAL: Failed to merge batch due to {e}.")
+
 
     def _extract_SITEMAPurls(self, link):
         
         """
         Downloads the sitemap and extracts all <loc> URLs (applying filtering logic).
+        
         """
         
         LOG.info(f"Downloading sitemap: {link}...")
@@ -202,30 +224,40 @@ class TOOLNATIONloader:
         # === SEARCH ENGINE ===
         while self.ATTEMPT < self.MAX_RETRIES:
             try:
+                ARTICLEpage = self._fetch_and_decompress_sitemap(link) 
 
-                ARTICLEpage = self._fetch_and_decompress_sitemap(link)             
+                if ARTICLEpage is None:
+                    LOG.error(f"Sitemap empty or unavailable for {link}")
+                    
+                    self.ATTEMPT += 1
+                    time.sleep(self.RETRY_DELAY)
+                    
+                    continue # Retry the download
 
                 soup = BeautifulSoup(ARTICLEpage, "xml")
 
                 for loc_tag in soup.find_all('loc'):
                     PRODUCTurl = unquote(loc_tag.text.strip())
+                    SEGMENTSdata = [w for w in PRODUCTurl.split('/') if w]
+
+                    if len(SEGMENTSdata) < 3:
+                        continue
+
+                    if len(SEGMENTSdata[-1]) < 15:
+                        continue
+
+                    if SEGMENTSdata[1] not in ('www.toolnation.fr', 'toolnation.fr'):
+                        continue
+
+                    if any(S.lower() in {'nl', 'de', 'en', 'nl-be', 'nl-nl', 'de-de', 'en-be'} for S in SEGMENTSdata):
+                        continue
 
                     if PRODUCTurl.endswith(('/', '.jpg', '.jpeg', '.png', '.gif', '.pdf')):
                         continue
 
-                    if [w for w in PRODUCTurl.split('/') if w][1] not in ('www.toolnation.fr', 'toolnation.fr'):
-                        continue
-
-                    if [w for w in PRODUCTurl.split('/') if w][2] in self.CATEGORYnames:
-                        continue
-
-                    if len([w for w in PRODUCTurl.split('/') if w]) > 3:
-                        continue
-
                     self.URLs.append(PRODUCTurl)
 
-                break
-
+                return list(set(self.URLs))  # Removing duplicates if any (though unlikely in a single sitemap)
             
             except Exception as e:
                 LOG.exception(f"Error during sitemap extraction: {e}")
@@ -233,6 +265,7 @@ class TOOLNATIONloader:
                 self.ATTEMPT+=1
                 if self.ATTEMPT == self.MAX_RETRIES:
                     LOG.warning(f"Abandoning after {self.MAX_RETRIES} attempts.")
+
                     return []
                 
                 else:
@@ -248,9 +281,12 @@ class TOOLNATIONloader:
 
         # === INTERNAL PARAMETER(S) ===
         PRODUCTvar = {
+            'EAN': "-",
+            'MPN': "-",
+            'Brand': "-",
             'Article': "-",
-            'Base Price (HTVA)': "-",
-            'Base Price (TVA)': "-",
+            'Base Price (HTVA)': 0.0,
+            'Base Price (TVA)': 0.0,
             'ArticleURL': link,
             'Checked on': datetime.now().strftime("%Y-%m-%d %H:%M:%S")
         }
@@ -267,97 +303,125 @@ class TOOLNATIONloader:
                 ARTICLEpage = response.content
 
                 soup = BeautifulSoup(ARTICLEpage, "html.parser")
+
+                JSONdata = next((i for s in soup.find_all('script', type='application/ld+json') for i in ([json.loads(s.string)] if isinstance(json.loads(s.string), dict) else (json.loads(s.string) if isinstance(json.loads(s.string), list) else [])) if isinstance(i, dict) and i.get("@type") == "Product"), {})
                 
-                PRODUCTvar['Article'] = (
-                    (name := soup.find("span", attrs={"data-ui-id": "page-title-wrapper"}))
-                    and (name.get_text(strip=True).replace("\"", "\"\"").strip('"'))
+                PRODUCTvar["EAN"] = (lambda e: "".join(filter(str.isalnum, str(e))) or "-")(
+                    next((d.get_text(strip=True).upper().split("EAN")[-1].strip().split()[0] for d in soup.find_all("div", class_="text-primary") if all(x in d.get_text().upper() for x in ["ARTICLE", "EAN"])), JSONdata.get('sku', "-"))
+                ).upper()
+
+                PRODUCTvar["MPN"] = (lambda raw, brands: (lambda b_sorted: (lambda res: res if res else "-")(" ".join(reduce(lambda s, b: s.replace(b.lower(), ""), b_sorted, str(raw).lower()).split()).strip().upper()))(sorted(brands, key=len, reverse=True)))(
+                    next(
+                        (d.get_text(strip=True).upper().split("ARTICLE")[-1].split("|")[0].strip() for d in soup.find_all("div", class_="text-primary") if all(x in d.get_text().upper() for x in ["ARTICLE", "EAN"])), 
+                        JSONdata.get('mpn', "-")
+                    ),
+                    self.parser.brands
                 )
 
-                HTVA, TVA = self.parser.calculate_missing_price(
-                    htva=(
-                        (tax_label := soup.find("span", class_="tax-label")) and
-                        self.parser.parse_price(tax_label.get_text(strip=True))
-                    ),
-                    tva=(
-                        (price_tag := soup.find("span", class_="special-price")) and
-                        (final_price := price_tag.find("span", class_="price")) and
-                        self.parser.parse_price(final_price.get_text(strip=True))
+                PRODUCTvar['Brand'] = str(
+                    (b := soup.find("span", class_="brand-title")) and b.get_text(strip=True) or 
+                    (isinstance(JSONdata.get('brand'), dict) and JSONdata.get('brand', {}).get('name') or JSONdata.get('brand', "-"))
+                ).upper().strip()
+
+                PRODUCTvar['Article'] = (
+                    (n := soup.find("span", {"data-ui-id": "page-title-wrapper"})) and n.get_text(strip=True) or 
+                    JSONdata.get('name', "-")
+                ).replace("\"", "\"\"").strip('"')
+
+                PRODUCTvar['Base Price (HTVA)'], PRODUCTvar['Base Price (TVA)'] = (
+                    lambda p: (
+                        self.parser.format_price_for_excel(round(p / 1.20, 2)),
+                        self.parser.format_price_for_excel(p),
+                    )
+                )(
+                    (lambda raw: self.parser.parse_price(str(raw)) if raw not in (None, "-", "") else 0.0)(
+                        (m := soup.find("meta", itemprop="price")) and m.get("content") or 
+                        (isinstance(o := JSONdata.get("offers"), list) and o and o[0].get("price") or (isinstance(o, dict) and o.get("price") or 0.0))
                     )
                 )
-
-                PRODUCTvar['Base Price (HTVA)'] = self.parser.format_price_for_excel(HTVA)
-                PRODUCTvar['Base Price (TVA)'] = self.parser.format_price_for_excel(TVA)
 
                 return PRODUCTvar
             
             except requests.exceptions.HTTPError as http_err:
                 if response.status_code == 404:
-                    LOG.exception(f"Invalid link (404 Not Found). Saving failure for future skip: {link}")
-                    
-                    return PRODUCTvar
+                    LOG.warning(f"Invalid link (404 Not Found). Saving failure for future skip: {link}")
+                    return PRODUCTvar 
                 else:
                     LOG.exception(f"HTTP Error ({response.status_code}) for {link}: {http_err}")
 
-                    return PRODUCTvar
+                    self.ATTEMPT+=1
+                    time.sleep(self.RETRY_DELAY)
             
             except Exception as e:
                 LOG.exception(f"Error during data extraction for product {link}: {e}")
                 
                 self.ATTEMPT+=1
-                if self.ATTEMPT == self.MAX_RETRIES:
-                    LOG.warning(f"Abandoning after {self.MAX_RETRIES} attempts for product {link}")
+                time.sleep(self.RETRY_DELAY)
 
-                    return PRODUCTvar
-                
-                else:
-                    time.sleep(self.RETRY_DELAY)
+        LOG.warning(f"Abandoning after {self.MAX_RETRIES} attempts for product {link}")        
+        return None
     
 
     def run(self):
 
-        CSVpathDB = os.path.join(DATABASE_FOLDER, "TOOLNATIONproductsDB.csv")
+        CSVpathDB = os.path.join(DATA_SUBFOLDER, "TOOLNATIONproductsDB.csv")
+        CSVpathDBnot = os.path.join(DATA_SUBFOLDER, "TOOLNATIONproductsDBnot.csv")
         DBurls = self._load_DBurls(CSVpathDB)
+        DBurlsNOT = self._load_DBurls(CSVpathDBnot)
 
         PRODUCTS: List[dict] = []
+        FAILS: List[dict] = []
 
         try:
+
+            self._discover_sitemaps()
 
             for SITEMAPurl in self.SITEMAPurls:
                 self._extract_SITEMAPurls(SITEMAPurl)
 
-            self.URLs = [url for url in self.URLs if url not in DBurls]
+            self.URLs = [url for url in self.URLs if url not in DBurls and url not in DBurlsNOT]
 
             LOG.info(f"Found link(s): {len(self.URLs)}")
 
             if self.URLs:
                 for PRODUCTurl in self.URLs:
                     try:
-
                         data = self._ONLINEextract_FINALproduct(PRODUCTurl)
 
                         LOG.debug(data)     # [TESTING ONLY]
-                        
-                        PRODUCTS.append(data)
 
+                        if data is None: continue
+                        
+                        if data and (data['MPN'] != "-" or data['EAN'] != "-") and not pd.isna(data['Base Price (HTVA)']) and data['Base Price (HTVA)'] > 0: PRODUCTS.append(data)
+                        else: FAILS.append(data)
+                        
                         self.SAVE_COUNTER+=1
 
                         if self.SAVE_COUNTER >= self.SAVE_THRESHOLD:
                             self._save_batch(CSVpathDB, PRODUCTS)
+                            self._save_batch(CSVpathDBnot, FAILS)
                             
                             self.SAVE_COUNTER = 0
                             PRODUCTS = []
+                            FAILS = []
                         
                         time.sleep(random.uniform(0.5, 1)) # Loading time (STABILITY)
 
                     except Exception as e:
                         LOG.exception(f"An unexpected error occurred for URL {PRODUCTurl}: {e}")
                         continue
-                
+
                 if PRODUCTS:
                     self._save_batch(CSVpathDB, PRODUCTS)
 
                     self.SAVE_COUNTER = 0
                     PRODUCTS = []
+                
+                if FAILS:
+                    self._save_batch(CSVpathDBnot, FAILS)
+
+                    self.SAVE_COUNTER = 0
+                    FAILS = []
         
         except Exception as e:
             LOG.exception(f"Critical error for TOOLNATIONloader: {e}")
@@ -370,6 +434,14 @@ class TOOLNATIONloader:
 
                 LOG.warning("Emergency save triggered due to critical error.")
 
+            if FAILS: # EMERGENCY SAVE
+                self._save_batch(CSVpathDBnot, FAILS, is_emergency=True)
+
+                self.SAVE_COUNTER = 0
+                FAILS = []
+
+                LOG.warning("Emergency save for failures triggered due to critical error.")
+
         LOG.info("TOOLNATIONloader process terminated...")
 
 
@@ -378,4 +450,4 @@ class TOOLNATIONloader:
 if __name__ == "__main__":
 
     TOOLNATIONloader = TOOLNATIONloader()
-    TOOLNATIONloader.run()
+    result = TOOLNATIONloader.run()
