@@ -1,15 +1,51 @@
 # GUI/__ASSETS/widgets/fade_transition.py
-from PySide6.QtCore import QPropertyAnimation, QEasingCurve, QSequentialAnimationGroup, QPauseAnimation
+from PySide6.QtCore import (
+    QPropertyAnimation,
+    QEasingCurve,
+    QSequentialAnimationGroup,
+    QPauseAnimation,
+)
 from PySide6.QtWidgets import QGraphicsOpacityEffect
 
 
 class FadeTransition:
-    def __init__(self, stacked_widget):
-        self.stacked = stacked_widget
-        self._current_group = None  # garder une référence sinon GC tue l’anim
 
-    def fade_to(self, new_widget, duration=800, on_start=None, on_finished=None):
+    """
+    Handles smooth fade-in and fade-out transitions between widgets in a QStackedWidget.
+    """
+
+    def __init__(self, stacked_widget):
+
+        """
+        Initializes the transition handler.
+
+        Args:
+            stacked_widget (QStackedWidget): The widget container where transitions occur.
+        """
+
+        self.stacked = stacked_widget
+        self._current_group = None
+        self._is_animating = False
+
+
+    # === PUBLIC METHOD(S) ===
+    def fade_to(self, new_widget, duration=400, on_start=None, on_finished=None):
+
+        """
+        Executes a sequential fade-out/fade-in transition to a new widget.
+
+        Args:
+            new_widget (QWidget): The target widget to display.
+            duration (int): Total duration of the transition in milliseconds.
+            on_start (callable, optional): Callback executed before the animation starts.
+            on_finished (callable, optional): Callback executed after the animation ends.
+        """
+
+        if self._is_animating:
+            return
+
         old_widget = self.stacked.currentWidget()
+
         if not old_widget or old_widget == new_widget:
             if on_start:
                 on_start()
@@ -18,53 +54,69 @@ class FadeTransition:
                 on_finished()
             return
 
-        # Si on_start existe → exécuter avant toute animation
-        if on_start:
-            try:
-                on_start()
-            except Exception as e:
-                print(f"[FadeTransition] Erreur dans on_start: {e}")
+        self._is_animating = True
 
-        # Effets d’opacité
+        if on_start:
+            on_start()
+
+        self._clear_effect(old_widget)
+        self._clear_effect(new_widget)
+
         old_effect = QGraphicsOpacityEffect(old_widget)
         new_effect = QGraphicsOpacityEffect(new_widget)
+
         old_widget.setGraphicsEffect(old_effect)
         new_widget.setGraphicsEffect(new_effect)
 
         new_effect.setOpacity(0.0)
 
-        # Animation sortie
         fade_out = QPropertyAnimation(old_effect, b"opacity")
         fade_out.setDuration(duration // 2)
         fade_out.setStartValue(1.0)
         fade_out.setEndValue(0.0)
         fade_out.setEasingCurve(QEasingCurve.InOutQuad)
 
-        # Animation entrée
         fade_in = QPropertyAnimation(new_effect, b"opacity")
         fade_in.setDuration(duration // 2)
         fade_in.setStartValue(0.0)
         fade_in.setEndValue(1.0)
         fade_in.setEasingCurve(QEasingCurve.InOutQuad)
 
-        # Groupe séquentiel
         group = QSequentialAnimationGroup()
-
-        # Étape 1 : fade out
         group.addAnimation(fade_out)
 
-        # Étape 2 : pause + switch de page
-        pause = QPauseAnimation(50)
+        pause = QPauseAnimation(30)
+
         def do_switch():
             self.stacked.setCurrentWidget(new_widget)
-            if on_finished:
-                on_finished()
+
         pause.finished.connect(do_switch)
         group.addAnimation(pause)
-
-        # Étape 3 : fade in
         group.addAnimation(fade_in)
 
-        # Sauvegarde de la réf
+        def cleanup():
+            self._clear_effect(old_widget)
+            self._clear_effect(new_widget)
+            self._is_animating = False
+            if on_finished:
+                on_finished()
+
+        group.finished.connect(cleanup)
+
         self._current_group = group
         group.start()
+
+
+    # === PRIVATE METHOD(S) ===
+    def _clear_effect(self, widget):
+
+        """
+        Removes existing graphics effects from a widget to free resources.
+
+        Args:
+            widget (QWidget): The widget to clean up.
+        """
+
+        effect = widget.graphicsEffect()
+        if effect:
+            widget.setGraphicsEffect(None)
