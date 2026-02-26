@@ -5,13 +5,16 @@ import time
 import logging
 
 import cloudscraper
+import csv
 import gzip
+import json
 import pandas as pd
 import random
 import requests
 
 from bs4 import BeautifulSoup
 from datetime import datetime
+from functools import reduce
 from typing import List
 from urllib.parse import unquote
 
@@ -37,133 +40,61 @@ class LECOTloader:
         self.MAX_RETRIES = 3
         self.RETRY_DELAY = 5
         self.SAVE_COUNTER = 0
-        self.SAVE_THRESHOLD = 500
+        self.SAVE_THRESHOLD = 100
         self.WAIT_TIME = 3
 
         # === INTERNAL PARAMETER(S) ===
-        self.SITEMAPurls: List[str] = [
-            'https://shop.lecot.be/sitemap/salesChannel-62a4f8977cbe4817b8955353b2ace1c8-a7f1e6a55f0e4b5ea0019f7d4991e7cb/62a4f8977cbe4817b8955353b2ace1c8-sitemap-shop-lecot-be-fr-be-1.xml.gz',
-        ]
+        self.SITEMAPindex = 'https://shop.lecot.be/fr-be/sitemap.xml'
+        self.SITEMAPurls: List[str] = []
         self.NAMESPACESurl = {'sitemap': 'http://www.sitemaps.org/schemas/sitemap/0.9'}
-        self.CATEGORYnames: List[str] = [
-            'accessoires-marques', 'accessoires-marques.html',
-            'airpress-slider', 'airpress-slider.html',
-            'alle-acties', 'alle-acties.html',
-            'a-propos-de-lecot.shop', 'a-propos-de-lecot.shop.html',
-            'arlu-slider', 'arlu-slider.html',
-            'artline-slider', 'artline-slider.html',
-            'atg-slider', 'atg-slider.html',
-            'base-slider', 'base-slider.html',
-            'b-c-slider', 'b-c-slider.html',
-            'blaklader-slider', 'blaklader-slider.html',
-            'blackweek', 'blackweek.html',
-            'black-week-categories', 'black-week-categories.html',
-            'black-week-marques', 'black-week-marques.html',
-            'bosch-categories', 'bosch-categories.html',
-            'brennenstuhl-slider', 'brennenstuhl-slider.html',
-            'brigadedeforce-x-lecot.shop', 'brigadedeforce-x-lecot.shop.html',
-            'brigade-de-force-x-lecot.shop', 'brigade-de-force-x-lecot.shop.html',
-            'carat-slider', 'carat-slider.html',
-            'categorie', 'categorie.html',
-            'categories', 'categories.html',
-            'colorline-slider', 'colorline-slider.html',
-            'conditions-de-garantie', 'conditions-de-garantie.html',
-            'conditions-d-utilisation', 'conditions-d-utilisation.html',
-            'conditions-generales', 'conditions-generales.html',
-            'configurateur-hettich', 'configurateur-hettich.html',
-            'cookies', 'cookies.html',
-            'delai-de-livraison-estime', 'delai-de-livraison-estime.html',
-            'delta-plus-slider', 'delta-plus-slider.html',
-            'detectaplast-slider', 'detectaplast-slider.html',
-            'dewalt-slider', 'dewalt-slider.html',
-            'dl-chemicals-slider', 'dl-chemicals-slider.html',
-            'dormakaba-slider', 'dormakaba-slider.html',
-            'erko-slider', 'erko-slider.hmtl',
-            'facom-slider', 'facom-slider.html',
-            'fein-slider', 'fein-slider.html',
-            'festool-slider', 'festool-slider.html',
-            'filiales', 'filiales.html',
-            'fischer-slider', 'fischer-slider.html',
-            'fixations-marques', 'fixations-marques.html',
-            'futech-slider', 'futech-slider.html',
-            'gardena-slider', 'gardena-slider.html',
-            'geze-slider', 'geze-slider.html',
-            'hdd-slider', 'hdd-slider.html',
-            'heller-slider', 'heller-slider.html',
-            'herock-slider', 'herock-slider.html',
-            'hikoki-slider', 'hikoki-slider',
-            'hpx-slider', 'hpx-slider.html',
-            'jardin-categories', 'jardin-categories.html',
-            'kaercher-slider', 'kaercher-slider.html',
-            'knipex-slider', 'knipex-slider.html',
-            'ko-ken-slider', 'ko-ken-slider.html',
-            'kraeftwerk-slider', 'kraeftwerk-slider.html',
-            'ledlenser-slider', 'ledlenser-slider.html',
-            'ledrope-pro-slider', 'ledrope-pro-slider.html',
-            'leica-slider', 'leica-slider.html',
-            'lemaitre-slider', 'lemaitre-slider.html',
-            'lot2023-fr', 'lot2023-fr.html',
-            'lumx-slider', 'lumx-slider.html',
-            'machines-de-jardinage-marques', 'machines-de-jardinage-marques.html',
-            'machines-marques', 'machines-marques.html',
-            'makita-slider', 'makita-slider.html',
-            'makita-tuin-slider', 'makita-tuin-slider.html',
-            'marques', 'marques.html',
-            'metabo-slider', 'metabo-slider.html',
-            'milwaukee-slider', 'milwaukee-slider.html',
-            'navigation', 'navigation.html',
-            'nouvel-assortiment', 'nouvel-assortiment.html',
-            'outils-a-main-marques', 'outils-a-main-marques.html',
-            'outils-electriques-marques', 'outils-electriques-marques.html',
-            'outils-sur-batterie-marques', 'outils-sur-batterie-marques.html',
-            'outlet', 'outlet.html',
-            'outlet-categories', 'outlet-categories.html',
-            'outlet-marques', 'outlet-marques.html',
-            'paslode-slider', 'paslode-slider.html',
-            'polet-slider', 'polet-slider.html',
-            'politique-de-confidentialite', 'politique-de-confidentialite.html',
-            'preview', 'preview.html',
-            'produits-chimiques-marques', 'produits-chimiques-marques.html',
-            'protection-et-vetements-marques', 'protection-et-vetements-marques.html',
-            'puma-slider', 'puma-slider.html',
-            'quincaillerie-de-batiment-marques', 'quincaillerie-de-batiment-marques.html',
-            'rectavit-slider', 'rectavit-slider.html',
-            'safety-jogger-slider', 'safety-jogger-slider.html',
-            'scangrip-slider', 'scangrip-slider.html',
-            'service-client', 'service-client.html',
-            'soldes-categories', 'soldes-categories.html',
-            'soldes-marques', 'soldes-marques.html',
-            'soudal-slider', 'soudal-slider.html',
-            'spit-slider', 'spit-slider.html',
-            'stanley-slider', 'stanley-slider.html',
-            'stihl-slider', 'stihl-slider.html',
-            'stockage', 'stockage.html',
-            'stroxx-slider', 'stroxx-slider.html',
-            'stroxx-merken-slider', 'stroxx-merken-slider.html',
-            'tec7-slider', 'tec7-slider.html',
-            'tourex-slider', 'tourex-slider.html',
-            'toutes-les-actions', 'toutes-les-actions.html',
-            'wd-40-slider', 'wd-40-slider.html',
-            'wera-slider', 'wera-slider.html',
-            '15-daagse-storage-merken', '15-daagse-storage-merken.html',
-            '3m-slider', '3m-slider.html',
-        ]
         self.URLs: List[str] = []
 
         # === INTERNAL SERVICE(S) ===
         self.parser = ProductDataParser(brands_file_path=os.path.join(UTILS_FOLDER, 'brands.json'))
 
         # === PARAMETERS & OPTIONS SETUP (CloudSCRAPER) ===
-        self.requests = cloudscraper.create_scraper()
+        self.requests = cloudscraper.create_scraper(
+            browser={
+                'browser': 'chrome',
+                'platform': 'windows',
+                'desktop': True
+            }
+        )
 
         self.REQUESTS_HEADERS = {
             'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/114.0.0.0 Safari/537.36',
-            'Referer': 'https://lecot.be/fr-be/',
+            'Referer': 'https://www.shop.lecot.be/',
             'Accept-Language': 'fr-FR,fr;q=0.9,en-US;q=0.8,en;q=0.7',
             'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,*/*;q=0.8',
-            'Connection': 'keep-alive'
+            'Connection': 'keep-alive',
+            'DNT': '1' # Do Not Track
         }
 
+
+    def _discover_sitemaps(self):
+        
+        """
+        Dynamically retrieves product sitemap URLs (Sitemapp) from the LECOT sitemap index.
+        
+        """
+        
+        try:
+            response = self.requests.get(self.SITEMAPindex, headers=self.REQUESTS_HEADERS)
+            response.raise_for_status()
+            
+            soup = BeautifulSoup(response.content, "xml")
+            
+            # Filtering logic to keep only relevant product sitemaps (e.g., those containing '-fr-be-' and excluding irrelevant ones)
+            links = [
+                loc.text.strip() 
+                for loc in soup.find_all('loc')
+            ]
+
+            self.SITEMAPurls = links
+            LOG.info(f"Discovered {len(self.SITEMAPurls)} product sitemaps via the index.")
+        
+        except Exception as e:
+            LOG.error(f"Failed to retrieve LECOT sitemap index: {e}")
     
     def _fetch_and_decompress_sitemap(self, link: str):
         
@@ -175,6 +106,7 @@ class LECOTloader:
 
         Returns:
             str | None: The decompressed XML content as a string, or None if the download or decompression fails.
+        
         """
 
         LOG.info(f"Fetching sitemap: {link}...")
@@ -204,6 +136,7 @@ class LECOTloader:
         
         """
         Loads already processed URLs from the existing DB for restart logic (cache checker).
+        
         """
         
         if os.path.exists(csv_path):
@@ -211,7 +144,7 @@ class LECOTloader:
                 df_existing = pd.read_csv(csv_path, usecols=['ArticleURL'], encoding='utf-8-sig')
                 existing_urls = set(df_existing['ArticleURL'].astype(str).tolist())   # Converting into set for better performance
                 
-                LOG.info(f"Existing database found: {len(existing_urls)} URLs already processed.")
+                LOG.info(f"Existing database found for {csv_path}: {len(existing_urls)} URLs already processed.")
                 return existing_urls
             except Exception as e:
                 LOG.exception(f"Error loading existing DB: {e}. Full restart needed.")
@@ -222,31 +155,63 @@ class LECOTloader:
         
         """
         Saves the current batch of data by appending it to the existing database file.
-        This avoids RAM saturation (pd.concat).
+        
         """
+
+        if not batch_data:
+            return
         
         NEWdf = pd.DataFrame(batch_data)
         
-        if not os.path.exists(csv_path):
-            NEWdf.to_csv(csv_path, index=False, encoding='utf-8-sig')
-            
-            LOG.info(f"New DB created with {len(NEWdf.index)} lines.")
-            return
+        COLS = ['EAN', 'MPN', 'Brand', 'Article', 'Base Price (HTVA)', 'Base Price (TVA)', 'ArticleURL', 'Checked on']
 
         try:
-            NEWdf.to_csv(csv_path, mode='a', header=not os.path.exists(csv_path), index=False, encoding='utf-8-sig')
+            # On boucle sur ta liste pour préparer chaque colonne selon son type
+            for col in COLS:
+                if col in NEWdf.columns:
+                    if "Price" in col:
+                        # C'est un prix : on force en float (SANS guillemets dans le CSV)
+                        NEWdf[col] = pd.to_numeric(NEWdf[col].astype(str).str.replace(',', '.'), errors='coerce').fillna(0.0).astype(float)
+                    else:
+                        # C'est du texte : on force en string (AVEC guillemets + conservation des 0)
+                        NEWdf[col] = NEWdf[col].astype(str)
+
+            # On réordonne les colonnes selon ta liste unique
+            NEWdf = NEWdf[COLS]
             
-            if not is_emergency:
-                LOG.info(f"Batch saved.")
-            
+            file_exists = os.path.exists(csv_path)
+
+            if not file_exists:
+                NEWdf.to_csv(csv_path,
+                        index=False,
+                        encoding='utf-8-sig',
+                        quoting=csv.QUOTE_MINIMAL,
+                        quotechar='"'
+                )   
+                
+                LOG.info(f"New DB created with {len(NEWdf.index)} lines.")
+            else:
+                NEWdf.to_csv(csv_path,
+                        mode='a',
+                        header=not file_exists,
+                        index=False,
+                        encoding='utf-8-sig',
+                        quoting=csv.QUOTE_MINIMAL,
+                        quotechar='"'
+                )
+                
+                if not is_emergency:
+                    LOG.info(f"Batch saved.")
+        
         except Exception as e:
-            LOG.exception(f"CRITICAL: Failed to merge batch due to {e}. New lines might be lost.")   # Low probability to happen
+            LOG.exception(f"CRITICAL: Failed to merge batch due to {e}.")
 
 
     def _extract_SITEMAPurls(self, link):
         
         """
         Downloads the sitemap and extracts all <loc> URLs (applying filtering logic).
+        
         """
         
         LOG.info(f"Downloading sitemap: {link}...")
@@ -261,29 +226,38 @@ class LECOTloader:
             try:
                 ARTICLEpage = self._fetch_and_decompress_sitemap(link) 
 
+                if ARTICLEpage is None:
+                    LOG.error(f"Sitemap empty or unavailable for {link}")
+                    
+                    self.ATTEMPT += 1
+                    time.sleep(self.RETRY_DELAY)
+                    
+                    continue # Retry the download
+
                 soup = BeautifulSoup(ARTICLEpage, "xml")
 
                 for loc_tag in soup.find_all('loc'):
                     PRODUCTurl = unquote(loc_tag.text.strip())
+                    SEGMENTSdata = [w for w in PRODUCTurl.split('/') if w]
+
+                    if len(SEGMENTSdata) < 3:
+                        continue
+
+                    if len(SEGMENTSdata[-1]) < 15:
+                        continue
+
+                    if SEGMENTSdata[1] not in ('www.shop.lecot.be', 'shop.lecot.be'):
+                        continue
+
+                    if any(S.lower() in {'nl', 'de', 'en', 'nl-be', 'nl-nl', 'de-de', 'en-be'} for S in SEGMENTSdata):
+                        continue
 
                     if PRODUCTurl.endswith(('/', '.jpg', '.jpeg', '.png', '.gif', '.pdf')):
                         continue
 
-                    if [w for w in PRODUCTurl.split('/') if w][1] not in ('www.shop.lecot.be', 'shop.lecot.be'):
-                        continue
-
-                    if [w for w in PRODUCTurl.split('/') if w][2] in ['en-be', 'en-nl', 'nl-be', 'nl-nl']:
-                        continue
-
-                    if [w for w in PRODUCTurl.split('/') if w][3] in self.CATEGORYnames:
-                        continue
-
-                    if len([w for w in PRODUCTurl.split('/') if w]) > 4:
-                        continue
-
                     self.URLs.append(PRODUCTurl)
 
-                return self.URLs
+                return list(set(self.URLs))  # Removing duplicates if any (though unlikely in a single sitemap)
             
             except Exception as e:
                 LOG.exception(f"Error during sitemap extraction: {e}")
@@ -307,9 +281,12 @@ class LECOTloader:
 
         # === INTERNAL PARAMETER(S) ===
         PRODUCTvar = {
+            'EAN': "-",
+            'MPN': "-",
+            'Brand': "-",
             'Article': "-",
-            'Base Price (HTVA)': "-",
-            'Base Price (TVA)': "-",
+            'Base Price (HTVA)': 0.0,
+            'Base Price (TVA)': 0.0,
             'ArticleURL': link,
             'Checked on': datetime.now().strftime("%Y-%m-%d %H:%M:%S")
         }
@@ -318,7 +295,7 @@ class LECOTloader:
         while self.ATTEMPT < self.MAX_RETRIES:
             try:
 
-                response = self.requests.get(link, headers=self.REQUESTS_HEADERS) 
+                response = self.requests.get(link, headers=self.REQUESTS_HEADERS)
                 response.raise_for_status()
                 
                 time.sleep(self.WAIT_TIME)  # Loading time (JS)
@@ -327,62 +304,101 @@ class LECOTloader:
 
                 soup = BeautifulSoup(ARTICLEpage, "html.parser")
 
-                PRODUCTvar['Article'] = (
-                    (name := soup.find("h1", class_="page-title"))
-                    and (name.get_text(strip=True).replace("\"", "\"\"").strip('"'))
+                JSONdata = next((i for s in soup.find_all('script', type='application/ld+json') for i in ([json.loads(s.string)] if isinstance(json.loads(s.string), dict) else (json.loads(s.string) if isinstance(json.loads(s.string), list) else [])) if isinstance(i, dict) and i.get("@type") == "Product"), {})
+
+                PRODUCTvar["EAN"] = (lambda e: "".join(filter(str.isalnum, str(e))) or "-")(
+                    next(
+                        (
+                            (td.get_text(strip=True) if (td := r.find("td", class_="properties-value")) else "-")
+                            for r in soup.find_all("tr", class_="properties-row")
+                            if "ean" in r.get_text().lower()
+                        ),
+                        JSONdata.get('sku', "-")
+                    )
+                ).upper()
+
+                PRODUCTvar["MPN"] = (lambda raw, brands: (lambda b_sorted: (lambda res: res if res else "-")(" ".join(reduce(lambda s, b: s.replace(b.lower(), ""), b_sorted, str(raw).lower()).split()).strip().upper()))(sorted(brands, key=len, reverse=True)))(
+                    next(
+                        (
+                            (td.get_text(strip=True) if (td := r.find("td", class_="properties-value")) else "-")
+                            for r in soup.find_all("tr", class_="properties-row")
+                            if any(x in r.get_text().lower() for x in ["numéro de fournisseur", "réf. fabricant"])
+                        ),
+                        JSONdata.get('mpn', "-")
+                    ),
+                    self.parser.brands
                 )
 
-                HTVA, TVA = self.parser.calculate_missing_price(
-                    htva=(
-                        (e := soup.find("div", class_="price-htvac"))
-                        and self.parser.parse_price(e.get_text(strip=True))
-                    ),
-                    tva=(
-                        (e := soup.find("span", class_="current-price-value"))
-                        and self.parser.parse_price(e.get_text(strip=True))
+                PRODUCTvar['Brand'] = str(
+                    JSONdata.get('brand', {}).get('name') 
+                    if isinstance(JSONdata.get('brand'), dict) 
+                    else JSONdata.get('brand', "-")
+                ).upper().strip()
+
+                PRODUCTvar['Article'] = (
+                    (name := soup.find("h1", class_="product-detail-name")) 
+                    and (name.get_text(strip=True))
+                    or JSONdata.get('name', "-")
+                ).replace("\"", "\"\"").strip('"')
+
+                PRODUCTvar['Base Price (HTVA)'], PRODUCTvar['Base Price (TVA)'] = (
+                    lambda p: (
+                        self.parser.format_price_for_excel(round(p / 1.21, 2)),
+                        self.parser.format_price_for_excel(p),
+                    )
+                )(
+                    (lambda raw:
+                        self.parser.parse_price(str(raw)) if raw not in (None, "-", "") else 0.0
+                    )(
+                        (e.get_text(strip=True) if (e := soup.find("p", class_="product-detail-price"))
+                        else (
+                            (o[0].get("price") if isinstance(o := JSONdata.get("offers"), list) and o
+                            else (o.get("price") if isinstance(o, dict) else None))
+                        )
+                        )
                     )
                 )
-
-                PRODUCTvar['Base Price (HTVA)'] = self.parser.format_price_for_excel(HTVA)
-                PRODUCTvar['Base Price (TVA)'] = self.parser.format_price_for_excel(TVA)
 
                 return PRODUCTvar
             
             except requests.exceptions.HTTPError as http_err:
                 if response.status_code == 404:
-                    LOG.exception(f"Invalid link (404 Not Found). Saving failure for future skip: {link}")
-                    
+                    LOG.warning(f"Invalid link (404 Not Found). Saving failure for future skip: {link}")
                     return PRODUCTvar 
                 else:
                     LOG.exception(f"HTTP Error ({response.status_code}) for {link}: {http_err}")
 
-                    return PRODUCTvar
+                    self.ATTEMPT+=1
+                    time.sleep(self.RETRY_DELAY)
             
             except Exception as e:
                 LOG.exception(f"Error during data extraction for product {link}: {e}")
                 
                 self.ATTEMPT+=1
-                if self.ATTEMPT == self.MAX_RETRIES:
-                    LOG.warning(f"Abandoning after {self.MAX_RETRIES} attempts for product {link}")
+                time.sleep(self.RETRY_DELAY)
 
-                    return PRODUCTvar
-                
-                else:
-                    time.sleep(self.RETRY_DELAY)
+        LOG.warning(f"Abandoning after {self.MAX_RETRIES} attempts for product {link}")        
+        return None
     
 
     def run(self):
 
-        CSVpathDB = os.path.join(DATABASE_FOLDER, "LECOTproductsDB.csv")
+        CSVpathDB = os.path.join(DATA_SUBFOLDER, "LECOTproductsDB.csv")
+        CSVpathDBnot = os.path.join(DATA_SUBFOLDER, "LECOTproductsDBnot.csv")
         DBurls = self._load_DBurls(CSVpathDB)
+        DBurlsNOT = self._load_DBurls(CSVpathDBnot)
 
         PRODUCTS: List[dict] = []
+        FAILS: List[dict] = []
 
         try:
+
+            self._discover_sitemaps()
+
             for SITEMAPurl in self.SITEMAPurls:
                 self._extract_SITEMAPurls(SITEMAPurl)
 
-            self.URLs = [url for url in self.URLs if url not in DBurls]
+            self.URLs = [url for url in self.URLs if url not in DBurls and url not in DBurlsNOT]
 
             LOG.info(f"Found link(s): {len(self.URLs)}")
 
@@ -392,16 +408,21 @@ class LECOTloader:
                         data = self._ONLINEextract_FINALproduct(PRODUCTurl)
 
                         LOG.debug(data)     # [TESTING ONLY]
-                        
-                        PRODUCTS.append(data)
 
+                        if data is None: continue
+                        
+                        if data and (data['MPN'] != "-" or data['EAN'] != "-") and not pd.isna(data['Base Price (HTVA)']) and data['Base Price (HTVA)'] > 0: PRODUCTS.append(data)
+                        else: FAILS.append(data)
+                        
                         self.SAVE_COUNTER+=1
 
                         if self.SAVE_COUNTER >= self.SAVE_THRESHOLD:
                             self._save_batch(CSVpathDB, PRODUCTS)
+                            self._save_batch(CSVpathDBnot, FAILS)
                             
                             self.SAVE_COUNTER = 0
                             PRODUCTS = []
+                            FAILS = []
                         
                         time.sleep(random.uniform(0.5, 1)) # Loading time (STABILITY)
 
@@ -414,6 +435,12 @@ class LECOTloader:
 
                     self.SAVE_COUNTER = 0
                     PRODUCTS = []
+                
+                if FAILS:
+                    self._save_batch(CSVpathDBnot, FAILS)
+
+                    self.SAVE_COUNTER = 0
+                    FAILS = []
         
         except Exception as e:
             LOG.exception(f"Critical error for LECOTloader: {e}")
@@ -426,6 +453,14 @@ class LECOTloader:
 
                 LOG.warning("Emergency save triggered due to critical error.")
 
+            if FAILS: # EMERGENCY SAVE
+                self._save_batch(CSVpathDBnot, FAILS, is_emergency=True)
+
+                self.SAVE_COUNTER = 0
+                FAILS = []
+
+                LOG.warning("Emergency save for failures triggered due to critical error.")
+
         LOG.info("LECOTloader process terminated...")
 
 
@@ -434,5 +469,4 @@ class LECOTloader:
 if __name__ == "__main__":
 
     LECOTloader = LECOTloader()
-    
     result = LECOTloader.run()
