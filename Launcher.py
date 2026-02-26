@@ -108,10 +108,9 @@ def RUN_LOADER(loader_name: str):
         elif loader_name == 'lecot':
             LOG.debug("Initialization of LECOTloader & execution...")
             
-            #TODO: Finish CORE/__DATABASES/loader/lecot.py
-            #from CORE.__DATABASES.loader.lecot import LECOTloader
-            #loader_instance = LECOTloader()
-            #loader_instance.run()
+            from CORE.__DATABASES.loader.lecot import LECOTloader
+            loader_instance = LECOTloader()
+            loader_instance.run()
 
         # --- toolnation loader ---
         elif loader_name == 'toolnation':
@@ -137,6 +136,43 @@ def RUN_LOADER(loader_name: str):
 
 
 # =====================================================
+#           LANCEUR DE SCRIPT (AI TRAINING)
+# =====================================================
+def RUN_TUNER(site_name: str):
+    
+    """
+    Imports and runs the specific data curation script (Tuner) for training.
+    
+    """
+    
+    LOG = logging.getLogger(__name__)
+    
+    try:
+        LOG.info(f"TUNER starting for {site_name.upper()}...")
+        
+        if site_name == 'lecot':
+            
+            from CORE.__AI.DATApreprocessing.lecot import LECOTtuner
+            
+            output_path = os.path.join(AI_FOLDER, "TRAINdatasets", "LECOTdataset_training.jsonl")
+            
+            tuner = LECOTtuner(
+                output_file=output_path,
+                samples_correct=1500,
+                samples_neg=500
+            )
+            tuner.process()
+        else:
+            LOG.error(f"Tuner for '{site_name}' is not yet implemented.")
+            sys.exit(1)
+
+    except ImportError as e:
+        LOG.exception(f"Import error: {e}. Check if 'CORE/__AI/DATApreprocessing/{site_name}.py' exists.")
+    except Exception as e:
+        LOG.exception(f"An unexpected error occurred during tuning: {e}")
+
+
+# =====================================================
 #                   POINT D'ENTRÉE
 # =====================================================
 if __name__ == "__main__":
@@ -153,24 +189,30 @@ if __name__ == "__main__":
     setup_logging(log_level=LEVEL)
     LOG = logging.getLogger(__name__)
 
-    LOG.debug(f"Arguments (post-debug): {ARGS}")
-
-    # --- Applying other argument(s) (if any) ---
-    if len(ARGS) == 2 and ARGS[0] == '--loader': # 'python Launcher.py --loader <website> [--debug]' case
-        LOG.debug(f"LOADER mode detected: {ARGS[1]}")
-        RUN_LOADER(ARGS[1])
+    # --- Router ---
+    # Gestion des commandes à 2 arguments (--loader site, --cleaner site, --train site)
+    if len(ARGS) == 2:
+        cmd, site = ARGS[0], ARGS[1]
         
-    elif len(ARGS) == 0: # 'python Launcher.py [--debug]' case
-        LOG.debug("GUI mode detcted.")
+        if cmd == '--loader':
+            RUN_LOADER(site)
+        elif cmd == '--tuner':
+            RUN_TUNER(site)
+        else:
+            LOG.error(f"Commande inconnue: {cmd}")
+            sys.exit(1)
+        sys.exit(0)
+        
+    elif len(ARGS) == 0:
         RUN_GUI()
+        sys.exit(0)
     
-    # --- Bad use case(s) ---
     else:
-        LOG.warning(f"Arguments non reconnus: {ARGS}")
+        LOG.warning(f"Arguments non reconnus ou format invalide: {ARGS}")
         print("---------------------------------------------")
         print("Usage(s):")
-        print("1) python Launcher.py")
-        print("2) python Launcher.py --debug")
-        print("3) python Launcher.py --loader <website> [--debug]")
+        print("1) python Launcher.py [--debug]")
+        print("2) python Launcher.py --loader <website> [--debug]")
+        print("3) python Launcher.py --tuner <website> [--debug]")
         print("---------------------------------------------")
         sys.exit(1)
