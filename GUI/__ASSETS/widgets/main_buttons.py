@@ -20,7 +20,7 @@ class CustomMainButton(QToolButton):
                 font-size: 25px;
                 font-weight: bold;
                 border: none;
-                padding-top: 20px;  /* décale l’ensemble icône+texte vers le bas */
+                padding-top: 20px;
                 padding-bottom: 10px;
                 background: qlineargradient(x1:0, y1:0, x2:0, y2:1, stop:0 {gradient[0]}, stop:1 {gradient[1]});
             }}
