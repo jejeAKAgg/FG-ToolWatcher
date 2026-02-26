@@ -1,13 +1,21 @@
 # FG-ToolWatcher
 
 [![License](https://img.shields.io/badge/License-BSD%203--Clause-blue.svg)](https://opensource.org/licenses/BSD-3-Clause)
+![top-language](https://img.shields.io/github/languages/top/jejeAKAgg/FG-ToolWatcher)
+![code-size](https://img.shields.io/github/languages/code-size/jejeAKAgg/FG-ToolWatcher)
 
 Desktop price watcher to scrape and compare competitor hardware store prices. Built with Python and PySide6 for [**Fernand Georges**](https://www.georges.be/fr-be/).
 
-## 📸 Screenshot
+<img src="GUI/__ASSETS/icons/GitHub_FG-ToolWatcher.jpg">
+
+## 📊 Status
+![Maintenance](https://img.shields.io/badge/Maintained-Yes-green.svg)
+
+
+## 📸 Screenshot(s)
 ![alt text](GUI/__ASSETS/icons/image.png)
 
-## ✨ Key Features
+## ✨ Key Feature(s)
 * **Competitor Scraping:** Scrapes product data (name, price) from multiple hardware store websites.
 * **Desktop GUI:** A clean, multi-language desktop interface built with PySide6.
 * **Centralized Logging:** All actions are logged to timestamped files for easy debugging (no `print()`!).
