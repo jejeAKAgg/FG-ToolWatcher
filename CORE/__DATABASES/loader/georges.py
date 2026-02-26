@@ -293,7 +293,7 @@ class FGloader:
 
     def run(self):
 
-        CSVpathDB = os.path.join(DATABASE_FOLDER, "FGproductsDB.csv")
+        CSVpathDB = os.path.join(DATA_SUBFOLDER, "FGproductsDB.csv")
         DBurls = self._load_DBurls(CSVpathDB)
 
         PRODUCTS: List[dict] = []
