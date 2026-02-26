@@ -1,0 +1,46 @@
+site_name: FG-ToolWatcher Documentation
+docs_dir: __WEB
+theme:
+  name: material
+  palette: 
+    # Light Mode (default)
+    - media: "(prefers-color-scheme: light)"
+      scheme: default
+      primary: indigo
+      accent: blue
+      toggle:
+        icon: material/brightness-7
+        name: Switch to dark mode
+    # Dark Mode
+    - media: "(prefers-color-scheme: dark)"
+      scheme: slate
+      primary: black
+      accent: cyan
+      toggle:
+        icon: material/brightness-4
+        name: Switch to light mode
+  features:
+    - navigation.tabs
+    - navigation.sections
+    - content.code.copy
+
+nav:
+  - Home: index.md
+  - Guide:
+      - Installation: guide/installation.md
+      - Usage: guide/usage.md
+  - Architecture:
+      - DBcleaner: tech/db_cleaner.md
+      - DBindexer: tech/db_indexer.md
+      - Loaders: tech/loaders.md
+
+extra:
+  social:
+    - icon: fontawesome/brands/github
+      link: https://github.com/ton-profil/FG-ToolWatcher
+copyright: "Copyright &copy; 2026 FG-ToolWatcher - Developed by LECHAT Jérôme."
+
+markdown_extensions:
+  - pymdownx.highlight:
+      anchor_linenums: true
+  - pymdownx.superfences
