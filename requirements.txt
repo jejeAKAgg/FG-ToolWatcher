@@ -19,3 +19,5 @@ lxml
 cloudscraper
 thefuzz
 python-Levenshtein
+mkdocs-material 
+mkdocs-static-i18n
