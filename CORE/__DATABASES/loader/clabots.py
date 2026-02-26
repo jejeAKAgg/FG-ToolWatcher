@@ -43,7 +43,8 @@ class CLABOTSloader:
         # === INTERNAL PARAMETER(S) ===
         self.SITEMAPurls: List[str] = [
             'https://www.clabots.be/media/sitemaps/1/sitemap-product-1.xml.gz',
-            'https://www.clabots.be/media/sitemaps/1/sitemap-product-2.xml.gz',
+            'https://www.clabots.be/media/sitemaps/1/sitemap-product-2.xml.gz', # Dead link (404) - Ignored
+            'https://www.clabots.be/media/sitemaps/1/sitemap-product-3.xml.gz', # Dead link (404) - Ignored
         ]
         self.NAMESPACESurl = {'sitemap': 'http://www.sitemaps.org/schemas/sitemap/0.9'}
         self.CATEGORYnames: List[str] = []
@@ -53,14 +54,21 @@ class CLABOTSloader:
         self.parser = ProductDataParser(brands_file_path=os.path.join(UTILS_FOLDER, 'brands.json'))
 
         # === PARAMETERS & OPTIONS SETUP (CloudSCRAPER) ===
-        self.requests = cloudscraper.create_scraper()
+        self.requests = cloudscraper.create_scraper(
+            browser={
+                'browser': 'chrome',
+                'platform': 'windows',
+                'desktop': True
+            }
+        )
 
         self.REQUESTS_HEADERS = {
             'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/114.0.0.0 Safari/537.36',
             'Referer': 'https://www.clabots.be/',
             'Accept-Language': 'fr-FR,fr;q=0.9,en-US;q=0.8,en;q=0.7',
             'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,*/*;q=0.8',
-            'Connection': 'keep-alive'
+            'Connection': 'keep-alive',
+            'DNT': '1' # Do Not Track
         }
 
 
@@ -78,7 +86,7 @@ class CLABOTSloader:
             str | None: The decompressed XML content as a string, or None if the download or decompression fails.
         """
 
-        print(f"Fetching sitemap: {link}...")
+        LOG.info(f"Fetching sitemap: {link}...")
         
         try:
             
@@ -162,7 +170,15 @@ class CLABOTSloader:
         while self.ATTEMPT < self.MAX_RETRIES:
             try:
 
-                ARTICLEpage = self._fetch_and_decompress_sitemap(link)             
+                ARTICLEpage = self._fetch_and_decompress_sitemap(link)
+
+                if ARTICLEpage is None:
+                    LOG.error(f"Sitemap empty or unavailable for {link}")
+                    
+                    self.ATTEMPT += 1
+                    time.sleep(self.RETRY_DELAY)
+                    
+                    continue # Retry the download
 
                 soup = BeautifulSoup(ARTICLEpage, "xml")
 
@@ -208,6 +224,7 @@ class CLABOTSloader:
 
         # === INTERNAL PARAMETER(S) ===
         PRODUCTvar = {
+            'MPN': "-",
             'Article': "-",
             'Base Price (HTVA)': "-",
             'Base Price (TVA)': "-",
@@ -220,6 +237,11 @@ class CLABOTSloader:
             try:
 
                 response = self.requests.get(link, headers=self.REQUESTS_HEADERS)
+
+                if response.status_code == 404:
+                    LOG.warning(f"(404) Dead link, ignored: {link}")
+                    return None
+                
                 response.raise_for_status()
                 
                 time.sleep(self.WAIT_TIME)  # Loading time (JS)
@@ -227,6 +249,18 @@ class CLABOTSloader:
                 ARTICLEpage = response.content
 
                 soup = BeautifulSoup(ARTICLEpage, "html.parser")
+
+                PRODUCTvar["MPN"] = (
+                    lambda m: "".join(filter(str.isalnum, " ".join(w for w in m.split() if w.lower() not in self.parser.brands))) or "-")(
+                    next(
+                        (
+                            (v.get_text(strip=True) if (v := r.find("div", class_="attribute-table__column__value")) else "-")
+                            for r in soup.find_all("div", class_="attribute-table__row")
+                            if "fournisseur" in r.get_text().lower()
+                        ),
+                        "-"
+                    )
+                ).upper()
 
                 PRODUCTvar['Article'] = (
                     (name := (soup.find("h1", class_="page-title") or soup.find("h1"))) 
@@ -270,7 +304,7 @@ class CLABOTSloader:
 
     def run(self):
 
-        CSVpathDB = os.path.join(DATABASE_FOLDER, "CLABOTSproductsDB.csv")
+        CSVpathDB = os.path.join(DATA_SUBFOLDER, "CLABOTSproductsDB.csv")
         DBurls = self._load_DBurls(CSVpathDB)
 
         if DBurls:
@@ -295,7 +329,7 @@ class CLABOTSloader:
 
                         LOG.debug(data)     # [TESTING ONLY]
                         
-                        PRODUCTS.append(data)
+                        if data and data['MPN'] != "-": PRODUCTS.append(data) # Only save products with valid MPN (filtering out dead links and failed extractions)
 
                         self.SAVE_COUNTER+=1
 
