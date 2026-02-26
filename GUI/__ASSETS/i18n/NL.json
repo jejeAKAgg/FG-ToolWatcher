@@ -15,11 +15,15 @@
     "tip_github.button": "GitHub",
 
     "page_profile_informations.bar": "Uw gegevens",
-    "page_profile_name.bar": "Naam",
+    "page_profile_lastname.bar": "Naam",
     "page_profile_firstname.bar": "Voornaam",
     "page_profile_mail.bar": "E-mail",
     "page_profile_error_incomplete.box": "Alle velden moeten ingevuld zijn!",
     "page_profile_error_mail.box": "Voer een geldig e-mailadres in!",
+
+    "subpage_settings_profile_lastname.bar": "Naam",
+    "subpage_settings_profile_firstname.bar": "Voornaam",
+    "subpage_settings_profile_mail.bar": "E-mail",
 
     "page_search_input.placeholder": "Voer de naam van het gereedschap in...",
     "page_search_no_result.box": "Geen resultaten gevonden voor uw zoekopdracht.",
@@ -41,5 +45,18 @@
     "page_setup_step2.text": "",
     "page_setup_step3.text": "",
     "page_setup_step4.text": "",
-    "page_setup_step5.text": ""
+    "page_setup_step5.text": "",
+
+
+    "subpage_settings_general": "Algemeen",
+    "subpage_settings_websites": "Websites",
+    "subpage_settings_profile": "Profiel",
+    "subpage_settings_system": "Systeem",
+    "subpage_settings_ai": "AI (BETA)",
+
+    "subpage_settings_general.title": "Algemeen",
+    "subpage_settings_websites.title": "Websites",
+    "subpage_settings_profile.title": "Profiel",
+    "subpage_settings_system.title": "Systeem",
+    "subpage_settings_ai.title": "AI (BETA)"
 }

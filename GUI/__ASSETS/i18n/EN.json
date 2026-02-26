@@ -15,11 +15,16 @@
     "tip_github.button": "GitHub",
 
     "page_profile_informations.bar": "Your informations",
-    "page_profile_name.bar": "Name",
+    "page_profile_lastname.bar": "Name",
     "page_profile_firstname.bar": "Firstname",
     "page_profile_mail.bar": "E-mail",
     "page_profile_error_incomplete.box": "All fields must be filled!",
     "page_profile_error_mail.box": "Please enter a valid email address!",
+
+    "subpage_settings_profile_informations.bar": "Your informations",
+    "subpage_settings_profile_lastname.bar": "Name",
+    "subpage_settings_profile_firstname.bar": "Firstname",
+    "subpage_settings_profile_mail.bar": "E-mail",
 
     "page_search_input.placeholder": "Enter the name of the tool to search...",
     "page_search_no_result.box": "No results found for your search.",
@@ -41,5 +46,18 @@
     "page_setup_step2.text": "",
     "page_setup_step3.text": "",
     "page_setup_step4.text": "",
-    "page_setup_step5.text": ""
+    "page_setup_step5.text": "",
+
+
+    "subpage_settings_general": "General",
+    "subpage_settings_websites": "Websites",
+    "subpage_settings_profile": "Profile",
+    "subpage_settings_system": "System",
+    "subpage_settings_ai": "AI (BETA)",
+
+    "subpage_settings_general.title": "General",
+    "subpage_settings_websites.title": "Websites",
+    "subpage_settings_profile.title": "Profile",
+    "subpage_settings_system.title": "System",
+    "subpage_settings_ai.title": "AI (BETA)"
 }

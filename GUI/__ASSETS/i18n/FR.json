@@ -15,11 +15,16 @@
     "tip_github.button": "GitHub",
 
     "page_profile_informations.bar": "Vos informations",
-    "page_profile_name.bar": "Nom",
+    "page_profile_lastname.bar": "Nom",
     "page_profile_firstname.bar": "Prénom",
     "page_profile_mail.bar": "E-mail",
     "page_profile_error_incomplete.box": "Tous les champs doivent être remplis!",
     "page_profile_error_mail.box": "Veuillez entrer une adresse e-mail valide!",
+
+    "subpage_settings_profile_informations.bar": "Vos informations",
+    "subpage_settings_profile_lastname.bar": "Nom",
+    "subpage_settings_profile_firstname.bar": "Prénom",
+    "subpage_settings_profile_mail.bar": "E-mail",
 
     "page_search_input.placeholder": "Entrez le nom de l'article/sa référence...",
     "page_search_no_result.box": "Aucun résultat trouvé.",
@@ -41,5 +46,18 @@
     "page_setup_step2.text": "",
     "page_setup_step3.text": "",
     "page_setup_step4.text": "",
-    "page_setup_step5.text": ""
+    "page_setup_step5.text": "",
+
+    
+    "subpage_settings_general": "Général",
+    "subpage_settings_websites": "Sites Web",
+    "subpage_settings_profile": "Profil",
+    "subpage_settings_system": "Système",
+    "subpage_settings_ai": "IA (BETA)",
+
+    "subpage_settings_general.title": "Général",
+    "subpage_settings_websites.title": "Sites Web",
+    "subpage_settings_profile.title": "Profil",
+    "subpage_settings_system.title": "Système",
+    "subpage_settings_ai.title": "IA (BETA)"
 }
