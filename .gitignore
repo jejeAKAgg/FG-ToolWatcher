@@ -19,6 +19,9 @@ __pycache__/
 /dist/
 /FG-ToolWatcher.spec
 
+# MkDocs build directory
+site/
+
 # ======================================================
 #  2. APPLICATION RUNTIME DATA (Generated & Sensitive)
 # ======================================================
