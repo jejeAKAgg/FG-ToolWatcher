@@ -1,4 +1,4 @@
-# CORE/__DATABASES/loader/fixami.py
+# CORE/__DATABASES/loader/georges.py
 import os
 import time
 
@@ -27,10 +27,10 @@ from CORE.Services.parser import ProductDataParser
 LOG = logging.getLogger(__name__)
 # ===============================
 
-class FIXAMIloader:
+class GEORGESloader:
     
     """
-    Class to download and extract product URLs and data from FIXAMI.
+    Class to download and extract product URLs and data from GEORGES.
     """
     
     def __init__(self):
@@ -44,7 +44,7 @@ class FIXAMIloader:
         self.WAIT_TIME = 3
 
         # === INTERNAL PARAMETER(S) ===
-        self.SITEMAPindex = 'https://www.fixami.be/sitemap.xml'
+        self.SITEMAPindex = 'https://www.georges.be/sitemap/sitemap_fr_be.xml'
         self.SITEMAPurls: List[str] = []
         self.NAMESPACESurl = {'sitemap': 'http://www.sitemaps.org/schemas/sitemap/0.9'}
         self.URLs: List[str] = []
@@ -63,7 +63,7 @@ class FIXAMIloader:
 
         self.REQUESTS_HEADERS = {
             'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/114.0.0.0 Safari/537.36',
-            'Referer': 'https://www.fixami.be/',
+            'Referer': 'https://www.klium.be/',
             'Accept-Language': 'fr-FR,fr;q=0.9,en-US;q=0.8,en;q=0.7',
             'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,*/*;q=0.8',
             'Connection': 'keep-alive',
@@ -74,7 +74,7 @@ class FIXAMIloader:
     def _discover_sitemaps(self):
         
         """
-        Dynamically retrieves product sitemap URLs (Sitemapp) from the LECOT sitemap index.
+        Dynamically retrieves product sitemap URLs (Sitemapp) from the GEORGES sitemap index.
         
         """
         
@@ -84,7 +84,6 @@ class FIXAMIloader:
             
             soup = BeautifulSoup(response.content, "xml")
             
-            # Filtering logic to keep only relevant product sitemaps (e.g., those containing '-fr-be-' and excluding irrelevant ones)
             links = [
                 loc.text.strip() 
                 for loc in soup.find_all('loc')
@@ -94,7 +93,7 @@ class FIXAMIloader:
             LOG.info(f"Discovered {len(self.SITEMAPurls)} product sitemaps via the index.")
         
         except Exception as e:
-            LOG.error(f"Failed to retrieve FIXAMI sitemap index: {e}")
+            LOG.error(f"Failed to retrieve KLIUM sitemap index: {e}")
     
     def _fetch_and_decompress_sitemap(self, link: str):
         
@@ -163,20 +162,16 @@ class FIXAMIloader:
         
         NEWdf = pd.DataFrame(batch_data)
         
-        COLS = ['EAN', 'MPN', 'Brand', 'Article', 'Base Price (HTVA)', 'Base Price (TVA)', 'ArticleURL', 'Checked on']
+        COLS = ['EAN', 'MPN', 'Local MPN', 'Brand', 'Article', 'Base Price (HTVA)', 'Base Price (TVA)', 'ArticleURL', 'Checked on']
 
         try:
-            # On boucle sur ta liste pour préparer chaque colonne selon son type
             for col in COLS:
                 if col in NEWdf.columns:
                     if "Price" in col:
-                        # C'est un prix : on force en float (SANS guillemets dans le CSV)
                         NEWdf[col] = pd.to_numeric(NEWdf[col].astype(str).str.replace(',', '.'), errors='coerce').fillna(0.0).astype(float)
                     else:
-                        # C'est du texte : on force en string (AVEC guillemets + conservation des 0)
                         NEWdf[col] = NEWdf[col].astype(str)
 
-            # On réordonne les colonnes selon ta liste unique
             NEWdf = NEWdf[COLS]
             
             file_exists = os.path.exists(csv_path)
@@ -243,10 +238,10 @@ class FIXAMIloader:
                     if len(SEGMENTSdata) < 3:
                         continue
 
-                    if len(SEGMENTSdata[-1]) < 15:
-                        continue
+                    #if len(SEGMENTSdata[-1]) < 15:
+                        #continue
 
-                    if SEGMENTSdata[1] not in ('www.fixami.be', 'fixami.be'):
+                    if SEGMENTSdata[1] not in ('www.georges.be', 'georges.be'):
                         continue
 
                     if any(S.lower() in {'nl', 'de', 'en', 'nl-be', 'nl-nl', 'de-de', 'en-be'} for S in SEGMENTSdata):
@@ -283,6 +278,7 @@ class FIXAMIloader:
         PRODUCTvar = {
             'EAN': "-",
             'MPN': "-",
+            'Local MPN': "-",
             'Brand': "-",
             'Article': "-",
             'Base Price (HTVA)': 0.0,
@@ -307,40 +303,30 @@ class FIXAMIloader:
                 JSONdata = next((i for s in soup.find_all('script', type='application/ld+json') for i in ([json.loads(s.string)] if isinstance(json.loads(s.string), dict) else (json.loads(s.string) if isinstance(json.loads(s.string), list) else [])) if isinstance(i, dict) and i.get("@type") == "Product"), {})
 
                 PRODUCTvar["EAN"] = (lambda e: "".join(filter(str.isalnum, str(e))) or "-")(
-                    next(
-                        (
-                            dd.get_text(strip=True) 
-                            for dt in soup.find_all("dt") 
-                            if "ean" in dt.get_text().lower() 
-                            and (dd := dt.find_next_sibling("dd"))
-                        ),
-                        JSONdata.get('gtin13') or "-"
-                    )
+                    next((li.get_text(strip=True).upper().replace("EAN:", "").strip() for li in soup.find_all("li") if "EAN:" in li.get_text().upper()), None) or
+                    JSONdata.get('gtin13') or 
+                    "-"
                 ).upper()
 
                 PRODUCTvar["MPN"] = (lambda raw, brands: (lambda b_sorted: (lambda res: res if res else "-")(" ".join(reduce(lambda s, b: s.replace(b.lower(), ""), b_sorted, str(raw).lower()).split()).strip().upper()))(sorted(brands, key=len, reverse=True)))(
-                    next(
-                        (
-                            dd.get_text(strip=True) 
-                            for dt in soup.find_all("dt") 
-                            if any(x in dt.get_text().lower() for x in ["code du modèle", "réf. fabricant", "numéro de fournisseur"]) 
-                            and (dd := dt.find_next_sibling("dd"))
-                        ),
-                        JSONdata.get('mpn') or "-"
+                    (
+                        (next((row.find("div", class_="attribute-table__column__value").get_text(strip=True) for row in soup.find_all("div", class_="attribute-table__row") if "Code article du fournisseur" in row.find("div", class_="attribute-table__column__label").get_text()), None)) or
+                        JSONdata.get('mpn') or
+                        "-"
                     ),
                     self.parser.brands
                 )
 
+                PRODUCTvar["Local MPN"] = ""
+
                 PRODUCTvar['Brand'] = str(
-                    JSONdata.get('brand', {}).get('name') 
-                    if isinstance(JSONdata.get('brand'), dict) 
-                    else JSONdata.get('brand', "-")
+                    (b := soup.find("li", class_="product-manufacturer")) and b.find("a").get_text(strip=True) or 
+                    (isinstance(JSONdata.get('brand'), dict) and JSONdata.get('brand', {}).get('name') or JSONdata.get('brand', "-"))
                 ).upper().strip()
 
                 PRODUCTvar['Article'] = (
-                    (name := soup.find("h1", class_="product-detail-name")) 
-                    and (name.get_text(strip=True))
-                    or JSONdata.get('name', "-")
+                    (n := soup.find("h1", class_="page-title")) and n.get_text(strip=True) or 
+                    JSONdata.get('name', "-")
                 ).replace("\"", "\"\"").strip('"')
 
                 PRODUCTvar['Base Price (HTVA)'], PRODUCTvar['Base Price (TVA)'] = (
@@ -349,15 +335,9 @@ class FIXAMIloader:
                         self.parser.format_price_for_excel(p),
                     )
                 )(
-                    (lambda raw:
-                        self.parser.parse_price(str(raw)) if raw not in (None, "-", "") else 0.0
-                    )(
-                        (e.get_text(strip=True) if (e := soup.find("p", class_="product-detail-price"))
-                        else (
-                            (o[0].get("price") if isinstance(o := JSONdata.get("offers"), list) and o
-                            else (o.get("price") if isinstance(o, dict) else None))
-                        )
-                        )
+                    (lambda raw: self.parser.parse_price(str(raw)) if raw not in (None, "-", "") else 0.0)(
+                        (m := soup.find("p", class_="your-price")) and m.get_text(strip=True) or
+                        (isinstance(o := JSONdata.get("offers"), list) and o and o[0].get("price") or (isinstance(o, dict) and o.get("price") or 0.0))
                     )
                 )
 
@@ -385,8 +365,8 @@ class FIXAMIloader:
 
     def run(self):
 
-        CSVpathDB = os.path.join(DATA_SUBFOLDER, "FIXAMIproductsDB.csv")
-        CSVpathDBnot = os.path.join(DATA_SUBFOLDER, "FIXAMIproductsDBnot.csv")
+        CSVpathDB = os.path.join(DATA_SUBFOLDER, "GEORGESproductsDB.csv")
+        CSVpathDBnot = os.path.join(DATA_SUBFOLDER, "GEORGESproductsDBnot.csv")
         DBurls = self._load_DBurls(CSVpathDB)
         DBurlsNOT = self._load_DBurls(CSVpathDBnot)
 
@@ -445,7 +425,7 @@ class FIXAMIloader:
                     FAILS = []
         
         except Exception as e:
-            LOG.exception(f"Critical error for FIXAMIloader: {e}")
+            LOG.exception(f"Critical error for GEORGESloader: {e}")
 
             if PRODUCTS: # EMERGENCY SAVE
                 self._save_batch(CSVpathDB, PRODUCTS, is_emergency=True)
@@ -463,12 +443,12 @@ class FIXAMIloader:
 
                 LOG.warning("Emergency save for failures triggered due to critical error.")
 
-        LOG.info("FIXAMIloader process terminated...")
+        LOG.info("GEORGESloader process terminated...")
 
 
 
 # === Independent running system ===
 if __name__ == "__main__":
 
-    FIXAMIloader = FIXAMIloader()
-    result = FIXAMIloader.run()
+    GEORGESloader = GEORGESloader()
+    result = GEORGESloader.run()
