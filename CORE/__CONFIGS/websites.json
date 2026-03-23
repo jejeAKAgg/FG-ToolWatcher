@@ -1,0 +1,93 @@
+{
+    "CIPAC": {
+        "sitemap_index": null,
+        "sitemap_manual": null,
+        "domain": null,
+        "vat_rate": 1.21,
+        "selectors": {
+            "ean": null,
+            "mpn": null,
+            "brand_ld": true,
+            "article": null,
+            "price": null
+        }
+    },
+    "CLABOTS": {
+        "sitemap_index": null,
+        "sitemap_manual": ["https://www.clabots.be/media/sitemaps/1/sitemap-product-1.xml.gz"],
+        "domain": "clabots.be",
+        "vat_rate": 1.21,
+        "selectors": {
+            "ean": {"tag": "li", "text_contains": "EAN:", "replace": "EAN:"},
+            "mpn": {"tag": "div", "class": "attribute-table__row", "label": "Code article du fournisseur"},
+            "brand": {"tag": "li", "class": "product-manufacturer"},
+            "article": {"tag": "h1", "class": "page-title"},
+            "price": {"tag": "p", "class": "your-price"}
+        }
+    },
+    "FIXAMI": {
+        "sitemap_index": "https://www.fixami.be/sitemap.xml",
+        "sitemap_manual": null,
+        "domain": "fixami.be",
+        "vat_rate": 1.21,
+        "selectors": {
+            "ean": {"tag": "dt", "text_contains": "ean", "type": "sibling", "target": "dd"},
+            "mpn": {"tag": "dt", "text_contains": ["code du modèle", "réf. fabricant", "numéro de fournisseur"], "type": "sibling", "target": "dd"},
+            "brand_ld": true,
+            "article": {"tag": "h1", "class": "product-detail-name"},
+            "price": {"tag": "p", "class": "product-detail-price"}
+        }
+    },
+    "GEORGES": {
+        "sitemap_index": null,
+        "sitemap_manual": null,
+        "domain": null,
+        "vat_rate": 1.21,
+        "selectors": {
+            "ean": null,
+            "mpn": null,
+            "brand_ld": true,
+            "article": null,
+            "price": null
+        }
+    },
+    "KLIUM": {
+        "sitemap_index": "https://www.klium.be/sitemap.xml",
+        "sitemap_manual": null,
+        "domain": "klium.be",
+        "vat_rate": 1.21,
+        "selectors": {
+            "ean": {"tag": "li", "text_contains": "EAN:", "replace": "EAN:"},
+            "mpn": {"tag": "li", "id": "supplier_reference_value", "replace": "NUMÉRO D'ARTICLE DU FOURNISSEUR:"},
+            "brand": {"tag": "li", "class": "product-manufacturer"},
+            "article": {"tag": "h1", "id": "product_name_value"},
+            "price": {"tag": "span", "class": "current-price-value", "use_attr": "content"}
+        }
+    },
+    "LECOT": {
+        "sitemap_index": "https://shop.lecot.be/fr-be/sitemap.xml",
+        "sitemap_manual": null,
+        "domain": "shop.lecot.be",
+        "vat_rate": 1.21,
+        "selectors": {
+            "ean": {"tag": "tr", "class": "properties-row", "text_contains": "ean", "target": "td.properties-value"},
+            "mpn": {"tag": "tr", "class": "properties-row", "text_contains": ["numéro de fournisseur", "réf. fabricant"], "target": "td.properties-value"},
+            "brand_ld": true,
+            "article": {"tag": "h1", "class": "product-detail-name"},
+            "price": {"tag": "p", "class": "product-detail-price"}
+        }
+    },
+    "TOOLNATION": {
+        "sitemap_index": "https://www.toolnation.fr/sitemap/sitemap_fr_index.xml",
+        "sitemap_manual": null,
+        "domain": "toolnation.fr",
+        "vat_rate": 1.20,
+        "selectors": {
+            "ean": {"tag": "div", "class": "text-primary", "split": "EAN"},
+            "mpn": {"tag": "div", "class": "text-primary", "split": "ARTICLE"},
+            "brand": {"tag": "span", "class": "brand-title"},
+            "article": {"tag": "span", "attr": {"data-ui-id": "page-title-wrapper"}},
+            "price": {"tag": "meta", "itemprop": "price", "use_attr": "content"}
+        }
+    }
+}
