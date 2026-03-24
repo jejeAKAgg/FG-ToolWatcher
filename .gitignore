@@ -17,7 +17,6 @@ __pycache__/
 # Build and distribution folder(s) for .exe creation
 /build/
 /dist/
-/FG-ToolWatcher.spec
 
 # MkDocs build directory
 site/
