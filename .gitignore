@@ -36,4 +36,4 @@ site/
 # ======================================================
 #             3. SECRETS & CONFIG TEMPLATES
 # ======================================================
-/__UTILS/secrets.json
+CORE/__RESOURCES/secrets.json
