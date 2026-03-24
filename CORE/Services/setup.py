@@ -1,187 +1,116 @@
 # CORE/Services/setup.py
 import os
 import sys
-
+ 
 from typing import Dict, Any, Tuple
+ 
 
 
+# === Internal Variable(s) ===
 
-_OS = sys.platform.lower()
+_OS        = sys.platform.lower()
 _IS_FROZEN = getattr(sys, 'frozen', False)
-
-
-# ===============================
-#    1. ENVIRONMENT DETECTION
-# ===============================
+ 
+ 
+# === Private Function(s) ===
+ 
 def _get_base_paths() -> Tuple[str, str]:
     
     """
-    Calculates the base system path and the temporary path (PyInstaller).
-
-    Returns:
-        Tuple[str, str]: (BASE_SYSTEM_PATH, BASE_TEMP_PATH)
+    Returns (base_system_path, base_temp_path).
+    - base_system_path : dossier du .exe (frozen) ou racine du projet (dev)
+    - base_temp_path   : dossier temporaire PyInstaller (_MEIPASS) ou "" en dev
+    
     """
-
+    
     if _IS_FROZEN:
-        base_system_path = os.path.dirname(sys.executable)
-        base_temp_path = sys._MEIPASS
-    else:
-        base_system_path = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", ".."))
-        base_temp_path = ""  # Not used when not frozen
+        return os.path.dirname(sys.executable), sys._MEIPASS
+    return os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "..")), ""
+ 
 
-    return base_system_path, base_temp_path
+ 
+def _build_paths(sys_path: str, tmp_path: str) -> Dict[str, Any]:
+    
+    """
+    Constructs the directory path mapping. Ensures consistent logic across Windows, Linux, and macOS.
+    
+    """
+    
+    return {
+        # ── System side ──
+        "_SECRETS_FOLDER":          os.path.join(sys_path, "__SECRETS"),
+        "_RESOURCES_FOLDER":        os.path.join(tmp_path, "CORE", "__RESOURCES"),
+        "_AI_FOLDER":               os.path.join(tmp_path, "CORE", "AI"),
+        "_DATABASE_FOLDER":         os.path.join(tmp_path, "CORE", "Database"),
+        "_SEARCH_FOLDER":           os.path.join(tmp_path, "CORE", "Search"),
+        "_SERVICE_FOLDER":          os.path.join(tmp_path, "CORE", "Service"),
+        "_ASSETS_FOLDER":           os.path.join(tmp_path, "GUI",  "__ASSETS"),
+ 
+        # ── User side (folder(s) & path(s)) ──
+        "_USER_FOLDER":             os.path.join(sys_path, "USER"),
+        "_CONFIG_SUBFOLDER":        os.path.join(sys_path, "USER", "CONFIG"),
+        "_DATA_SUBFOLDER":          os.path.join(sys_path, "USER", "DATA"),
+        "_DATA_SUBFOLDER_BACKUP":   os.path.join(sys_path, "USER", "DATA", "BACKUP"),
+        "_LOGS_SUBFOLDER":          os.path.join(sys_path, "USER", "LOGS"),
+        "_RESULTS_SUBFOLDER":       os.path.join(sys_path, "USER", "RESULTS"),
+        "_RESULTS_SUBFOLDER_TEMP":  os.path.join(sys_path, "USER", "RESULTS", "TEMP"),
+
+        "_CATALOG_CONFIG_PATH":     os.path.join(sys_path, "USER", "CONFIG", "catalog.json"),
+        "_USER_CONFIG_PATH":        os.path.join(sys_path, "USER", "CONFIG", "settings.json"),
+    }
+ 
+
+# === Execution ===
 
 _BASE_SYSTEM_PATH, _BASE_TEMP_PATH = _get_base_paths()
+_OS_CONFIG = _build_paths(_BASE_SYSTEM_PATH, _BASE_TEMP_PATH)
+ 
+if not any(_OS.startswith(p) for p in ("win", "linux", "darwin")):
+    raise RuntimeError(f"Unsupported system: {_OS}")
 
 
-# =============================
-#        2. OS DETECTION
-# =============================
+# === Path Constant(s) ===
 
-def _configure_windows_paths(base_sys_path: str, base_temp_path: str) -> Dict[str, Any]:
+SECRETS_FOLDER = _OS_CONFIG["_SECRETS_FOLDER"]                  # System
+
+RESOURCES_FOLDER = _OS_CONFIG["_RESOURCES_FOLDER"]              # System
+
+AI_FOLDER = _OS_CONFIG["_AI_FOLDER"]                            # System
+DATABASE_FOLDER = _OS_CONFIG["_DATABASE_FOLDER"]                # System
+SEARCH_FOLDER = _OS_CONFIG["_SEARCH_FOLDER"]                    # System
+SERVICE_FOLDER = _OS_CONFIG["_SERVICE_FOLDER"]                  # System
+
+ASSETS_FOLDER = _OS_CONFIG["_ASSETS_FOLDER"]                    # System
+
+USER_FOLDER = _OS_CONFIG["_USER_FOLDER"]                        # User folder
+CONFIG_SUBFOLDER = _OS_CONFIG["_CONFIG_SUBFOLDER"]              # User folder
+DATA_SUBFOLDER = _OS_CONFIG["_DATA_SUBFOLDER"]                  # User folder
+DATA_SUBFOLDER_BACKUP = _OS_CONFIG["_DATA_SUBFOLDER_BACKUP"]    # User folder
+LOGS_SUBFOLDER = _OS_CONFIG["_LOGS_SUBFOLDER"]                  # User folder
+RESULTS_SUBFOLDER = _OS_CONFIG["_RESULTS_SUBFOLDER"]            # User folder
+RESULTS_SUBFOLDER_TEMP = _OS_CONFIG["_RESULTS_SUBFOLDER_TEMP"]  # User folder
+
+CATALOG_CONFIG_PATH = _OS_CONFIG["_CATALOG_CONFIG_PATH"]        # User file path
+USER_CONFIG_PATH = _OS_CONFIG["_USER_CONFIG_PATH"]              # User file path
+
+
+# === Public Function(s) ===
+
+def make_dirs() -> None:
     
     """
-    Sets up the main execution paths and download constants for Windows.
-
-    Args:
-        base_sys_path (str): The calculated base system path.
-
-    Returns:
-        Dict[str, Any]: Dictionary of OS-specific path constants.
-    """
-    
-    return {
-        "_SECRETS_FOLDER": os.path.join(base_sys_path, "__UTILS"),
-        
-        "_USER_FOLDER": os.path.join(base_sys_path, "USER"),
-        "_CORE_SUBFOLDER": os.path.join(base_sys_path, "USER", "CORE"),
-        "_CONFIG_SUBFOLDER": os.path.join(base_sys_path, "USER", "CONFIG"),
-        "_DATA_SUBFOLDER": os.path.join(base_sys_path, "USER", "DATA"),
-        "_LOGS_SUBFOLDER": os.path.join(base_sys_path, "USER", "LOGS"),
-        "_RESULTS_SUBFOLDER": os.path.join(base_sys_path, "USER", "RESULTS"),
-        "_RESULTS_SUBFOLDER_TEMP": os.path.join(base_sys_path, "USER", "RESULTS", "TEMP"),
-
-        "_ASSETS_FOLDER": os.path.join(base_temp_path, "GUI", "__ASSETS"),
-        "_AI_FOLDER": os.path.join(base_temp_path, "CORE", "__AI"),
-        "_DATABASE_FOLDER": os.path.join(base_temp_path, "CORE", "__DATABASES"),
-        "_UTILS_FOLDER": os.path.join(base_temp_path, "CORE", "__UTILS"),
-
-        "_CATALOG_CONFIG_PATH": os.path.join(base_temp_path, "USER", "CONFIG", "database.json"),
-        "_USER_CONFIG_PATH": os.path.join(base_temp_path, "USER", "CONFIG", "settings.json"),
-    }
-
-def _configure_linux_paths(base_sys_path: str, base_temp_path: str) -> Dict[str, Any]:
+    Creates all required user directories if they do not exist. 
+    Called during application startup.
     
     """
-    Sets up the main execution paths and download constants for Linux.
-
-    Args:
-        base_sys_path (str): The calculated base system path.
-
-    Returns:
-        Dict[str, Any]: Dictionary of OS-specific path constants.
-    """
     
-    return {
-        "_SECRETS_FOLDER": os.path.join(base_sys_path, "__UTILS"),
-        
-        "_USER_FOLDER": os.path.join(base_sys_path, "USER"),
-        "_CORE_SUBFOLDER": os.path.join(base_sys_path, "USER", "CORE"),
-        "_CONFIG_SUBFOLDER": os.path.join(base_sys_path, "USER", "CONFIG"),
-        "_DATA_SUBFOLDER": os.path.join(base_sys_path, "USER", "DATA"),
-        "_LOGS_SUBFOLDER": os.path.join(base_sys_path, "USER", "LOGS"),
-        "_RESULTS_SUBFOLDER": os.path.join(base_sys_path, "USER", "RESULTS"),
-        "_RESULTS_SUBFOLDER_TEMP": os.path.join(base_sys_path, "USER", "RESULTS", "TEMP"),
-
-        "_ASSETS_FOLDER": os.path.join(base_temp_path, "GUI", "__ASSETS"),
-        "_AI_FOLDER": os.path.join(base_temp_path, "CORE", "__AI"),
-        "_DATABASE_FOLDER": os.path.join(base_temp_path, "CORE", "__DATABASES"),
-        "_UTILS_FOLDER": os.path.join(base_temp_path, "CORE", "__UTILS"),
-
-        "_CATALOG_CONFIG_PATH": os.path.join(base_temp_path, "USER", "CONFIG", "database.json"),
-        "_USER_CONFIG_PATH": os.path.join(base_temp_path, "USER", "CONFIG", "settings.json"),
-    }
-
-def _configure_darwin_paths(base_sys_path: str, base_temp_path: str) -> Dict[str, Any]:
-    
-    """
-    Sets up the main execution paths for macOS (Darwin).
-    
-    Args:
-        base_sys_path (str): The calculated base system path.
-        
-    Returns:
-        Dict[str, Any]: Dictionary of OS-specific path constants (using empty strings where executables are not pre-bundled).
-    """
-    
-    return {
-        "_SECRETS_FOLDER": os.path.join(base_sys_path, "__UTILS"),
-        
-        "_USER_FOLDER": os.path.join(base_sys_path, "USER"),
-        "_CORE_SUBFOLDER": os.path.join(base_sys_path, "USER", "CORE"),
-        "_CONFIG_SUBFOLDER": os.path.join(base_sys_path, "USER", "CONFIG"),
-        "_DATA_SUBFOLDER": os.path.join(base_sys_path, "USER", "DATA"),
-        "_LOGS_SUBFOLDER": os.path.join(base_sys_path, "USER", "LOGS"),
-        "_RESULTS_SUBFOLDER": os.path.join(base_sys_path, "USER", "RESULTS"),
-        "_RESULTS_SUBFOLDER_TEMP": os.path.join(base_sys_path, "USER", "RESULTS", "TEMP"),
-
-        "_ASSETS_FOLDER": os.path.join(base_temp_path, "GUI", "__ASSETS"),
-        "_AI_FOLDER": os.path.join(base_temp_path, "CORE", "__AI"),
-        "_DATABASE_FOLDER": os.path.join(base_temp_path, "CORE", "__DATABASES"),
-        "_UTILS_FOLDER": os.path.join(base_temp_path, "CORE", "__UTILS"),
-
-        "_CATALOG_CONFIG_PATH": os.path.join(base_temp_path, "USER", "CONFIG", "database.json"),
-        "_USER_CONFIG_PATH": os.path.join(base_temp_path, "USER", "CONFIG", "settings.json"),
-    }
-
-
-# =============================
-#        3. OS MAPPING
-# =============================
-
-_OS_CONFIG: Dict[str, Any] = {}
-
-if _OS.startswith("win"):
-    _OS_CONFIG = _configure_windows_paths(base_sys_path=_BASE_SYSTEM_PATH, base_temp_path=_BASE_TEMP_PATH)
-elif _OS.startswith("linux"):
-    _OS_CONFIG = _configure_linux_paths(base_sys_path=_BASE_SYSTEM_PATH, base_temp_path=_BASE_TEMP_PATH)
-elif _OS.startswith("darwin"):
-    _OS_CONFIG = _configure_darwin_paths(base_sys_path=_BASE_SYSTEM_PATH, base_temp_path=_BASE_TEMP_PATH)
-else:
-    raise RuntimeError(f"Non-supported OS: {_OS}")
-
-
-# =============================
-#       4. PATH CONSTANTS
-# =============================
-SECRETS_FOLDER = _OS_CONFIG["_SECRETS_FOLDER"]
-
-USER_FOLDER = _OS_CONFIG["_USER_FOLDER"]
-CORE_SUBFOLDER = _OS_CONFIG["_CORE_SUBFOLDER"]
-CONFIG_SUBFOLDER = _OS_CONFIG["_CONFIG_SUBFOLDER"]
-DATA_SUBFOLDER = _OS_CONFIG["_DATA_SUBFOLDER"]
-LOGS_SUBFOLDER = _OS_CONFIG["_LOGS_SUBFOLDER"]
-RESULTS_SUBFOLDER = _OS_CONFIG["_RESULTS_SUBFOLDER"]
-RESULTS_SUBFOLDER_TEMP = _OS_CONFIG["_RESULTS_SUBFOLDER_TEMP"]
-
-ASSETS_FOLDER = _OS_CONFIG["_ASSETS_FOLDER"]
-AI_FOLDER = _OS_CONFIG["_AI_FOLDER"]
-DATABASE_FOLDER = _OS_CONFIG["_DATABASE_FOLDER"]
-UTILS_FOLDER = _OS_CONFIG["_UTILS_FOLDER"]
-
-USER_CONFIG_PATH = _OS_CONFIG["_USER_CONFIG_PATH"]
-CATALOG_CONFIG_PATH = _OS_CONFIG["_CATALOG_CONFIG_PATH"]
-
-
-# =============================
-#       5. CREATE FOLDERS
-# =============================
-
-def make_dirs():
-    os.makedirs(USER_FOLDER, exist_ok=True)
-    os.makedirs(CONFIG_SUBFOLDER, exist_ok=True)
-    os.makedirs(CORE_SUBFOLDER, exist_ok=True)
-    os.makedirs(DATA_SUBFOLDER, exist_ok=True)
-    os.makedirs(LOGS_SUBFOLDER, exist_ok=True)
-    os.makedirs(RESULTS_SUBFOLDER, exist_ok=True)
-    os.makedirs(RESULTS_SUBFOLDER_TEMP, exist_ok=True)
+    for path in (
+        USER_FOLDER,
+        CONFIG_SUBFOLDER,
+        DATA_SUBFOLDER,
+        DATA_SUBFOLDER_BACKUP,
+        LOGS_SUBFOLDER,
+        RESULTS_SUBFOLDER,
+        RESULTS_SUBFOLDER_TEMP,
+    ):
+        os.makedirs(path, exist_ok=True)
