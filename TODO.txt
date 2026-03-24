@@ -1,30 +1,3 @@
-- [OPTIMISATION] rassembler les fonctions communes des différents loader
-- [OPTIMISATION] pareil pour watcher
-- [FONCTIONNALITE] ajouter connexion/cookie/compte client pour sites
-- [OPTIMISATION] rassembler les noms des balises en .json pour meilleure flexiilité en cas de modification
-- [TODO] coder les watcher
-- [TODO] fetch la colonne marque et sortir de maniere unique les différentes marques présentes -> ajouter si besoin dans brand.json et ainsi pouvoir ajouter dans 'marque' un moyen d'extraire le nom de la marque si présente dans le titre de l'article
-- [TODO] un indexer qui comble les trous au niveau des mpn/ean entre les différents csv pour un meme article -> OK ?
-- [TODO] corriger les connexions backend/frontend
-- cas où mpn et ean absent -> enelver ? juste vérifier si prix existant et positif ?
-
-- 1: check si charger master db faisable en utilisant plusieurs threads pour aller plus vite (car master db sera de plus en plus grand) - même procédé pour l'indexage croisé
-- 2: check comment l'app pourrait vérifier intelligemment (sur github?) la dernière date de maj et comparé avec local (si vieille alors on écrase)
-- 1+2: ou alors, la master db est faite par moi/devs et l'app se connecte juste (sur githbub) pour fetch/vérifier masterdb -> meilleur
-
-- 3: demander pour GEORGES db
-- 4: fonction mail
-- 5: 
-
-- corriger backend asap
-- corriger gui asap
-
-- 
-- refactor/opti GUI (en tout dernier)
-
-
-
-
 # =====================================================
 #   FG-ToolWatcher — TODO LIST for V1
 #   Dernière mise à jour : 2026-03-24
@@ -73,23 +46,28 @@
 # ===============================================================
 
 [ ] requirements.txt complet et à jour
-
 [ ] Configurer GitHub Actions pour build automatique :
       - Fichier .github/workflows/build.yml
       - Runner windows-latest
       - Déclenché sur git tag v*
       - Upload .exe dans GitHub Releases automatiquement
-
 [ ] Créer updater.py et le compiler séparément en updater.exe
       - Inclure updater.exe dans le .spec comme data ou binaire séparé
-
 [ ] Trouver un système optimisé pour les DB également
-
 [ ] Implémenter notification de nouvelle version app dans l'UI (bannière ou popup)
       - Bouton "Voir les notes de version" → ouvre GitHub Releases dans navigateur
-
 [ ] Brancher le bouton "Rechercher des mises à jour" dans system.py
 
+
+# ===============================================================
+#   🟡 PRIORITÉ 3 — REPO GITHUB
+# ===============================================================
+
+[ ] Structurer le repo pour un look pro
+[ ] Ajouter code of conducts + contributing
+[ ] Doc utilisateur / developpeur
+[ ] Trello ?
+ 
 
 # =====================================================
 #   💡 IDÉES / PLUS TARD
