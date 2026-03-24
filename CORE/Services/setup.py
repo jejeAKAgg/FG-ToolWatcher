@@ -38,12 +38,15 @@ def _build_paths(sys_path: str, tmp_path: str) -> Dict[str, Any]:
     
     return {
         # ── System side ──
-        "_SECRETS_FOLDER":          os.path.join(sys_path, "__SECRETS"),
+        "_SECRETS_FOLDER":          os.path.join(tmp_path, "__SECRETS"),
+        
         "_RESOURCES_FOLDER":        os.path.join(tmp_path, "CORE", "__RESOURCES"),
+        
         "_AI_FOLDER":               os.path.join(tmp_path, "CORE", "AI"),
         "_DATABASE_FOLDER":         os.path.join(tmp_path, "CORE", "Database"),
         "_SEARCH_FOLDER":           os.path.join(tmp_path, "CORE", "Search"),
         "_SERVICE_FOLDER":          os.path.join(tmp_path, "CORE", "Service"),
+        
         "_ASSETS_FOLDER":           os.path.join(tmp_path, "GUI",  "__ASSETS"),
  
         # ── User side (folder(s) & path(s)) ──
