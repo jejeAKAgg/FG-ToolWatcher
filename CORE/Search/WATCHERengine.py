@@ -48,8 +48,6 @@ class WatcherEngine:
         self.ATTEMPT = 0
         self.MAX_RETRIES = 3
         self.RETRY_DELAY = 5
-        self.SAVE_COUNTER = 0
-        self.SAVE_THRESHOLD = 100
         self.WAIT_TIME = 3
 
         self.DEFAULT_COLUMNS = [
@@ -59,6 +57,8 @@ class WatcherEngine:
             'Evolution du prix', 'Offres',
             'ArticleURL', 'Vérifié', 'Recherche',
         ]
+
+        self.FUZZY_THRESHOLD = 90
 
         # === INTERNAL PARAMETER(S) ===
         self.WEBSITE = site_key.upper()
@@ -206,7 +206,7 @@ class WatcherEngine:
             result = process.extractOne(name, self.DBdataframe['Article'].tolist(), scorer=fuzz.token_sort_ratio)
             if result:
                 matched_name, score = result[0], result[1]
-                if score >= 90:
+                if score >= self.FUZZY_THRESHOLD:
                     match = self.DBdataframe[self.DBdataframe['Article'] == matched_name]
             
                     LOG.debug(f"Fuzzy Match '{name}' → '{matched_name}' ({score}%)")
