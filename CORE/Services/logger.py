@@ -7,15 +7,16 @@ from datetime import datetime
 from CORE.Services.setup import _IS_FROZEN, LOGS_SUBFOLDER
 
 def setup_logging(log_level=logging.INFO):
-    
+
     """
     Configures the root logger for the entire application.
     This function should only be called ONCE at startup.
 
     Args:
         log_level (int): The logging level (e.g., logging.DEBUG or logging.INFO).
+
     """
-    
+
     # Format
     log_format = "[%(asctime)s] [%(levelname)s] (%(name)s) - %(message)s"
 
@@ -36,11 +37,11 @@ def setup_logging(log_level=logging.INFO):
             file_handler = logging.FileHandler(log_file, mode='w', encoding='utf-8')
             file_handler.setLevel(log_level)
             file_handler.setFormatter(logging.Formatter(log_format))
-            
+
             logging.getLogger().addHandler(file_handler)
-            
+
             logging.info(f"--- Logging session started (EXE Mode at {logging.getLevelName(log_level)}) ---")
-            
+
         except Exception as e:
             logging.error(f"Failed to create file logger: {e}")
     else: # DEV mode

@@ -7,15 +7,15 @@ from email.message import EmailMessage
 
 
 class MailService:
-    
+
     """
     Service dedicated to sending emails via SMTP (default: Gmail SSL).
     Supports single or multiple recipients, with or without attachments.
-    
+
     """
 
     def __init__(self, sender_email: str, password: str, smtp_server: str = "smtp.gmail.com", smtp_port: int = 465):
-        
+
         """
         Initializes the mail sending service.
 
@@ -24,7 +24,7 @@ class MailService:
             password (str): The email account password or app-specific password (recommended for Gmail).
             smtp_server (str): SMTP server address (default: Gmail).
             smtp_port (int): SMTP port (default: 465 for SSL).
-        
+
         """
 
         # === INPUT VARIABLES ===
@@ -32,10 +32,10 @@ class MailService:
         self.password = password
         self.smtp_server = smtp_server
         self.smtp_port = smtp_port
-        
+
 
     def _create_message(self, recipients, subject, body, attachments=None, html=False) -> EmailMessage:
-        
+
         """
         Builds an EmailMessage object ready to be sent.
 
@@ -48,11 +48,11 @@ class MailService:
 
         Returns:
             EmailMessage: The prepared email message.
-        
+
         """
 
         msg = EmailMessage()
-        
+
         # === PARAMETERS SETUP  ===
         msg["Subject"] = subject
         msg["From"] = self.sender_email
@@ -76,7 +76,7 @@ class MailService:
         return msg
 
     def send_mail(self, recipients, subject: str, body: str, attachments=None, html=False):
-        
+
         """
         Sends an email via SMTP (SSL).
 
@@ -89,9 +89,9 @@ class MailService:
 
         Raises:
             Exception: If the email fails to send, the error is logged but not re-raised.
-        
+
         """
-        
+
         msg = self._create_message(recipients, subject, body, attachments, html)
 
         try:

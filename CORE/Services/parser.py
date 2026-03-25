@@ -28,12 +28,12 @@ WHITESPACE_PATTERN = re.compile(r'\s+')
 
 
 class ProductDataParser:
-    
+
     """
     Utility class for parsing, cleaning, and standardizing
     product data (names, brands, prices) from raw strings.
     """
-    
+
     def __init__(self, brands_file_path: Path | str):
         """
         Initializes the parser by loading the list of brands.
@@ -64,7 +64,7 @@ class ProductDataParser:
     # ============================
 
     def parse_product_name(self, product_name: str, html: Optional[str] = None) -> Dict[str, Optional[str]]:
-        
+
         """
         Main public method to parse a product name.
         Returns a structured dictionary.
@@ -74,10 +74,11 @@ class ProductDataParser:
             html (Optional[str]): Source HTML of the page to help find the brand.
 
         Returns:
-            Dict[str, Optional[str]]: A dictionary containing 'brand', 'reference', 
+            Dict[str, Optional[str]]: A dictionary containing 'brand', 'reference',
                                       'model', and 'standard_name'.
+
         """
-        
+
         brand = self._find_brand(product_name, html)
         reference = self._find_reference(product_name)
         model = self._clean_model_name(product_name, brand, reference)
@@ -85,7 +86,7 @@ class ProductDataParser:
         # Final standardized name formatting
         ref_part = f"[{reference}]" if reference else "[NO_REF]"
         brand_part = brand.upper() if brand else "[NO_BRAND]"
-        
+
         standard_name = f"{ref_part} {brand_part} - {model.upper()}".strip()
 
         return {
@@ -96,11 +97,12 @@ class ProductDataParser:
         }
 
     def _find_brand(self, product_name: str, html: Optional[str] = None) -> Optional[str]:
-        
+
         """
         Attempts to find the brand, first via HTML, then in the product name.
+
         """
-        
+
         # 1. Search in HTML (if provided)
         if html:
             try:
@@ -119,62 +121,64 @@ class ProductDataParser:
         for brand in self.brands:
             if brand in name_lower:
                 return brand
-        
+
         return None
 
     def _find_reference(self, product_name: str) -> Optional[str]:
-        
+
         """
         Extracts the most likely reference (MPN) from the product name.
+
         """
-        
+
         valid_refs = []
-        
+
         # Use the global compiled regex
         ref_matches = REF_PATTERN.findall(product_name)
 
         for candidate in ref_matches:
             candidate_upper = candidate.upper()
-            
+
             # Reject powers/dimensions (e.g., '900W')
             if POWER_OR_DIMENSION_PATTERN.match(candidate_upper):
                 continue
-            
+
             # Reject invalid terms (e.g., 'SDS-PLUS')
             if candidate_upper in INVALID_REF_TERMS:
                 continue
-                
+
             # Accept if it contains at least one letter (e.g., RP0900J)
             if any(c.isalpha() for c in candidate):
                 valid_refs.append(candidate_upper)
-        
+
         # Return the longest valid reference
         if valid_refs:
             return max(valid_refs, key=len)
-        
+
         return None
 
     def _clean_model_name(self, product_name: str, brand: Optional[str], reference: Optional[str]) -> str:
-        
+
         """
         Cleans the product name to keep only the "model".
         Removes already extracted info (brand, ref) and unnecessary info.
+
         """
-        
+
         name = product_name.strip()
 
         # 1. Remove content inside parentheses
         name = PARENTHESIS_PATTERN.sub('', name)
-        
+
         # 2. Remove RAL codes
         name = RAL_PATTERN.sub('', name)
-        
+
         # 3. Remove generic references (Ref:, EAN:, etc.)
         name = GENERIC_REF_PATTERN.sub('', name)
-        
+
         # 4. Remove sizes / units
         name = UNITS_PATTERN.sub('', name)
-        
+
         # 5. Remove the brand if it was found
         if brand:
             brand_pattern = re.compile(re.escape(brand), re.IGNORECASE)
@@ -184,12 +188,12 @@ class ProductDataParser:
         if reference:
             ref_pattern = re.compile(re.escape(reference), re.IGNORECASE)
             name = ref_pattern.sub('', name)
-            
+
         # 7. Final normalization
         name = SEPARATOR_PATTERN.sub(' ', name) # Normalize separators into spaces
         name = WHITESPACE_PATTERN.sub(' ', name) # Replace multiple whitespaces
         name = name.replace('"', "'")           # Replace double quotes for Excel
-        
+
         return name.strip().title() # Capitalize the first letter of each word
 
 
@@ -199,52 +203,59 @@ class ProductDataParser:
     # These functions do not need 'self' (the instance state).
     # We declare them as @staticmethod to call them directly
     # e.g.: ProductDataParser.parse_price("10,50 €")
-    
-    @staticmethod
-    def parse_price(text: Optional[str]) -> Optional[float]:
-        
-        """
-        Parses a price string into a float. Handles European formats 
-        and removes currency symbols and labels.
-        """
-        
-        if not text:
-            return None
-        
-        # More robust cleaning
-        clean = text.strip().lower()
-        clean = (
-            clean.replace('€', '')
-                 .replace('htva', '')
-                 .replace('ttc', '')
-                 .replace('\xa0', '')  # Non-breaking space
-                 .replace('\u200e', '') # Left-to-right mark
-                 .strip()
-        )
-        
-        # Keep only digits, commas, and periods
-        clean = re.sub(r"[^\d,\.]", "", clean)
 
-        # Conversion logic (European format "1.003,09" -> "1003.09")
-        if ',' in clean and '.' in clean:
-            clean = clean.replace('.', '').replace(',', '.')
-        elif ',' in clean:
-            clean = clean.replace(',', '.')
+    @staticmethod
+    def parse_price(text: Optional[str]) -> float:
+
+        """
+        Parses a price string into a float. Handles European formats
+        and removes currency symbols and labels. Always returns a float.
+
+        """
+
+        if not text or str(text).strip() in ("", "-", "None"):
+            return 0.0
 
         try:
+            # Nettoyage robuste
+            clean = text.strip().lower()
+            clean = (
+                clean.replace('€', '')
+                    .replace('htva', '')
+                    .replace('ttc', '')
+                    .replace('\xa0', '')
+                    .replace('\u200e', '')
+                    .strip()
+            )
+
+            clean = re.sub(r"[^\d,\.]", "", clean)
+
+            if not clean:
+                return 0.0
+
+            if ',' in clean and '.' in clean:
+                if clean.rfind('.') < clean.rfind(','):
+                    clean = clean.replace('.', '').replace(',', '.')
+                else:
+                    clean = clean.replace(',', '')
+            elif ',' in clean:
+                clean = clean.replace(',', '.')
+
             return float(clean)
-        except ValueError:
-            return None
+
+        except (ValueError, TypeError):
+            return 0.0
 
     @staticmethod
-    def calculate_missing_price(htva: Optional[float], tva: Optional[float], 
+    def calculate_missing_price(htva: Optional[float], tva: Optional[float],
                                 tva_rate: float = 0.21) -> Tuple[Optional[float], Optional[float]]:
-        
+
         """
         Calculates the missing VAT-exclusive (htva) or VAT-inclusive (tva)
         price if the other is provided.
+
         """
-        
+
         if htva is not None and tva is None:
             tva = round(htva * (1 + tva_rate), 2)
         elif tva is not None and htva is None:
@@ -253,12 +264,13 @@ class ProductDataParser:
 
     @staticmethod
     def format_price_for_excel(price: Optional[float]) -> float:
-        
+
         """
         Formats a price for Excel (rounded float, or 'nan').
         Removes the numpy dependency.
+
         """
-        
+
         if price is None:
             return float('nan')
         try:
