@@ -14,10 +14,11 @@
 #    🔴 PRIORITÉ 1.1 — BACKEND
 # ===============================================================
 
-[ ] Refactor DBcleaner — charger les CSV sources en parallèle (ThreadPoolExecutor) si possible ?
-[ ] Refactor DBcleaner — indexation croisée en parallèle (ThreadPoolExecutor) si goulot détecté si possible ?
-[ ] Implémenter DB Georges — scraping ou export ERP du catalogue interne
-[ ] Implémenter loader Georges dans CORE/__DATABASES/loader/
+[ ] Refactor DBcleaner — charger les CSV sources en parallèle (ThreadPoolExecutor) si possible ? -> pas besoin si fait en local et only dl via programme ? sauf si passage de flambeau et matériel lent
+[ ] Refactor DBcleaner — indexation croisée en parallèle (ThreadPoolExecutor) si goulot détecté si possible ? -> pas besoin si fait en local et only dl via programme ? sauf si passage de flambeau et matériel lent
+[ ] trouver un moyen d'accélérer le démarrage (cause de la lenteur: le chargement de master db au début pour le service de recherche pour l'user) -> ThreadPoolExecutor ?
+[ ] Implémenter DB Georges — scraping ou export ERP du catalogue interne -> à discuter avec staff informatique georges
+[ ] Implémenter loader Georges dans CORE/__DATABASES/loader/ -> à discuter avec staff informatique georges
 
 # ===============================================================
 #   🔴 PRIORITÉ 1.2 — FRONTEND
@@ -45,15 +46,15 @@
 #   🟡 PRIORITÉ 2 — SYSTÈME DE BUILD, DISTRIBUTION & MISES À JOUR
 # ===============================================================
 
-[ ] requirements.txt complet et à jour
-[ ] Configurer GitHub Actions pour build automatique :
+[*] requirements.txt complet et à jour
+[*] Configurer GitHub Actions pour build automatique :
       - Fichier .github/workflows/build.yml
       - Runner windows-latest
       - Déclenché sur git tag v*
       - Upload .exe dans GitHub Releases automatiquement
 [ ] Créer updater.py et le compiler séparément en updater.exe
       - Inclure updater.exe dans le .spec comme data ou binaire séparé
-[ ] Trouver un système optimisé pour les DB également
+[ ] Trouver un système d'update optimisé pour les DB également
 [ ] Implémenter notification de nouvelle version app dans l'UI (bannière ou popup)
       - Bouton "Voir les notes de version" → ouvre GitHub Releases dans navigateur
 [ ] Brancher le bouton "Rechercher des mises à jour" dans system.py
@@ -73,9 +74,9 @@
 #   💡 IDÉES / PLUS TARD
 # =====================================================
 
-[ ] Module IA — reconnaissance titre/prix via LLM local (Ollama + moondream)
-      → Fallback si JSON-LD absent ET aucun sélecteur CSS ne match
-[ ] Page analytics — visualiser l'évolution des prix dans le temps (graphe)
-[ ] Export PDF du rapport de prix en plus du XLSX
-[ ] Mode dark/light theme ?
-[ ] API mode — lancer les watchers via CLI sans GUI (déjà partiellement là avec Launcher.py --loader)
+[ ] Module IA — reconnaissance titre/prix via LLM local (Ollama + moondream) -> ? A réfléchir
+      → Fallback si JSON-LD absent ET aucun sélecteur CSS ne match -> ? A réfléchir
+[ ] Page analytics — visualiser l'évolution des prix dans le temps (graphe) -> +++
+[ ] Export PDF du rapport de prix en plus du XLSX -> donner cette possibilité via version WEB ???? (cf point juste au dessus)
+[ ] Mode dark/light theme ? -> En dernier lieu et encore
+[ ] API mode — lancer les watchers via CLI sans GUI (déjà partiellement là avec Launcher.py --loader) -> interessant, why not
