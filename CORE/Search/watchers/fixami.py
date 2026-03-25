@@ -5,5 +5,5 @@ from typing import List
 
 
 class FIXAMIwatcher(WatcherEngine):
-    def __init__(self, items: List[dict], config: UserService):
-        super().__init__("FIXAMI", items, config)
+    def __init__(self, items: List[dict], config: UserService, progress_callback=None):
+        super().__init__("FIXAMI", items, config, progress_callback)

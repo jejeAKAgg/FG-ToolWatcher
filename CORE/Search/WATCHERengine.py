@@ -42,7 +42,7 @@ class WatcherEngine:
 
     """
 
-    def __init__(self, site_key: str, items: List[dict], config: UserService):
+    def __init__(self, site_key: str, items: List[dict], config: UserService, progress_callback=None):
 
         # === INTERNAL VARIABLE(S) ===
         self.ATTEMPT = 0
@@ -72,6 +72,7 @@ class WatcherEngine:
 
         self.ITEMS = items
         self.CONFIG = config
+        self.PROGRESS = progress_callback
 
         self.CACHE_DELAY = self.CONFIG.get(key="cache_duration", default=3)
 
@@ -149,7 +150,7 @@ class WatcherEngine:
 
         try:
             df = pd.read_csv(os.path.join(DATA_SUBFOLDER, "MASTERproductsDB.csv"), encoding='utf-8-sig', dtype=str)
-            df = df[df["Société"].str.upper() == self.WEBSITE].copy()
+            df = df[df["Company"].str.upper() == self.WEBSITE].copy()
 
             df['EAN'] = df['EAN'].str.strip().str.upper()
             df['MPN'] = df['MPN'].str.strip().str.upper()
@@ -537,29 +538,33 @@ class WatcherEngine:
 
         CACHEdata = self._cache_checker(path=CSVpath)
 
+        ITEMSlenght = len(self.ITEMS)
+
         PRODUCTS: List[dict] = []
 
         try:
-            for ITEM in self.ITEMS:
+            for idx, ITEM in enumerate(self.ITEMS, 1):
                 ITEMname = ITEM.get("name", "-")
 
                 # Cache hit
                 if cached := self._cache_checker(cache_df=CACHEdata, item=ITEMname):
                     PRODUCTS.append(cached)
-
                     LOG.debug(f"Cache hit: {ITEMname}")
-                    continue
-
-                # DB search
-                DATA = self._extract_DBproduct(ITEM)
-                if DATA:
-                    result = self._extract_FINALproduct(db_row=DATA, item_name=ITEMname)
-                    if result:
-                        PRODUCTS.append(result)
                 else:
-                    LOG.warning(f"Product missing from database — {ITEMname} (EAN={ITEM.get('ean')} / MPN={ITEM.get('mpn')})")
+                    # DB search
+                    DATA = self._extract_DBproduct(ITEM)
+                    if DATA:
+                        result = self._extract_FINALproduct(db_row=DATA, item_name=ITEMname)
+                        if result:
+                            PRODUCTS.append(result)
+                    else:
+                        LOG.warning(f"Product missing from database — {ITEMname} (EAN={ITEM.get('ean')} / MPN={ITEM.get('mpn')})")
 
-                time.sleep(random.uniform(1.5, 3))
+                    time.sleep(random.uniform(1.5, 3))
+
+                # Progress callback
+                if self.PROGRESS and ITEMSlenght > 0:
+                    self.PROGRESS(int(idx / ITEMSlenght * 100))
 
         except Exception as e:
             LOG.error(f"A fatal error occurred: {e}")
