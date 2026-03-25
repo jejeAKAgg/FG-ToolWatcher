@@ -32,14 +32,14 @@ class WatcherEngine:
     Loads site-specific configurations (price selectors, VAT rates, domains)
     from CORE/DATABASE/websites.json.
 
-    Each dedicated watcher inherits from this class and passes its 
+    Each dedicated watcher inherits from this class and passes its
     unique site key (e.g., "FIXAMI") to the constructor.
 
     Usage:
         class FIXAMIwatcher(WatcherEngine):
             def __init__(self, items, config):
                 super().__init__("FIXAMI", items, config)
-    
+
     """
 
     def __init__(self, site_key: str, items: List[dict], config: UserService):
@@ -62,7 +62,7 @@ class WatcherEngine:
 
         # === INTERNAL PARAMETER(S) ===
         self.WEBSITE = site_key.upper()
-        self.WEBSITEcfg = self._load_site_config()        
+        self.WEBSITEcfg = self._load_site_config()
 
         self.DOMAIN = self.WEBSITEcfg.get("domain", "")
         self.SELECTORS = self.WEBSITEcfg.get("selectors", {})
@@ -72,7 +72,7 @@ class WatcherEngine:
 
         self.ITEMS = items
         self.CONFIG = config
-        
+
         self.CACHE_DELAY = self.CONFIG.get(key="cache_duration", default=3)
 
         # === INTERNAL SERVICE(S) ===
@@ -105,28 +105,28 @@ class WatcherEngine:
     # ─────────────
 
     def _load_site_config(self) -> dict:
-        
+
         """
         Loads site-specific configuration from websites.json.
 
-        Fetches the required metadata for the specified site, including 
-        base URLs, sitemap locations, and the precise HTML selectors 
+        Fetches the required metadata for the specified site, including
+        base URLs, sitemap locations, and the precise HTML selectors
         (tags, classes, or IDs) needed for product data extraction.
-        
+
         """
-        
+
         try:
 
             with open(os.path.join(RESOURCES_FOLDER, "websites.json"), encoding="utf-8") as f:
                 CONFIGS = json.load(f)
-            
+
             BALISES = CONFIGS.get(self.WEBSITE)
-            
+
             if not BALISES:
                 raise KeyError(f"Key value '{self.WEBSITE}' not in websites.json")
-            
+
             return BALISES
-        
+
         except Exception as e:
             LOG.exception(f"An error occurred during READ: {e}")
             return {}
@@ -137,10 +137,10 @@ class WatcherEngine:
     # ──────────────────────
 
     def _load_db(self) -> Optional[pd.DataFrame]:
-        
+
         """
         Loads the MASTER_DB and filters records for the current company.
-        
+
         """
 
         if not os.path.exists(os.path.join(DATA_SUBFOLDER, "MASTERproductsDB.csv")):
@@ -150,25 +150,25 @@ class WatcherEngine:
         try:
             df = pd.read_csv(os.path.join(DATA_SUBFOLDER, "MASTERproductsDB.csv"), encoding='utf-8-sig', dtype=str)
             df = df[df["Société"].str.upper() == self.WEBSITE].copy()
-            
+
             df['EAN'] = df['EAN'].str.strip().str.upper()
             df['MPN'] = df['MPN'].str.strip().str.upper()
-            
+
             LOG.debug(f"DB loaded — {len(df)} products.")
             return df.reset_index(drop=True)
-        
+
         except Exception as e:
             LOG.exception(f"An error occurred during LOADING MASTERproductsDB: {e}")
             return None
 
     def _extract_DBproduct(self, item: dict) -> Optional[Dict[str, Any]]:
-        
+
         """
         Searches for a product in the database using a tiered fallback strategy:
         EAN → Exact MPN → Partial MPN → Fuzzy Name matching.
-        
+
         """
-        
+
         if self.DBdataframe is None:
             return None
 
@@ -208,7 +208,7 @@ class WatcherEngine:
                 matched_name, score = result[0], result[1]
                 if score >= self.FUZZY_THRESHOLD:
                     match = self.DBdataframe[self.DBdataframe['Article'] == matched_name]
-            
+
                     LOG.debug(f"Fuzzy Match '{name}' → '{matched_name}' ({score}%)")
                     return match.iloc[0].to_dict()
 
@@ -226,39 +226,39 @@ class WatcherEngine:
                 try:
                     if os.path.getsize(path) == 0:
                         return pd.DataFrame(columns=self.DEFAULT_COLUMNS)
-                    
+
                     df = pd.read_csv(path, encoding='utf-8-sig')
                     for col in set(self.DEFAULT_COLUMNS) - set(df.columns):
                         df[col] = None
-                    
+
                     return df[self.DEFAULT_COLUMNS]
-                
+
                 except pd.errors.EmptyDataError:
                     return pd.DataFrame(columns=self.DEFAULT_COLUMNS)
-                
+
                 except Exception as e:
                     LOG.exception(f"An error occurred '{path}': {e}")
                     return pd.DataFrame(columns=self.DEFAULT_COLUMNS)
-            
+
             return pd.DataFrame(columns=self.DEFAULT_COLUMNS)
 
         elif cache_df is not None and item:
             if cache_df.empty or 'Recherche' not in cache_df.columns:
                 return None
-            
+
             row = cache_df[cache_df['Recherche'] == item]
             if row.empty:
                 return None
-            
+
             row_dict = row.iloc[0].to_dict()
             try:
                 last_checked = pd.to_datetime(row_dict.get("Checked on"))
                 if datetime.now() - last_checked <= timedelta(days=self.CACHE_DELAY):
                     return row_dict
-            
+
             except Exception:
                 pass
-            
+
             return None
 
         return None
@@ -269,13 +269,13 @@ class WatcherEngine:
     # ───────────────
 
     def _extract_field(self, soup: BeautifulSoup, field: str, jsonld: dict) -> str:
-        
+
         """
-        Extracts a product field from the soup or JSON-LD based on 
+        Extracts a product field from the soup or JSON-LD based on
         the selector configuration in websites.json.
-        
+
         """
-        
+
         sel = self.SELECTORS.get(field)
         result = None
 
@@ -288,7 +288,7 @@ class WatcherEngine:
                 "article": ["name"],
                 "price": ["price"]
             }
-            
+
             if field == "price":
                 offers = jsonld.get("offers", {})
                 if isinstance(offers, list) and offers:
@@ -301,12 +301,12 @@ class WatcherEngine:
                     if val:
                         result = val.get("name") if isinstance(val, dict) else val
                         break
-            
+
             # if DATA from JSON-LD, return
             if result:
                 return str(result).strip()
 
-        # --- else, fallback to HTML --- 
+        # --- else, fallback to HTML ---
         if isinstance(sel, dict):
             tag        = sel.get("tag")
             cls        = sel.get("class")
@@ -371,35 +371,35 @@ class WatcherEngine:
             if result and split_on:
                 parts = result.upper().split(split_on.upper())
                 result = parts[-1].strip().split()[0] if len(parts) > 1 else "-"
-            
+
             if result and replace_:
                 result = result.upper().replace(replace_.upper(), "").strip()
 
         return str(result).strip() if result and str(result).lower() != "none" else "-"
-    
+
     def _clean_ean(self, raw: str) -> str:
-        
+
         """
-        Standardizes the EAN by removing non-alphanumeric characters 
+        Standardizes the EAN by removing non-alphanumeric characters
         (spaces, dots, dashes) and converting to uppercase.
-        
+
         """
 
         cleaned = "".join(filter(str.isalnum, str(raw))).upper()
-        
+
         return cleaned if cleaned else "-"
-    
+
     def _clean_mpn(self, raw: str) -> str:
-        
+
         """
         Cleans the MPN by removing known brand names and extra whitespace.
         Ensures the reference is standardized for database matching.
-        
+
         """
 
-        brands = sorted(self.parser.brands, key=len, reverse=True)        
+        brands = sorted(self.parser.brands, key=len, reverse=True)
         cleaned = str(raw).lower()
-        
+
         for b in brands:
             cleaned = cleaned.replace(b.lower(), "")
 
@@ -423,7 +423,7 @@ class WatcherEngine:
                 - "X.XX€ (Y.Y%)" if the price decreased.
                 - "=" if the price remained unchanged.
                 - "-" if one of the prices is invalid (0 or negative).
-        
+
         """
 
         if base > 0 and current > 0:
@@ -440,10 +440,10 @@ class WatcherEngine:
     # ─────────────
 
     def _extract_FINALproduct(self, db_row: Dict[str, Any], item_name: str) -> Optional[dict]:
-        
+
         """
         Scrapes the product page and returns a result dictionary.
-        
+
         """
 
         # === INTERNAL VARIABLE(S) ===
@@ -471,7 +471,7 @@ class WatcherEngine:
             try:
                 response = self.requests.get(db_row.get('ArticleURL', '-'), headers=self.REQUESTS_HEADERS)
                 response.raise_for_status()
-                
+
                 time.sleep(self.WAIT_TIME) # Loading time (JS)
 
                 ARTICLEpage = response.content
@@ -512,17 +512,17 @@ class WatcherEngine:
                     return PRODUCTvar
 
                 LOG.exception(f"Error HTTP {e.response.status_code} : {db_row.get('ArticleURL', '-')}")
-        
+
                 self.ATTEMPT += 1
                 time.sleep(self.RETRY_DELAY)
 
             except Exception as e:
                 LOG.exception(f"Error during data extraction for product {db_row.get('ArticleURL', '-')}: {e}")
-                
+
                 self.ATTEMPT+=1
                 time.sleep(self.RETRY_DELAY)
 
-        LOG.warning(f"Abandoning after {self.MAX_RETRIES} attempts for product {db_row.get('ArticleURL', '-')}")        
+        LOG.warning(f"Abandoning after {self.MAX_RETRIES} attempts for product {db_row.get('ArticleURL', '-')}")
         return None
 
 
@@ -536,7 +536,7 @@ class WatcherEngine:
         XLSXpath = os.path.join(RESULTS_SUBFOLDER_TEMP, f"{self.WEBSITE}products.xlsx")
 
         CACHEdata = self._cache_checker(path=CSVpath)
-        
+
         PRODUCTS: List[dict] = []
 
         try:
@@ -546,7 +546,7 @@ class WatcherEngine:
                 # Cache hit
                 if cached := self._cache_checker(cache_df=CACHEdata, item=ITEMname):
                     PRODUCTS.append(cached)
-                    
+
                     LOG.debug(f"Cache hit: {ITEMname}")
                     continue
 

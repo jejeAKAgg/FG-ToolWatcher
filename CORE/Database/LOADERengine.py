@@ -31,12 +31,12 @@ class LoaderEngine:
     """
     Generic product catalog scraping engine.
 
-    Reads configuration (sitemaps, domains, CSS selectors, VAT rates) 
-    from CORE/__RESOURCES/websites.json and centralizes common logic: 
-    sitemap discovery, GZIP decompression, batch processing, and 
+    Reads configuration (sitemaps, domains, CSS selectors, VAT rates)
+    from CORE/__RESOURCES/websites.json and centralizes common logic:
+    sitemap discovery, GZIP decompression, batch processing, and
     HTML/JSON-LD extraction.
 
-    Each site-specific loader inherits from this class and passes its 
+    Each site-specific loader inherits from this class and passes its
     unique site key (e.g., "FIXAMI") to the constructor.
 
     Usage:
@@ -46,7 +46,7 @@ class LoaderEngine:
 
         if __name__ == "__main__":
             FIXAMIloader().run()
-    
+
     """
 
     def __init__(self, site_key: str):
@@ -63,7 +63,7 @@ class LoaderEngine:
         self.URLs: List[str] = []
 
         self.DB_COLS = [
-            'EAN', 'MPN', 
+            'EAN', 'MPN',
             'Brand', 'Article',
             'Base Price (HTVA)', 'Base Price (TVA)',
             'ArticleURL', 'Checked on'
@@ -71,7 +71,7 @@ class LoaderEngine:
 
         # === INTERNAL PARAMETER(S) ===
         self.WEBSITE = site_key.upper()
-        self.WEBSITEcfg = self._load_site_config()        
+        self.WEBSITEcfg = self._load_site_config()
 
         self.DOMAIN = self.WEBSITEcfg.get("domain", "")
         self.SELECTORS = self.WEBSITEcfg.get("selectors", {})
@@ -106,28 +106,28 @@ class LoaderEngine:
     # ─────────────
 
     def _load_site_config(self) -> dict:
-        
+
         """
         Loads site-specific configuration from websites.json.
 
-        Fetches the required metadata for the specified site, including 
-        base URLs, sitemap locations, and the precise HTML selectors 
+        Fetches the required metadata for the specified site, including
+        base URLs, sitemap locations, and the precise HTML selectors
         (tags, classes, or IDs) needed for product data extraction.
-        
+
         """
-        
+
         try:
 
             with open(os.path.join(RESOURCES_FOLDER, "websites.json"), encoding="utf-8") as f:
                 CONFIGS = json.load(f)
-            
+
             BALISES = CONFIGS.get(self.WEBSITE)
-            
+
             if not BALISES:
                 raise KeyError(f"Key value '{self.WEBSITE}' not in websites.json")
-            
+
             return BALISES
-        
+
         except Exception as e:
             LOG.exception(f"An error occurred during READ: {e}")
             return {}
@@ -141,30 +141,30 @@ class LoaderEngine:
 
         """
         Dynamically retrieves product sitemap URLs (Sitemapp) from the given sitemap index.
-        
+
         """
 
         LOG.info(f"Fetching sitemap index")
-        
+
         if not self.SITEMAPindex:
             LOG.info("No sitemaps index for this website")
             return
-        
+
         try:
             response = self.requests.get(self.SITEMAPindex, headers=self.REQUESTS_HEADERS)
             response.raise_for_status()
-            
+
             soup = BeautifulSoup(response.content, "xml")
-            
+
             self.SITEMAPurls = [loc.text.strip() for loc in soup.find_all('loc')]
-            
+
             LOG.info(f"{len(self.SITEMAPurls)} sitemaps discovered.")
-        
+
         except Exception as e:
             LOG.error(f"An error occured during the retrieve: {e}")
 
     def _fetch_and_decompress_sitemap(self, link: str) -> Optional[str]:
-        
+
         """
         Downloads the sitemap (which may be a compressed .gz file) and returns the decompressed XML content.
 
@@ -173,37 +173,37 @@ class LoaderEngine:
 
         Returns:
             str | None: The decompressed XML content as a string, or None if the download or decompression fails.
-        
+
         """
-        
+
         LOG.info(f"Fetching sitemap: {link}")
-        
+
         try:
             response = self.requests.get(link, headers=self.REQUESTS_HEADERS)
             response.raise_for_status()
-            
+
             time.sleep(self.WAIT_TIME)
-            
+
             if link.endswith('.gz'):
                 LOG.info("Content is GZIP compressed. Decompressing...")
 
                 return gzip.decompress(response.content).decode('utf-8')
-            
+
             return response.text
-        
+
         except requests.exceptions.HTTPError as e:
             LOG.exception(f"HTTP {e.response.status_code} one the following sitemap: {link}")
-        
+
         except Exception as e:
             LOG.exception(f"An error occurred during the decompress of the following sitemap: {e}")
-        
+
         return None
 
     def _extract_SITEMAPurls(self, link: str) -> List[str]:
 
         """
         Downloads the sitemap and extracts all <loc> URLs (applying filtering logic).
-        
+
         """
 
         LOG.info(f"Downloading sitemap: {link}...")
@@ -217,13 +217,13 @@ class LoaderEngine:
         while self.ATTEMPT < self.MAX_RETRIES:
             try:
                 ARTICLEpage = self._fetch_and_decompress_sitemap(link)
-                
+
                 if ARTICLEpage is None:
                     LOG.error(f"Sitemap empty or unavailable for {link}")
-                    
+
                     self.ATTEMPT += 1
                     time.sleep(self.RETRY_DELAY)
-                    
+
                     continue # Retry the download
 
                 soup = BeautifulSoup(ARTICLEpage, "xml")
@@ -253,13 +253,13 @@ class LoaderEngine:
 
             except Exception as e:
                 LOG.exception(f"Error during sitemap extraction: {e}")
-                
+
                 self.ATTEMPT+=1
                 if self.ATTEMPT == self.MAX_RETRIES:
                     LOG.warning(f"Abandoning after {self.MAX_RETRIES} attempts.")
 
                     return []
-                
+
                 time.sleep(self.RETRY_DELAY)
 
         return []
@@ -270,30 +270,30 @@ class LoaderEngine:
     # ──────────────────────
 
     def _load_DBurls(self, csv_path: str) -> set:
-        
+
         """
         Loads already processed URLs from the existing DB for restart logic (cache checker).
-        
+
         """
 
         if os.path.exists(csv_path):
             try:
                 df = pd.read_csv(csv_path, usecols=['ArticleURL'], encoding='utf-8-sig')
                 urls = set(df['ArticleURL'].astype(str).tolist())
-                
+
                 LOG.info(f"Existing database found for {csv_path}: {len(urls)} URLs already processed.")
                 return urls
-            
+
             except Exception as e:
                 LOG.exception(f"Error loading existing DB: {e}. Full restart needed.")
-        
+
         return set()
-    
+
     def _save_batch(self, csv_path: str, batch_data: List[dict], is_emergency: bool = False) -> None:
 
         """
         Saves the current batch of data by appending it to the existing database file.
-        
+
         """
 
         if not batch_data:
@@ -312,7 +312,7 @@ class LoaderEngine:
                 NEWdf[col] = NEWdf[col].astype(str)
 
         NEWdf = NEWdf[COLS]
-        
+
         FILE = os.path.exists(csv_path)
 
         try:
@@ -325,10 +325,10 @@ class LoaderEngine:
                 quoting=csv.QUOTE_MINIMAL,
                 quotechar='"'
             )
-            
+
             if not is_emergency:
                 LOG.info(f"Batch saved.")
-        
+
         except Exception as e:
             LOG.exception(f"CRITICAL: Failed to merge batch due to {e}.")
 
@@ -338,13 +338,13 @@ class LoaderEngine:
     # ───────────────
 
     def _extract_field(self, soup: BeautifulSoup, field: str, jsonld: dict) -> str:
-        
+
         """
-        Extracts a product field from the soup or JSON-LD based on 
+        Extracts a product field from the soup or JSON-LD based on
         the selector configuration in websites.json.
-        
+
         """
-        
+
         sel = self.SELECTORS.get(field)
         result = None
 
@@ -357,7 +357,7 @@ class LoaderEngine:
                 "article": ["name"],
                 "price": ["price"]
             }
-            
+
             if field == "price":
                 offers = jsonld.get("offers", {})
                 if isinstance(offers, list) and offers:
@@ -370,12 +370,12 @@ class LoaderEngine:
                     if val:
                         result = val.get("name") if isinstance(val, dict) else val
                         break
-            
+
             # if DATA from JSON-LD, return
             if result:
                 return str(result).strip()
 
-        # --- else, fallback to HTML --- 
+        # --- else, fallback to HTML ---
         if isinstance(sel, dict):
             tag        = sel.get("tag")
             cls        = sel.get("class")
@@ -440,35 +440,35 @@ class LoaderEngine:
             if result and split_on:
                 parts = result.upper().split(split_on.upper())
                 result = parts[-1].strip().split()[0] if len(parts) > 1 else "-"
-            
+
             if result and replace_:
                 result = result.upper().replace(replace_.upper(), "").strip()
 
         return str(result).strip() if result and str(result).lower() != "none" else "-"
-    
+
     def _clean_ean(self, raw: str) -> str:
-        
+
         """
-        Standardizes the EAN by removing non-alphanumeric characters 
+        Standardizes the EAN by removing non-alphanumeric characters
         (spaces, dots, dashes) and converting to uppercase.
-        
+
         """
 
         cleaned = "".join(filter(str.isalnum, str(raw))).upper()
-        
+
         return cleaned if cleaned else "-"
-    
+
     def _clean_mpn(self, raw: str) -> str:
-        
+
         """
         Cleans the MPN by removing known brand names and extra whitespace.
         Ensures the reference is standardized for database matching.
-        
+
         """
 
-        brands = sorted(self.parser.brands, key=len, reverse=True)        
+        brands = sorted(self.parser.brands, key=len, reverse=True)
         cleaned = str(raw).lower()
-        
+
         for b in brands:
             cleaned = cleaned.replace(b.lower(), "")
 
@@ -480,14 +480,14 @@ class LoaderEngine:
     # ─────────────
 
     def _ONLINEextract_FINALproduct(self, link: str) -> Optional[dict]:
-        
+
         """
         Scrapes a product page and returns a normalized dictionary.
 
-        Extracts raw data from the page using site-specific selectors 
-        and JSON-LD metadata, then formats it into a standard schema 
+        Extracts raw data from the page using site-specific selectors
+        and JSON-LD metadata, then formats it into a standard schema
         (EAN, MPN, Brand, Price) for database consistency.
-        
+
         """
 
         # === INTERNAL VARIABLE(S) ===
@@ -511,13 +511,13 @@ class LoaderEngine:
             try:
                 response = self.requests.get(link, headers=self.REQUESTS_HEADERS)
                 response.raise_for_status()
-                
+
                 time.sleep(self.WAIT_TIME) # Loading time (JS)
 
                 ARTICLEpage = response.content
 
                 soup = BeautifulSoup(ARTICLEpage, "html.parser")
-                
+
                 JSONdata = {}
                 for s in soup.find_all('script', type='application/ld+json'):
                     try:
@@ -531,7 +531,7 @@ class LoaderEngine:
                             break
                     except (json.JSONDecodeError, Exception):
                         continue
-                    
+
                 # ── EAN ──
                 PRODUCTvar["EAN"] = self._clean_ean(self._extract_field(soup, "ean", JSONdata))
 
@@ -556,20 +556,20 @@ class LoaderEngine:
             except requests.exceptions.HTTPError as http_err:
                 if response.status_code == 404:
                     LOG.warning(f"Invalid link (404 Not Found). Saving failure for future skip: {link}")
-                    return PRODUCTvar 
-                
+                    return PRODUCTvar
+
                 LOG.exception(f"HTTP Error ({response.status_code}) for {link}: {http_err}")
 
                 self.ATTEMPT+=1
                 time.sleep(self.RETRY_DELAY)
-            
+
             except Exception as e:
                 LOG.exception(f"Error during data extraction for product {link}: {e}")
-                
+
                 self.ATTEMPT+=1
                 time.sleep(self.RETRY_DELAY)
 
-        LOG.warning(f"Abandoning after {self.MAX_RETRIES} attempts for product {link}")    
+        LOG.warning(f"Abandoning after {self.MAX_RETRIES} attempts for product {link}")
         return None
 
 
@@ -578,22 +578,22 @@ class LoaderEngine:
     # ────────────
 
     def run(self) -> None:
-        
+
         """
         Executes the complete scraping pipeline: discovery, extraction, and persistence.
 
         The workflow follows these stages:
-            1. Initialization: Sets up output paths and loads processed URLs from existing 
+            1. Initialization: Sets up output paths and loads processed URLs from existing
             databases (CSV and CSVnot) to support resume-on-failure.
             2. Discovery: Retrieves sitemap URLs via index discovery or manual configuration.
-            3. Extraction: Iterates through discovered product URLs, filtering out 
+            3. Extraction: Iterates through discovered product URLs, filtering out
             previously processed items.
-            4. Processing: Scrapes product data and categorizes results into 'success' 
+            4. Processing: Scrapes product data and categorizes results into 'success'
             (valid products) or 'fails' (missing EAN/MPN or invalid price).
             5. Batch Persistence: Periodically saves results to disk to minimize data loss.
-            6. Finalization: Ensures remaining data is saved and handles critical errors 
+            6. Finalization: Ensures remaining data is saved and handles critical errors
             via an emergency save routine.
-        
+
         """
 
         CSVpathDB = os.path.join(DATA_SUBFOLDER_SOURCE, f"{self.WEBSITE}productsDB.csv")
@@ -622,18 +622,18 @@ class LoaderEngine:
                     data = self._ONLINEextract_FINALproduct(PRODUCTurl)
 
                     LOG.debug(data)
-                    
+
                     if data is None: continue
 
                     if data and not pd.isna(data['Base Price (HTVA)']) and data['Base Price (HTVA)'] > 0: PRODUCTS.append(data)
                     else: FAILS.append(data)
 
                     self.SAVE_COUNTER += 1
-                    
+
                     if self.SAVE_COUNTER >= self.SAVE_THRESHOLD:
                         self._save_batch(CSVpathDB, PRODUCTS)
                         self._save_batch(CSVpathDBnot, FAILS)
-                        
+
                         self.SAVE_COUNTER = 0
                         PRODUCTS, FAILS = [], []
 
@@ -647,7 +647,7 @@ class LoaderEngine:
             if FAILS: self._save_batch(CSVpathDBnot, FAILS)
 
         except Exception as e:
-            
+
             if PRODUCTS: self._save_batch(CSVpathDB, PRODUCTS, is_emergency=True)
             if FAILS:    self._save_batch(CSVpathDBnot, FAILS, is_emergency=True)
 
