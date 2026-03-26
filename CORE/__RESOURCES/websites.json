@@ -17,11 +17,11 @@
         "domain": "clabots.be",
         "sitemap_index": null,
         "sitemap_manual": ["https://www.clabots.be/media/sitemaps/1/sitemap-product-1.xml.gz"],
-        "jsonld": true,
+        "jsonld": false,
         "selectors": {
             "ean": {"tag": "li", "text_contains": "EAN:", "replace": "EAN:"},
             "mpn": {"tag": "div", "class": "attribute-table__row", "label": "Code article du fournisseur"},
-            "brand": {"tag": "li", "class": "product-manufacturer", "child_tag": "a"},
+            "brand": {"tag": "div", "class": "attribute-table__row", "label": "Marque", "replace": "- Pas de marque -"},
             "article": {"tag": "h1", "class": "page-title"},
             "price": {"tag": "p", "class": "your-price"}
         },
