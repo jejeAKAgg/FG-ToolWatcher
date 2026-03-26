@@ -36,6 +36,7 @@ class WatcherGUI(QWidget):
     """
     Main Application Window (GUI) for FG-ToolWatcher.
     Manages global navigation, language switching, and the primary application stack.
+
     """
 
     def __init__(self, config_service: UserService, translator_service: TranslatorService):
@@ -46,6 +47,7 @@ class WatcherGUI(QWidget):
         Args:
             config_service (UserService): Instance for handling user data and preferences.
             translator_service (TranslatorService): Instance for handling multi-language support.
+
         """
 
         super().__init__()
@@ -53,9 +55,9 @@ class WatcherGUI(QWidget):
         # === INPUT VARIABLE(S) ===
         self.configs = config_service
         self.translator = translator_service
-        
+
         # === INTERNAL VARIABLE(S) ===
-        self.translator.load_language(self.configs.get("language", "en"))
+        self.translator.load_language(self.configs.get("system_language", "fr"))
 
         # === WINDOW SETTINGS ===
         self.setWindowTitle("FG-ToolWatcher")
@@ -76,29 +78,29 @@ class WatcherGUI(QWidget):
         self.background_widget.lower()
 
         # --- TOP BAR & HEADER ---
-        self.settings_button = CustomPushButton(icon_path=os.path.join(ASSETS_FOLDER, "icons", "settings.ico"), icon_size_width=35, icon_size_height=35, width=100, height=50, bg_color="#818386", hover_color="#6d6e70", text_color="#FFFFFF", alpha=0.5)
-        self.update_button = CustomPushButton(icon_path=os.path.join(ASSETS_FOLDER, "icons", "update.ico"))
-        self.profile_button = CustomPushButton(icon_path=os.path.join(ASSETS_FOLDER, "icons", "profile.ico"))
+        self.settings_button = CustomPushButton(icon_path=os.path.join(ASSETS_FOLDER, "icons", "settings.ico"), icon_size_width=35, icon_size_height=35, width=100, height=50, bg_color="#818386", hover_color="#6d6e70", text_color="#000000", alpha=0.5)
+        self.stats_button = CustomPushButton(icon_path=os.path.join(ASSETS_FOLDER, "icons", "stats.ico"), icon_size_width=35, icon_size_height=35, width=100, height=50, bg_color="#818386", hover_color="#6d6e70", text_color="#000000", alpha=0.5)
+        self.docs_button = CustomPushButton(icon_path=os.path.join(ASSETS_FOLDER, "icons", "docs.ico"), icon_size_width=35, icon_size_height=35, width=100, height=50, bg_color="#818386", hover_color="#6d6e70", text_color="#000000", alpha=0.5)
 
-        self.english_button = CustomPushButton(icon_path=os.path.join(ASSETS_FOLDER, "icons", "english.ico"), width=55, height=35, bg_color='#818386', hover_color='#6d6e70',  text_color="#FFFFFF", alpha=0.5)
-        self.french_button = CustomPushButton(icon_path=os.path.join(ASSETS_FOLDER, "icons", "french.ico"), width=55, height=35, bg_color='#818386', hover_color='#6d6e70', text_color="#FFFFFF", alpha=0.5)
-        self.netherlands_button = CustomPushButton(icon_path=os.path.join(ASSETS_FOLDER, "icons", "netherlands.ico"), width=55, height=35, bg_color='#818386', hover_color='#6d6e70', text_color="#FFFFFF", alpha=0.5)
+        self.english_button = CustomPushButton(icon_path=os.path.join(ASSETS_FOLDER, "icons", "english.ico"), width=55, height=35, bg_color='#818386', hover_color='#6d6e70',  text_color="#000000", alpha=0.5)
+        self.french_button = CustomPushButton(icon_path=os.path.join(ASSETS_FOLDER, "icons", "french.ico"), width=55, height=35, bg_color='#818386', hover_color='#6d6e70', text_color="#000000", alpha=0.5)
+        self.netherlands_button = CustomPushButton(icon_path=os.path.join(ASSETS_FOLDER, "icons", "netherlands.ico"), width=55, height=35, bg_color='#818386', hover_color='#6d6e70', text_color="#000000", alpha=0.5)
 
-        self.update_button.setToolTip(self.translator.get("tip_update.button"))
-        self.profile_button.setToolTip(self.translator.get("tip_profile.button"))
         self.settings_button.setToolTip(self.translator.get("tip_settings.button"))
-        
-        self.update_button.clicked.connect(self.toggle_setup)
-        self.profile_button.clicked.connect(self.toggle_profile)
-        self.settings_button.clicked.connect(self.toggle_settings)
+        self.stats_button.setToolTip(self.translator.get("tip_profile.button"))
+        self.docs_button.setToolTip(self.translator.get("tip_update.button"))
 
-        TOP_BAR = create_top_buttons(update_button=self.update_button, profile_button=self.profile_button, settings_button=self.settings_button, english_button=self.english_button, french_button=self.french_button, netherlands_button=self.netherlands_button)
+        self.settings_button.clicked.connect(self.toggle_settings)
+        self.stats_button.clicked.connect(self.toggle_stats)
+        self.docs_button.clicked.connect(self.toggle_docs)
+
+        TOP_BAR = create_top_buttons(settings_button=self.settings_button, english_button=self.english_button, french_button=self.french_button, netherlands_button=self.netherlands_button, stats_button=self.stats_button, docs_button=self.docs_button)
         HEADER = create_top_header("FG-ToolWatcher", os.path.join(ASSETS_FOLDER, "icons", "FG-TWicoBG.ico"))
 
         # --- BOTTOM BAR ---
-        self.info_button = CustomPushButton(icon_path=os.path.join(ASSETS_FOLDER, "icons", "info.ico"))
-        self.ticket_button = CustomPushButton(icon_path=os.path.join(ASSETS_FOLDER, "icons", "problem.ico"), icon_size_width=35, icon_size_height=35, width=100, height=50, bg_color="#818386", hover_color="#6d6e70", text_color="#FFFFFF", alpha=0.5)
-        self.github_button = CustomPushButton(icon_path=os.path.join(ASSETS_FOLDER, "icons", "github.ico"), icon_size_width=35, icon_size_height=35, width=100, height=50, bg_color="#818386", hover_color="#6d6e70", text_color="#FFFFFF", alpha=0.5)
+        self.info_button = CustomPushButton(icon_path=os.path.join(ASSETS_FOLDER, "icons", "info.ico"), icon_size_width=35, icon_size_height=35, width=100, height=50, bg_color="#818386", hover_color="#6d6e70", text_color="#000000", alpha=0.5)
+        self.ticket_button = CustomPushButton(icon_path=os.path.join(ASSETS_FOLDER, "icons", "problem.ico"), icon_size_width=35, icon_size_height=35, width=100, height=50, bg_color="#818386", hover_color="#6d6e70", text_color="#000000", alpha=0.5)
+        self.github_button = CustomPushButton(icon_path=os.path.join(ASSETS_FOLDER, "icons", "github.ico"), icon_size_width=35, icon_size_height=35, width=100, height=50, bg_color="#818386", hover_color="#6d6e70", text_color="#000000", alpha=0.5)
 
         self.info_button.setToolTip(self.translator.get("tip_info.button"))
         self.ticket_button.setToolTip(self.translator.get("tip_ticket.button"))
@@ -111,10 +113,10 @@ class WatcherGUI(QWidget):
         BOTTOM_BAR = create_bottom_buttons(info_button=self.info_button, ticket_button=self.ticket_button, github_button=self.github_button)
 
         # --- BUTTONS STATE (top disabled by default) ---
-        self.settings_button.setEnabled(False)  
-        self.update_button.setEnabled(False)
-        self.profile_button.setEnabled(False)
-        
+        self.settings_button.setEnabled(False)
+        self.stats_button.setEnabled(False)
+        self.docs_button.setEnabled(False)
+
         # === PAGES ===
         self.stack = QStackedLayout()
         self.stack_container = QWidget()
@@ -142,7 +144,7 @@ class WatcherGUI(QWidget):
         main_layout = QVBoxLayout(self)
         main_layout.setContentsMargins(5, 5, 5, 5)
         main_layout.setSpacing(20)
-        
+
         main_layout.addWidget(TOP_BAR)
         main_layout.addWidget(HEADER)
         main_layout.addWidget(self.stack_container)
@@ -155,45 +157,47 @@ class WatcherGUI(QWidget):
         self.netherlands_button.clicked.connect(lambda: self._set_language(code="NL"))
 
         # --- Menu Page ---
-        self.main_page.calibrate_button.clicked.connect(self.toggle_calibration)
+        self.main_page.catalog_button.clicked.connect(self.toggle_calibration)
         self.main_page.start_button.clicked.connect(self._update_top_buttons)
         self.main_page.stop_button.clicked.connect(self._update_top_buttons)
 
 
     # === PUBLIC METHOD(S) ===
     def closeEvent(self, event: QCloseEvent):
-        
+
         """
         Handles the window close event to ensure threads are stopped.
+
         """
-        
-        LOG.debug("[WatcherGUI] Close event triggered.")
-        
+
+        LOG.debug("Close event triggered.")
+
         if hasattr(self, 'main_page') and self.main_page.watcher_thread.isRunning():
-            LOG.debug("[WatcherGUI] Watcher thread is running, attempting to stop...")
+            LOG.debug("Watcher thread is running, attempting to stop...")
             self.main_page.stop_watcher()
 
             if self.main_page.watcher_thread.isRunning():
-                 LOG.debug("[WatcherGUI] Warning: Watcher thread still running after stop attempt during close.")
+                 LOG.debug("Warning: Watcher thread still running after stop attempt during close.")
 
-        LOG.debug("[WatcherGUI] Accepting close event.")
+        if hasattr(self, 'search_page') and self.search_page._db_conn:
+            self.search_page._db_conn.close()
+            self.search_page._db_conn = None
+            LOG.debug("SQLite connection closed.")
+
+        LOG.debug("Accepting close event.")
         event.accept()
 
-    def toggle_settings(self):        
+    def toggle_settings(self):
         if self.stack.currentIndex() == 2:
             self.transition.fade_to(self.settings_page, on_start=lambda: None, on_finished=lambda: self._update_top_buttons())
         else:
             self.transition.fade_to(self.main_page, on_start=lambda: None, on_finished=lambda: self._update_top_buttons())
 
-    def toggle_setup(self):
-        self.setup_page.start_setup()
-        self.transition.fade_to(self.setup_page, on_start=lambda: None, on_finished=lambda: self._update_top_buttons())
+    def toggle_stats(self):
+        return
 
-    def toggle_profile(self):
-        if self.stack.currentIndex() == 2:
-            self.transition.fade_to(self.profile_page, on_start=lambda: None, on_finished=lambda: self._update_top_buttons())
-        else:
-            self.transition.fade_to(self.main_page, on_start=lambda: None, on_finished=lambda: self._update_top_buttons())
+    def toggle_docs(self):
+        return
 
     def toggle_calibration(self):
         self.transition.fade_to(self.search_page, on_start=lambda: None, on_finished=lambda: self._update_top_buttons())
@@ -201,41 +205,43 @@ class WatcherGUI(QWidget):
 
     def show_info(self):
         QMessageBox.information(self, self.translator.get("box_info_type.text"), self.translator.get("credits.text"))
-    
+
     def show_ticket(self):
         #TicketService(self.USERconfig, parent=self).exec()
         return
-    
+
     def show_github(self):
         QDesktopServices.openUrl(QUrl("https://github.com/jejeAKAgg/FG-ToolWatcher"))
-    
+
 
     # === PRIVATE METHOD(S) ===
     def _set_language(self, code: str):
-        
+
         """
         Sets the selected language in the user configuration service.
 
         Args:
             code (str): The language code (e.g., "FR", "EN").
+
         """
-        
+
         # === LOGIC ===
         # --- Setting new Language & Loading it ---
         self.configs.set("language", code)
         self.translator.load_language(code)
-        
+
         # --- Signal ---
         self._retranslate_ui()
 
     def _retranslate_ui(self):
-        
+
         """
         Function that updates all translatable texts in WatcherGUI and its child pages when the language is changed.
 
         NOTE: QMessageBox (like function show_info()) do not need to be updated as they read traduction only once it got opened.
+
         """
-        
+
         LOG.debug("Retranslating UI...")
 
         # === Refreshing child pages ===
@@ -246,9 +252,9 @@ class WatcherGUI(QWidget):
         self.setup_page.retranslate_ui()
 
         # === Refreshing tooltips of top/bottom buttons ===
-        self.update_button.setToolTip(self.translator.get("tip_update.button"))
-        self.profile_button.setToolTip(self.translator.get("tip_profile.button"))
         self.settings_button.setToolTip(self.translator.get("tip_settings.button"))
+        self.docs_button.setToolTip(self.translator.get("tip_profile.button"))
+        self.stats_button.setToolTip(self.translator.get("tip_update.button"))
 
         self.info_button.setToolTip(self.translator.get("tip_info.button"))
         self.ticket_button.setToolTip(self.translator.get("tip_ticket.button"))
@@ -258,6 +264,7 @@ class WatcherGUI(QWidget):
 
         """
         Function that updates all buttons in WatcherGUI and its child pages when a lambda action is made by the user.
+
         """
 
         LOG.debug("Updating buttons...")
@@ -266,39 +273,33 @@ class WatcherGUI(QWidget):
         current_page = self.stack.widget(current_index)
 
         if current_page == self.main_page:               # menu_page
-            self.profile_button.setEnabled(True)
-            self.profile_button.setText("")
             self.settings_button.setEnabled(True)
             self.settings_button.setText("")
-            self.update_button.setEnabled(True)
-        elif current_page == self.profile_page:          # profile_page 
-            if self.configs.get("user_mail"):
-                self.profile_button.setEnabled(True)
-                self.profile_button.setText("Menu")
-                self.settings_button.setEnabled(False)
-                self.update_button.setEnabled(False)
-            else:
-                self.profile_button.setEnabled(False)
-                self.settings_button.setEnabled(False)
-                self.settings_button.setText("")
-                self.update_button.setEnabled(False)
+            self.stats_button.setEnabled(False)
+            self.docs_button.setEnabled(True)
+        elif current_page == self.profile_page:          # profile_page
+            self.settings_button.setEnabled(False)
+            self.settings_button.setText("")
+            self.stats_button.setEnabled(False)
+            self.docs_button.setEnabled(False)
         elif current_page == self.search_page:           # search_page
             self.settings_button.setEnabled(True)
             self.settings_button.setText("Menu")
-            self.update_button.setEnabled(False)
-            self.profile_button.setEnabled(False)
+            self.stats_button.setEnabled(False)
+            self.docs_button.setEnabled(True)
         elif current_page == self.settings_page:         # settings_page
-            self.profile_button.setEnabled(False)
             self.settings_button.setEnabled(True)
             self.settings_button.setText("Menu")
-            self.update_button.setEnabled(False)
+            self.stats_button.setEnabled(False)
+            self.docs_button.setEnabled(True)
         elif current_page == self.setup_page:            # setup_page
-            self.profile_button.setEnabled(False)
             self.settings_button.setEnabled(False)
             self.settings_button.setText("")
-            self.update_button.setEnabled(False)
+            self.stats_button.setEnabled(False)
+            self.docs_button.setEnabled(False)
         else:                                            # Other pages
-            self.update_button.setEnabled(True)
-            self.settings_button.setText("")
-            self.profile_button.setEnabled(True)
             self.settings_button.setEnabled(True)
+            self.settings_button.setText("")
+            self.stats_button.setEnabled(False)
+            self.docs_button.setEnabled(True)
+
