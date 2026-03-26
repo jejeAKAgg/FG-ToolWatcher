@@ -43,37 +43,41 @@ class CustomProgressBar(QWidget):
         layout.addWidget(self.progress_bar)
         if show_text:
             layout.addWidget(self.label)
-        
+
     def value(self) -> int:
-        
+
         """
         Return the current value of the bar.
+
         """
-        
+
         return self.progress_bar.value()
 
     def set_value(self, value: int):
-        
+
         """
         Update the bar value and the text
+
         """
-        
+
         self.progress_bar.setValue(value)
         self.label.setText(f"{value}%")
 
     def set_text(self, text: str):
-        
+
         """
         Update the bar text status.
+
         """
-        
+
         self.process_label.setText(text)
 
     def reset(self):
-        
+
         """
         Reset the bar.
+
         """
-        
+
         self.progress_bar.setValue(0)
         self.label.setText("0%")
