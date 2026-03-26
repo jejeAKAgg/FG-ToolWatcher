@@ -12,7 +12,6 @@ import requests
 from bs4 import BeautifulSoup
 from datetime import datetime, timedelta
 from typing import Dict, Any, Optional, List
-from thefuzz import fuzz, process
 
 from CORE.Services.setup import *
 from CORE.Services.parser import ProductDataParser
@@ -177,41 +176,19 @@ class WatcherEngine:
         mpn = str(item.get("mpn",  "-")).strip().upper()
         name = str(item.get("name", "")).strip()
 
-        # --- EAN (100% match) ---
+        # --- EAN (100% match only) ---
         if ean not in ("-", "", "NAN"):
             match = self.DBdataframe[self.DBdataframe['EAN'] == ean]
             if not match.empty:
                 LOG.debug(f"Full Match EAN {ean}")
                 return match.iloc[0].to_dict()
 
-        # --- MPN (100% match) ---
+        # --- MPN (100% match only) ---
         if mpn not in ("-", "", "NAN"):
             match = self.DBdataframe[self.DBdataframe['MPN'] == mpn]
             if not match.empty:
                 LOG.debug(f"Full Match MPN {mpn}")
                 return match.iloc[0].to_dict()
-
-        # --- MPN (not 100% match) ---
-        if mpn not in ("-", "", "NAN"):
-            match = self.DBdataframe[
-                self.DBdataframe['MPN'].apply(
-                    lambda x: (mpn in x or x in mpn) and abs(len(mpn) - len(x)) <= 3
-                )
-            ]
-            if not match.empty:
-                LOG.debug(f"Partial Match MPN {mpn} → {match.iloc[0]['MPN']}")
-                return match.iloc[0].to_dict()
-
-        # --- Fuzzy Matching System ---
-        if name:
-            result = process.extractOne(name, self.DBdataframe['Article'].tolist(), scorer=fuzz.token_sort_ratio)
-            if result:
-                matched_name, score = result[0], result[1]
-                if score >= self.FUZZY_THRESHOLD:
-                    match = self.DBdataframe[self.DBdataframe['Article'] == matched_name]
-
-                    LOG.debug(f"Fuzzy Match '{name}' → '{matched_name}' ({score}%)")
-                    return match.iloc[0].to_dict()
 
         LOG.debug(f"No Match — EAN={ean} / MPN={mpn} / Article={name}")
         return None
