@@ -6,11 +6,12 @@ from PySide6.QtWidgets import QWidget, QHBoxLayout, QLabel
 
 
 def create_top_header(title_text, logo_path, logo_size=(120, 120)):
-    
+
     """
     Creates a header with a logo + centered title.
+
     """
-    
+
     container = QWidget()
     layout = QHBoxLayout(container)
     layout.setContentsMargins(0,0,0,0)
