@@ -1,62 +1,59 @@
 {
     "credits.text": "Gemaakt door LECHAT Jérôme",
 
-    "save.button": "Opslaan",
-    
-    "box_info_type.text": "Informatie",
-    "box_error_type.text": "Fout",
-    "box_advertisement_title.text": "Let op",
-
-    "tip_update.button": "Vernieuwen/Bijwerken",
-    "tip_profile.button": "Mijn Profiel",
-    "tip_settings.button": "Instellingen",
-    "tip_info.button": "Over",
-    "tip_ticket.button": "Rapporteren",
-    "tip_github.button": "GitHub",
-
-    "page_profile_informations.bar": "Uw gegevens",
-    "page_profile_lastname.bar": "Naam",
-    "page_profile_firstname.bar": "Voornaam",
-    "page_profile_mail.bar": "E-mail",
-    "page_profile_error_incomplete.box": "Alle velden moeten ingevuld zijn!",
-    "page_profile_error_mail.box": "Voer een geldig e-mailadres in!",
-
-    "subpage_settings_profile_lastname.bar": "Naam",
-    "subpage_settings_profile_firstname.bar": "Voornaam",
-    "subpage_settings_profile_mail.bar": "E-mail",
-
-    "page_search_input.placeholder": "Voer de naam van het gereedschap in...",
-    "page_search_no_result.box": "Geen resultaten gevonden voor uw zoekopdracht.",
-    "page_search_add.button": "Toevoegen",
-    "page_search_remove.button": "Verwijderen",
-
-    "page_settings_cache_title": "Cacheduur",
-    "page_settings_0day": "0 dag(en)",
-    "page_settings_1day": "1 dag(en)",
-    "page_settings_3days": "3 dag(en)",
-    "page_settings_7days": "7 dag(en)",
-    "page_settings_14days": "14 dag(en)",
-    "page_settings_send_email": "E-mail met resultaten verzenden",
-    
-    
-    "page_setup_start.text": "De applicatie wordt voorbereid...",
-    "page_setup_complete.text": "Applicatie is klaar voor gebruik!",
-    "page_setup_step1.text": "Integriteit van applicatiemappen en bestanden controleren...",
+    "page_setup_start.text": "Applicatie voorbereiden...",
+    "page_setup_step1.text": "Integriteit van mappen en bestanden controleren...",
     "page_setup_step2.text": "",
     "page_setup_step3.text": "",
     "page_setup_step4.text": "",
     "page_setup_step5.text": "",
+    "page_setup_complete.text": "Applicatie is klaar voor gebruik!",
+    "page_setup_welcome.text": "Welkom",
+    "page_setup_welcome_user.text": "Welkom, ",
 
+    "page_profile_informations.title": "Uw informatie",
+    "page_profile_firstname.subtitle": "Voornaam",
+    "page_profile_lastname.subtitle": "Naam",
+    "page_profile_mail.subtitle": "E-mail",
 
-    "subpage_settings_general": "Algemeen",
-    "subpage_settings_websites": "Websites",
-    "subpage_settings_profile": "Profiel",
-    "subpage_settings_system": "Systeem",
-    "subpage_settings_ai": "AI (BETA)",
+    "page_menu_start.button": "Starten",
+    "page_menu_stop.button": "Stoppen",
+    "page_menu_catalog.button": "Mijn Catalogus",
+    "page_menu_FGI.button": "FGI (SOON)",
+    "page_menu_calibration.button": "Kalibratie",
 
-    "subpage_settings_general.title": "Algemeen",
-    "subpage_settings_websites.title": "Websites",
-    "subpage_settings_profile.title": "Profiel",
-    "subpage_settings_system.title": "Systeem",
-    "subpage_settings_ai.title": "AI (BETA)"
+    "page_search_input.placeholder": "Voer de naam van het gereedschap in...",
+    "page_search_add.button": "Toevoegen",
+    "page_search_remove.button": "Verwijderen",
+
+    "page_settings_save.button": "Opslaan",
+    "page_settings_general.category": "Algemeen",
+    "page_settings_websites.category": "Websites",
+    "page_settings_profile.category": "Profiel",
+    "page_settings_system.category": "Systeem",
+    "page_settings_AI.category": "AI (SOON)",
+
+    "subpage_settings_general_startup.title": "Starten bij opstarten",
+    "subpage_settings_general_startup.subtitle": "Automatisch starten bij het opstarten van de computer",
+    "subpage_settings_general_notification.title": "Voltooiingsbericht",
+    "subpage_settings_general_notification.subtitle": "Stuur een bureaubladmelding wanneer een run eindigt",
+    "subpage_settings_general_open.title": "Resultaten openen bij beëindiging",
+    "subpage_settings_general_open.subtitle": "Open de verkenner op de locatie van de resultaten",
+    "subpage_settings_general_send_email.title": "E-mail verzenden met resultaten",
+    "subpage_settings_general_send_email.subtitle": "Stuur na een run een e-mail met resultaten in XLSX-formaat",
+
+    "subpage_settings_websites_cache.title": "Cacheduur",
+    "subpage_settings_websites_0day.label": "0 dag(en)",
+    "subpage_settings_websites_1day.label": "1 dag(en)",
+    "subpage_settings_websites_3day.label": "3 dag(en)",
+    "subpage_settings_websites_7day.label": "7 dag(en)",
+    "subpage_settings_websites_14day.label": "14 dag(en)",
+
+    "subpage_settings_profile_firstname.title": "Voornaam",
+    "subpage_settings_profile_lastname.title": "Naam",
+    "subpage_settings_profile_email.title": "E-mail",
+
+    "subpage_settings_system_update.button": "Zoeken naar updates",
+    "subpage_settings_system_restart.button": "Applicatie herstarten",
+    "subpage_settings_system_reset.button": "Harde reset"
 }
