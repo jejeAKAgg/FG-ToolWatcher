@@ -3,7 +3,7 @@ import os
 
 import logging
 
-import CORE.Manager as Manager
+from CORE.Manager import WatcherManager
 
 from PySide6.QtCore import QThread, Signal
 from PySide6.QtWidgets import (
@@ -24,17 +24,18 @@ LOG = logging.getLogger(__name__)
 # ===============================
 
 class MainPage(QWidget):
-    
+
     """
     Main widget for the "Main" page (Home).
     Contains controls to start/stop monitoring, a progress bar,
     and a button to access articles/refs.
+
     """
 
     calibration_requested = Signal()
 
     def __init__(self, config: UserService, translator: TranslatorService, parent = None):
-        
+
         """
         Initializes the main page.
 
@@ -44,16 +45,17 @@ class MainPage(QWidget):
             settings_button (CustomMainButton): External settings button.
             profile_button (CustomMainButton): External profile button.
             parent (Optional[QWidget]): The parent widget.
+
         """
-        
+
         super().__init__(parent)
 
         # === SERVICES & PARAMÈTRES ===
-        self.config_service = config
-        self.translator_service = translator
+        self.config = config
+        self.translator = translator
 
         # === THREAD WATCHER ===
-        self.watcher_thread = WatcherThread(config=self.config_service, translator=translator, parent=self)
+        self.watcher_thread = WatcherThread(config=self.config, translator=translator, parent=self)
         self.watcher_thread.progress.connect(self.update_progress)
         self.watcher_thread.error.connect(self.on_watcher_error)
         self.watcher_thread.finished.connect(self.on_watcher_finished)
@@ -61,70 +63,97 @@ class MainPage(QWidget):
         # === WIDGETS UI ===
         # --- Buttons Start/Stop/Calibrage ---
         self.start_button = CustomMainButton(
-            text="Start",
+            text=self.translator.get("page_menu_start.button"),
             icon_path=os.path.join(ASSETS_FOLDER, "icons", "play.ico"),
             gradient=("#4caf50", "#2e7d32")
         )
         self.stop_button = CustomMainButton(
-            text="Stop",
+            text=self.translator.get("page_menu_stop.button"),
             icon_path=os.path.join(ASSETS_FOLDER, "icons", "stop.ico"),
             gradient=("#e53935", "#b71c1c")
         )
-        self.calibrate_button = CustomMainButton(
-            text="REFs/Articles",
+        self.catalog_button = CustomMainButton(
+            text=self.translator.get("page_menu_catalog.button"),
             icon_path=os.path.join(ASSETS_FOLDER, "icons", "MPN.ico"),
             gradient=("#137BD6", "#218DEB")
         )
+        self.ai_button = CustomMainButton(
+            text=self.translator.get("page_menu_FGI.button"),
+            icon_path=os.path.join(ASSETS_FOLDER, "icons", "FGI.ico"),
+            width=200,
+            height=50,
+            gradient=("#9b59b6", "#8e44ad")
+        )
+        self.calibrate_button = CustomMainButton(
+            text=self.translator.get("page_menu_calibration.button"),
+            icon_path=os.path.join(ASSETS_FOLDER, "icons", "review.ico"),
+            width=200,
+            height=50,
+            gradient=("#1abc9c", "#16a085")
+        )
+
         self.stop_button.setEnabled(False)
+        self.ai_button.setEnabled(False)
+        self.calibrate_button.setEnabled(False)
 
         # --- Progress bar ---
         self.progress_widget = CustomProgressBar()
 
         # === LAYOUT ===
-        # --- Layout Buttons ---
-        buttons_layout = QHBoxLayout()
-        buttons_layout.addStretch()
-        buttons_layout.addWidget(self.start_button)
-        buttons_layout.addSpacing(50)
-        buttons_layout.addWidget(self.stop_button)
-        buttons_layout.addSpacing(50)
-        buttons_layout.addWidget(self.calibrate_button)
-        buttons_layout.addStretch()
+        # --- Row 1 : Start / Stop / IA ---
+        row1_layout = QHBoxLayout()
+        row1_layout.addStretch()
+        row1_layout.addWidget(self.start_button)
+        row1_layout.addSpacing(50)
+        row1_layout.addWidget(self.stop_button)
+        row1_layout.addSpacing(50)
+        row1_layout.addWidget(self.catalog_button)
+        row1_layout.addStretch()
+
+        # --- Row 2 : Catalogue / Calibrage (centred) ---
+        row2_layout = QHBoxLayout()
+        row2_layout.addStretch()
+        row2_layout.addWidget(self.ai_button)
+        row2_layout.addSpacing(30)
+        row2_layout.addWidget(self.calibrate_button)
+        row2_layout.addStretch()
 
         # --- Main Layout ---
         main_layout = QVBoxLayout(self)
-        main_layout.setContentsMargins(20, 20, 20, 20)
-        main_layout.setSpacing(15)
-        main_layout.addLayout(buttons_layout)
-        main_layout.addSpacing(75)
-        main_layout.addWidget(self.progress_widget)
+        main_layout.setContentsMargins(20, 20, 20, 0)
         main_layout.addStretch()
+        main_layout.addLayout(row1_layout)
+        main_layout.addLayout(row2_layout)
+        main_layout.addStretch()
+        main_layout.addWidget(self.progress_widget)
 
         # === CONNECTIONS ===
         self.start_button.clicked.connect(self.start_watcher)
         self.stop_button.clicked.connect(self.stop_watcher)
-        self.calibrate_button.clicked.connect(self.request_calibration)
+        self.catalog_button.clicked.connect(self.request_calibration)
 
 
     def start_watcher(self):
-        
+
         """
         Starts the watcher thread and updates the UI state.
+
         """
-        
+
         if not self.watcher_thread.isRunning():
             self.progress_widget.reset()
             self.watcher_thread.start()
             self.set_controls_enabled(False)
 
     def stop_watcher(self):
-        
+
         """
         Signals the watcher thread to stop gracefully and waits for it.
+
         """
-        
+
         if self.watcher_thread.isRunning():
-            LOG.debug("Requesting watcher thread interruption...")          
+            LOG.debug("Requesting watcher thread interruption...")
             self.watcher_thread.requestInterruption()
 
             if not self.watcher_thread.wait(5000): # Wait up to 5 seconds
@@ -135,69 +164,78 @@ class MainPage(QWidget):
             LOG.debug("Watcher thread stopped.")
             self.progress_widget.reset()
             self.set_controls_enabled(True)
-        
+
         else:
             LOG.debug("stop_watcher called but thread wasn't running.")
 
     def on_watcher_finished(self):
-        
+
         """
         Slot executed when the watcher thread finishes normally.
+
         """
-        
+
         if self.progress_widget.value() < 100:
              self.progress_widget.reset()
-             
+
         self.set_controls_enabled(True)
 
     def on_watcher_error(self, error_msg: str):
-        
+
         """
         Slot executed if the thread emits an error signal.
+
         """
-        
+
         LOG.exception(f"An error occured on WatcherThread : {error_msg}")
         self.set_controls_enabled(True)
         self.progress_widget.reset() # Reset the bar if an error occured
 
     def update_progress(self, value: int):
-        
+
         """
         Updates the progress bar with the value received from the thread.
+
         """
-        
+
         self.progress_widget.set_value(value)
 
     def request_calibration(self):
-        
+
         """
         Emits a signal to request showing the calibration page.
+
         """
-        
+
         self.calibration_requested.emit()
 
     def set_controls_enabled(self, enabled: bool):
-        
+
         """
         Enables or disables all interactive controls while
         the watcher is running.
 
         Args:
             enabled (bool): True to enable, False to disable.
+
         """
-        
+
         self.start_button.setEnabled(enabled)
         self.stop_button.setEnabled(not enabled)
-
-        self.calibrate_button.setEnabled(enabled)
+        self.catalog_button.setEnabled(enabled)
 
     def retranslate_ui(self):
-        
+
         """
-        Update the texte of every widget of the application depending the new user language input.
+        Update the text of every widget of the application depending the new user language input.
+
         """
-        
-        pass
+
+        self.start_button.setText(self.translator.get("page_menu_start.button"))
+        self.stop_button.setText(self.translator.get("page_menu_stop.button"))
+        self.catalog_button.setText(self.translator.get("page_menu_catalog.button"))
+        self.ai_button.setText(self.translator.get("page_menu_FGI.button"))
+        self.calibrate_button.setText(self.translator.get("page_menu_calibration.button"))
 
 
 # ===============================
@@ -205,7 +243,7 @@ class MainPage(QWidget):
 # ===============================
 
 class WatcherThread(QThread):
-    
+
     """
     Runs the main monitoring task (Manager.main_watcher) in a separate
     thread to avoid freezing the user interface.
@@ -214,39 +252,43 @@ class WatcherThread(QThread):
         output (str): Emitted for output messages (currently unused).
         error (str): Emitted when an exception occurs during execution.
         progress (int): Emitted to report progress (0-100).
+
     """
-    
+
     output = Signal(str)
     error = Signal(str)
     progress = Signal(int)
 
     def __init__(self, config: UserService, translator: TranslatorService, parent = None):
-        
+
         """
         Initializes the watcher thread.
 
         Args:
             config_service (UserService): The user configuration service.
             parent (Optional[QWidget]): The parent widget.
+
         """
-        
+
         super().__init__(parent)
 
         self.config_service = config
         self.translator_service = translator
 
     def run(self):
-        
+
         """
         Main entry point for the thread. Starts the monitoring.
+
         """
-        
+
         try:
-            Manager.main_watcher(
+            manager = WatcherManager(
                 config=self.config_service,
                 progress_callback=self.progress.emit,
                 interruption_check=self.isInterruptionRequested
             )
+            manager.run()
             return
         except Exception as e:
             if not self.isInterruptionRequested():

@@ -1,73 +1,24 @@
 # FG-ToolWatcher
 
-[![License](https://img.shields.io/badge/License-BSD%203--Clause-blue.svg)](https://opensource.org/licenses/BSD-3-Clause)
-![top-language](https://img.shields.io/github/languages/top/jejeAKAgg/FG-ToolWatcher)
-![code-size](https://img.shields.io/github/languages/code-size/jejeAKAgg/FG-ToolWatcher)
-
-Desktop price watcher to scrape and compare competitor hardware store prices. Built with Python and PySide6 for [**Fernand Georges**](https://www.georges.be/fr-be/).
-
 <img src="GUI/__ASSETS/icons/GitHub_FG-ToolWatcher.jpg">
 
-## 📊 Status
-![Maintenance](https://img.shields.io/badge/Maintained-Yes-green.svg)
+<p align="center">
+  <a href="https://opensource.org/licenses/BSD-3-Clause">
+  <img src="https://img.shields.io/badge/License-BSD%203--Clause-darkgreen.svg" alt="License"></a>
+  <img src="https://img.shields.io/badge/OS-Windows%20%7C%20MacOS%20%7C%20Linux-darkgreen" alt="OS Support">
+  <img src="https://img.shields.io/github/v/release/jejeAKAgg/FG-ToolWatcher?color=darkgreen" alt="GitHub release">
+  <br>
+  <img src="https://img.shields.io/badge/For-Fernand%20Georges-006400?style=for-the-badge" alt="Fernand Georges">
+</p>
 
-
-## 📸 Screenshot(s)
-![alt text](GUI/__ASSETS/icons/image.png)
-
-## ✨ Key Feature(s)
-* **Competitor Scraping:** Scrapes product data (name, price) from multiple hardware store websites.
-* **Desktop GUI:** A clean, multi-language desktop interface built with PySide6.
-* **Centralized Logging:** All actions are logged to timestamped files for easy debugging (no `print()`!).
-* **Automatic Update Checker:** The application checks GitHub Releases for new versions on startup.
-* **Developer-Friendly:** Includes a `Makefile` for standardized setup and build processes.
-
-## 💻 Tech Stack
-* **Core:** Python 3.11+
-* **GUI:** PySide6
-* **Scraping:** cloudscraper, BeautifulSoup
-* **Data:** Pandas
-* **Packaging:** PyInstaller
-
----
-
-## 🚀 Getting Started (for Developers)
-To set up the development environment:
-
-1.  **Clone the repository:**
-    ```bash
-    git clone [https://github.com/jejeAKAgg/FG-ToolWatcher.git](https://github.com/jejeAKAgg/FG-ToolWatcher.git)
-    cd FG-ToolWatcher
-    ```
-
-2.  **Create the environment and install dependencies:**
-    (This uses the `Makefile` to create the virtual environment and install `requirements.txt`)
-    ```bash
-    make setup
-    ```
-
-3.  **Run the application:**
-    * **Standard Mode:**
-        ```bash
-        make run
-        ```
-    * **Debug Mode (Verbose):**
-        ```bash
-        python Launcher.py --debug
-        ```
-
-## 📦 Installation (for Users)
-1.  Go to the [**Releases Page**](https://github.com/jejeAKAgg/FG-ToolWatcher/releases) of this repository.
-2.  Download the `.zip` file from the latest release (e.g., `FG-ToolWatcher-v1.0.0.zip`).
-3.  Unzip the folder to a permanent location (like your Desktop or "My Documents").
-4.  Open the folder and double-click `Launcher.exe` to start the application.
+**Desktop price watcher program to scrape and compare competitor store prices. For [**Fernand Georges**](https://www.georges.be/fr-be/).**
 
 ---
 
 ## 🤝 Contributing
 Contributions from the Fernand Georges IT team are welcome!
 
-To ensure consistency and maintainability, please read our **[CONTRIBUTING.md](CONTRIBUTING.md)** file *before* you start working. It contains our complete workflow, code standards, and commit conventions.
+To ensure consistency and maintainability, please read our **[CONTRIBUTING.md](CONTRIBUTING.md)** file *before* you start working. It contains the complete workflow, code standards, and commit conventions.
 
 ## 📜 License
 This project is licensed under the BSD-3-Clause License. See the [LICENSE](LICENSE) file for details.

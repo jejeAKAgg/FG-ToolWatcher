@@ -11,6 +11,8 @@ from CORE.Services.setup import *
 from CORE.Services.user import UserService
 from CORE.Services.translator import TranslatorService
 
+from WEB.Viewer import ViewerService
+
 from GUI.Desktop.pages.setup import SetupPage
 from GUI.Desktop.pages.menu import MainPage
 from GUI.Desktop.pages.profile import ProfilePage
@@ -39,7 +41,7 @@ class WatcherGUI(QWidget):
 
     """
 
-    def __init__(self, config_service: UserService, translator_service: TranslatorService):
+    def __init__(self, config_service: UserService, translator_service: TranslatorService, viewer_service: ViewerService):
 
         """
         Initializes the main GUI components, styles, and page stack.
@@ -55,6 +57,7 @@ class WatcherGUI(QWidget):
         # === INPUT VARIABLE(S) ===
         self.configs = config_service
         self.translator = translator_service
+        self.viewer_service = viewer_service
 
         # === INTERNAL VARIABLE(S) ===
         self.translator.load_language(self.configs.get("system_language", "fr"))
@@ -79,6 +82,7 @@ class WatcherGUI(QWidget):
 
         # --- TOP BAR & HEADER ---
         self.settings_button = CustomPushButton(icon_path=os.path.join(ASSETS_FOLDER, "icons", "settings.ico"), icon_size_width=35, icon_size_height=35, width=100, height=50, bg_color="#818386", hover_color="#6d6e70", text_color="#000000", alpha=0.5)
+        self.home_button = CustomPushButton(icon_path=os.path.join(ASSETS_FOLDER, "icons", "home.ico"), icon_size_width=35, icon_size_height=35, width=50, height=50, bg_color="#818386", hover_color="#6d6e70", text_color="#000000", alpha=0.5)
         self.stats_button = CustomPushButton(icon_path=os.path.join(ASSETS_FOLDER, "icons", "stats.ico"), icon_size_width=35, icon_size_height=35, width=100, height=50, bg_color="#818386", hover_color="#6d6e70", text_color="#000000", alpha=0.5)
         self.docs_button = CustomPushButton(icon_path=os.path.join(ASSETS_FOLDER, "icons", "docs.ico"), icon_size_width=35, icon_size_height=35, width=100, height=50, bg_color="#818386", hover_color="#6d6e70", text_color="#000000", alpha=0.5)
 
@@ -86,25 +90,18 @@ class WatcherGUI(QWidget):
         self.french_button = CustomPushButton(icon_path=os.path.join(ASSETS_FOLDER, "icons", "french.ico"), width=55, height=35, bg_color='#818386', hover_color='#6d6e70', text_color="#000000", alpha=0.5)
         self.netherlands_button = CustomPushButton(icon_path=os.path.join(ASSETS_FOLDER, "icons", "netherlands.ico"), width=55, height=35, bg_color='#818386', hover_color='#6d6e70', text_color="#000000", alpha=0.5)
 
-        self.settings_button.setToolTip(self.translator.get("tip_settings.button"))
-        self.stats_button.setToolTip(self.translator.get("tip_profile.button"))
-        self.docs_button.setToolTip(self.translator.get("tip_update.button"))
-
         self.settings_button.clicked.connect(self.toggle_settings)
+        self.home_button.clicked.connect(self.toggle_home)
         self.stats_button.clicked.connect(self.toggle_stats)
         self.docs_button.clicked.connect(self.toggle_docs)
 
-        TOP_BAR = create_top_buttons(settings_button=self.settings_button, english_button=self.english_button, french_button=self.french_button, netherlands_button=self.netherlands_button, stats_button=self.stats_button, docs_button=self.docs_button)
+        TOP_BAR = create_top_buttons(settings_button=self.settings_button, home_button=self.home_button, english_button=self.english_button, french_button=self.french_button, netherlands_button=self.netherlands_button, stats_button=self.stats_button, docs_button=self.docs_button)
         HEADER = create_top_header("FG-ToolWatcher", os.path.join(ASSETS_FOLDER, "icons", "FG-TWicoBG.ico"))
 
         # --- BOTTOM BAR ---
         self.info_button = CustomPushButton(icon_path=os.path.join(ASSETS_FOLDER, "icons", "info.ico"), icon_size_width=35, icon_size_height=35, width=100, height=50, bg_color="#818386", hover_color="#6d6e70", text_color="#000000", alpha=0.5)
         self.ticket_button = CustomPushButton(icon_path=os.path.join(ASSETS_FOLDER, "icons", "problem.ico"), icon_size_width=35, icon_size_height=35, width=100, height=50, bg_color="#818386", hover_color="#6d6e70", text_color="#000000", alpha=0.5)
         self.github_button = CustomPushButton(icon_path=os.path.join(ASSETS_FOLDER, "icons", "github.ico"), icon_size_width=35, icon_size_height=35, width=100, height=50, bg_color="#818386", hover_color="#6d6e70", text_color="#000000", alpha=0.5)
-
-        self.info_button.setToolTip(self.translator.get("tip_info.button"))
-        self.ticket_button.setToolTip(self.translator.get("tip_ticket.button"))
-        self.github_button.setToolTip(self.translator.get("tip_github.button"))
 
         self.info_button.clicked.connect(lambda: self.show_info())
         self.ticket_button.clicked.connect(lambda: self.show_ticket())
@@ -114,6 +111,7 @@ class WatcherGUI(QWidget):
 
         # --- BUTTONS STATE (top disabled by default) ---
         self.settings_button.setEnabled(False)
+        self.home_button.setEnabled(False)
         self.stats_button.setEnabled(False)
         self.docs_button.setEnabled(False)
 
@@ -187,14 +185,16 @@ class WatcherGUI(QWidget):
         LOG.debug("Accepting close event.")
         event.accept()
 
-    def toggle_settings(self):
-        if self.stack.currentIndex() == 2:
-            self.transition.fade_to(self.settings_page, on_start=lambda: None, on_finished=lambda: self._update_top_buttons())
-        else:
+    def toggle_home(self):
+        if self.stack.currentWidget() != self.main_page:
             self.transition.fade_to(self.main_page, on_start=lambda: None, on_finished=lambda: self._update_top_buttons())
 
+    def toggle_settings(self):
+        if self.stack.currentWidget() != self.settings_page:
+            self.transition.fade_to(self.settings_page, on_start=lambda: None, on_finished=lambda: self._update_top_buttons())
+
     def toggle_stats(self):
-        return
+        self.viewer_service.open()
 
     def toggle_docs(self):
         return
@@ -274,32 +274,31 @@ class WatcherGUI(QWidget):
 
         if current_page == self.main_page:               # menu_page
             self.settings_button.setEnabled(True)
-            self.settings_button.setText("")
-            self.stats_button.setEnabled(False)
+            self.home_button.setEnabled(True)
+            self.stats_button.setEnabled(True)
             self.docs_button.setEnabled(True)
         elif current_page == self.profile_page:          # profile_page
             self.settings_button.setEnabled(False)
-            self.settings_button.setText("")
+            self.home_button.setEnabled(False)
             self.stats_button.setEnabled(False)
             self.docs_button.setEnabled(False)
         elif current_page == self.search_page:           # search_page
             self.settings_button.setEnabled(True)
-            self.settings_button.setText("Menu")
-            self.stats_button.setEnabled(False)
+            self.home_button.setEnabled(True)
+            self.stats_button.setEnabled(True)
             self.docs_button.setEnabled(True)
         elif current_page == self.settings_page:         # settings_page
             self.settings_button.setEnabled(True)
-            self.settings_button.setText("Menu")
-            self.stats_button.setEnabled(False)
+            self.home_button.setEnabled(True)
+            self.stats_button.setEnabled(True)
             self.docs_button.setEnabled(True)
         elif current_page == self.setup_page:            # setup_page
             self.settings_button.setEnabled(False)
-            self.settings_button.setText("")
+            self.home_button.setEnabled(False)
             self.stats_button.setEnabled(False)
             self.docs_button.setEnabled(False)
         else:                                            # Other pages
             self.settings_button.setEnabled(True)
-            self.settings_button.setText("")
-            self.stats_button.setEnabled(False)
+            self.home_button.setEnabled(True)
+            self.stats_button.setEnabled(True)
             self.docs_button.setEnabled(True)
-

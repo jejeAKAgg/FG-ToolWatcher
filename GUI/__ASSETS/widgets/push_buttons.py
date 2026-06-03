@@ -55,6 +55,8 @@ class CustomPushButton(QPushButton):
             final_bg = bg_color
             final_hover = hover_color
 
+        border_radius = f"{width // 2}px" if width == height else "15px"
+
         # --- Style ---
         self.setStyleSheet(f"""
             QPushButton {{
@@ -63,7 +65,7 @@ class CustomPushButton(QPushButton):
                 font-family: "Arial Black";
                 font-size: 15px;
                 font-weight: bold;
-                border-radius: 15px;
+                border-radius: {border_radius};
                 border: none;
                 padding: 5px;
             }}

@@ -20,11 +20,13 @@
     "page_menu_stop.button": "Stop",
     "page_menu_catalog.button": "My Catalog",
     "page_menu_FGI.button": "FGI (SOON)",
-    "page_menu_calibration.button": "Calibration",
+    "page_menu_calibration.button": "Calibration (SOON)",
 
     "page_search_input.placeholder": "Enter the name of the tool to search...",
     "page_search_add.button": "Add",
     "page_search_remove.button": "Remove",
+    "page_search_remove_all.button": "Remove All",
+    "page_search_rapid_access.label": "Quick Access",
 
     "page_settings_save.button": "Save",
     "page_settings_general.category": "General",

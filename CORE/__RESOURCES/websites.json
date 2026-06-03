@@ -37,7 +37,8 @@
             "mpn": {"tag": "dt", "text_contains": ["code du modèle", "réf. fabricant", "numéro de fournisseur", "Modelcode", "modelcode"], "type": "sibling", "target": "dd"},
             "brand": null,
             "article": {"tag": "h1", "class": "product-detail-name"},
-            "price": {"tag": "p", "class": "product-detail-price"}
+            "price": {"tag": "p", "class": "product-detail-price"},
+            "offers": {"mode": "fixami"}
         },
         "vat_rate": 1.21
     },
@@ -65,7 +66,8 @@
             "mpn": {"tag": "li", "id": "supplier_reference_value", "replace": "NUMÉRO D'ARTICLE DU FOURNISSEUR:"},
             "brand": {"tag": "li", "class": "product-manufacturer", "child_tag": "a"},
             "article": {"tag": "h1", "id": "product_name_value", "replace_duplicate": true},
-            "price": {"tag": "span", "class": "current-price-value", "use_attr": "content"}
+            "price": {"tag": "span", "class": "current-price-value", "use_attr": "content"},
+            "offers": {"mode": "klium", "container": "section.product-discounts", "item": "div.prod_discount_btn", "qty": "span.label-discount-text", "price": "span.label-discount-price"}
         },
         "vat_rate": 1.21
     },

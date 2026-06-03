@@ -41,34 +41,34 @@ class ProfilePage(QWidget):
         """
 
         super().__init__(parent)
-        
+
         # === INTERNAL VARIABLE(S) ===
         self.configs = config
         self.translator = translator
 
         # === MAIN LAYOUT ===
         self.main_layout = QVBoxLayout(self)
-        self.main_layout.setContentsMargins(60, 50, 60, 0) 
+        self.main_layout.setContentsMargins(60, 50, 60, 0)
         self.main_layout.setSpacing(10)
         self.main_layout.setAlignment(Qt.AlignTop)
-        
+
         # --- TITLE ---
-        self.title = QLabel(self.translator.get("subpage_settings_profile.title"))
+        self.title = QLabel(self.translator.get("page_settings_profile.category"))
         self.title.setStyleSheet("font-size: 26px; font-weight: 900; color: #000; margin-bottom: 15px;")
         self.main_layout.addWidget(self.title)
-        
+
         # --- FIRST NAME ---
         self.first_layout, self.first_label, self.first_name_input = self._create_input_field(
-            label_text=self.translator.get("subpage_settings_profile_firstname.bar"),
+            label_text=self.translator.get("subpage_settings_profile_firstname.title"),
             text_value=self.configs.get("user_firstname", ""),
             width=450
         )
-        
+
         self.main_layout.addLayout(self.first_layout)
 
         # --- LAST NAME ---
         self.last_layout, self.last_label, self.last_name_input = self._create_input_field(
-            label_text=self.translator.get("subpage_settings_profile_lastname.bar"),
+            label_text=self.translator.get("subpage_settings_profile_lastname.title"),
             text_value=self.configs.get("user_lastname", ""),
             width=450
         )
@@ -76,7 +76,7 @@ class ProfilePage(QWidget):
 
         # --- EMAIL ---
         self.email_layout, self.email_label, self.email_input = self._create_input_field(
-            label_text=self.translator.get("subpage_settings_profile_mail.bar"),
+            label_text=self.translator.get("subpage_settings_profile_email.title"),
             text_value=self.configs.get("user_mail", ""),
             width=450
         )
@@ -84,10 +84,10 @@ class ProfilePage(QWidget):
 
         # --- SAVE BUTTON ---
         self.save_button = CustomPushButton(
-            width=100, height=50,
-            bg_color="#eb6134", hover_color="#78351f"
+            width=110, height=50,
+            bg_color="#4a7fa5", hover_color="#2e5f7e"
         )
-        self.save_button.setText(self.translator.get("save.button"))
+        self.save_button.setText(self.translator.get("page_settings_save.button"))
         self.save_button.clicked.connect(self.save_user)
 
         self.save_button.setEnabled(False)
@@ -108,11 +108,11 @@ class ProfilePage(QWidget):
 
     # === PUBLIC METHODS ===
     def save_user(self):
-        
+
         """
         Validates and saves user profile data to the configuration file.
         """
-        
+
         # === INTERNAL PARAMETER(S) ===
         first_name = self.first_name_input.text().strip()
         last_name = self.last_name_input.text().strip()
@@ -125,9 +125,9 @@ class ProfilePage(QWidget):
 
         # --- Checking changes ---
         self.save_button.setEnabled(False)
-    
+
     def check_validity_and_changes(self):
-       
+
         """
         Validates the data of the profile management page and enables the save button in case of valid change.
         """
@@ -137,10 +137,10 @@ class ProfilePage(QWidget):
         email = self.email_input.text().strip()
 
         email_pattern = re.compile(r"^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,6}$")
-        
+
         is_valid = (
             len(first) >= 2 and
-            len(last) >= 2 and 
+            len(last) >= 2 and
             bool(email_pattern.match(email))
         )
 
@@ -151,26 +151,26 @@ class ProfilePage(QWidget):
         )
 
         self.save_button.setEnabled(bool(is_valid and has_changed))
-    
+
     def retranslate_ui(self):
-        
+
         """
         Update the texte of every widget of the application depending the new user language input.
         """
 
-        self.title.setText(self.translator.get("subpage_settings_profile.title"))
+        self.title.setText(self.translator.get("page_settings_profile.category"))
 
-        self.first_label.setText(self.translator.get("subpage_settings_profile_firstname.bar"))
-        self.last_label.setText(self.translator.get("subpage_settings_profile_lastname.bar"))
-        self.email_label.setText(self.translator.get("subpage_settings_profile_mail.bar"))
+        self.first_label.setText(self.translator.get("subpage_settings_profile_firstname.title"))
+        self.last_label.setText(self.translator.get("subpage_settings_profile_lastname.title"))
+        self.email_label.setText(self.translator.get("subpage_settings_profile_email.title"))
 
-        self.save_button.setText(self.translator.get("save.button"))
+        self.save_button.setText(self.translator.get("page_settings_save.button"))
 
     def _create_input_field(self, label_text: str, text_value: str, width: int = 300, height: int = 45) -> Tuple[QVBoxLayout, QLabel, QLineEdit]:
-        
+
         """
         Private helper to create a labeled and centered input field.
-        
+
         Args:
             label_text (str): The text for the field's label.
             text_value (str): The default value for the QLineEdit.
@@ -181,7 +181,7 @@ class ProfilePage(QWidget):
             Tuple[QVBoxLayout, QLineEdit]: A layout containing the label and field,
             and a reference to the QLineEdit itself.
         """
-        
+
         container = QVBoxLayout()
         container.setSpacing(5) # Colle le label à son input
 
@@ -195,7 +195,7 @@ class ProfilePage(QWidget):
         line_edit.setFixedHeight(height)
         line_edit.setText(text_value)
         line_edit.setAlignment(Qt.AlignmentFlag.AlignCenter)
-        
+
         # Ton style exact de la page profile originale
         line_edit.setStyleSheet("""
             QLineEdit {
@@ -207,7 +207,7 @@ class ProfilePage(QWidget):
                 font-size: 16px;
             }
             QLineEdit:focus {
-                border: 2px solid #ffffff; /* Changé de orange à blanc */
+                border: 3px solid rgba(0, 126, 45, 1); /* Changé de orange à blanc */
             }
         """)
 

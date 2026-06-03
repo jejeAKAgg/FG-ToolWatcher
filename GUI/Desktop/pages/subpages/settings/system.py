@@ -1,12 +1,9 @@
 # GUI/Desktop/pages/subpages/settings/system.py
 import os
-
 import logging
 
-import re
-
 from PySide6.QtWidgets import (
-    QWidget, QVBoxLayout, QHBoxLayout, QLabel, QLineEdit, QMessageBox, QSpacerItem, QSizePolicy
+    QWidget, QVBoxLayout, QHBoxLayout, QLabel
 )
 from PySide6.QtCore import Qt
 
@@ -25,79 +22,97 @@ LOG = logging.getLogger(__name__)
 class SystemPage(QWidget):
 
     """
-    QSide6 widget dedicated to the user system management.
-    It displays system information and allows system configuration updates.
+    Sous-page des paramètres système.
+    Fournit les actions système : mises à jour, redémarrage, réinitialisation.
     """
 
     def __init__(self, config: UserService, translator: TranslatorService, parent=None):
-
-        """
-        Initializes the SystemPage UI components and layout.
-
-        Args:
-            config (UserService): The service instance for managing user settings.
-            translator (TranslatorService): The service instance for managing translations.
-            parent (Optional[QWidget]): The parent widget.
-        """
-
         super().__init__(parent)
 
         # === INTERNAL VARIABLE(S) ===
-        self.configs = config
+        self.configs    = config
         self.translator = translator
 
         # === MAIN LAYOUT ===
         self.main_layout = QVBoxLayout(self)
-        self.main_layout.setContentsMargins(60, 50, 60, 0) 
+        self.main_layout.setContentsMargins(60, 50, 60, 0)
         self.main_layout.setSpacing(10)
         self.main_layout.setAlignment(Qt.AlignTop)
 
-        # --- SUBPAGE TITLE ---
-        self.title = QLabel(self.translator.get("subpage_settings_system.title"))
+        # --- TITLE ---
+        self.title = QLabel(self.translator.get("page_settings_system.category"))
         self.title.setStyleSheet("font-size: 26px; font-weight: 900; color: #000; margin-bottom: 20px;")
         self.main_layout.addWidget(self.title)
 
-        # --- CONTENT ---
-        # TODO: ajouter ici les éléments de la page système (ex: vérification des mises à jour, infos sur le système, etc.)
-
-        self.save_button = CustomPushButton(
-            width=100, height=50,
-            bg_color="#eb6134", hover_color="#78351f"
+        # ── MISES À JOUR ─────────────────────────────────────────────
+        self.update_button = CustomPushButton(
+            width=240, height=46,
+            bg_color="#0078d7", hover_color="#005a9e"
         )
-        self.save_button.setText(self.translator.get("save.button"))
-        self.save_button.clicked.connect(self.save_user)
+        self.update_button.setText(self.translator.get("subpage_settings_system_update.button"))
+        self.update_button.clicked.connect(self._check_updates)
+        update_layout = QHBoxLayout()
+        update_layout.addStretch()
+        update_layout.addWidget(self.update_button)
+        update_layout.addStretch()
+        self.main_layout.addLayout(update_layout)
 
-        self.save_button.setEnabled(False)
+        self.main_layout.addSpacing(20)
 
-        self.button_layout = QHBoxLayout()
-        self.button_layout.addStretch()
-        self.button_layout.addWidget(self.save_button)
-        self.button_layout.addStretch()
-            
+        # ── REDÉMARRER ───────────────────────────────────────────────
+        self.restart_button = CustomPushButton(
+            width=240, height=46,
+            bg_color="#555555", hover_color="#333333"
+        )
+        self.restart_button.setText(self.translator.get("subpage_settings_system_restart.button"))
+        self.restart_button.clicked.connect(self._restart)
+        restart_layout = QHBoxLayout()
+        restart_layout.addStretch()
+        restart_layout.addWidget(self.restart_button)
+        restart_layout.addStretch()
+        self.main_layout.addLayout(restart_layout)
+
+        self.main_layout.addSpacing(20)
+
+        # ── RÉINITIALISER ────────────────────────────────────────────
+        self.reset_button = CustomPushButton(
+            width=240, height=46,
+            bg_color="#cc0000", hover_color="#880000"
+        )
+        self.reset_button.setText(self.translator.get("subpage_settings_system.reset", "Réinitialiser"))
+        self.reset_button.clicked.connect(self._reset)
+        reset_layout = QHBoxLayout()
+        reset_layout.addStretch()
+        reset_layout.addWidget(self.reset_button)
+        reset_layout.addStretch()
+        self.main_layout.addLayout(reset_layout)
+
         self.main_layout.addStretch()
 
-        self.main_layout.addLayout(self.button_layout)
 
-
-    # === PUBLIC METHODS ===
-    def save_user(self):
-        
-        """
-        Validates and saves user profile data to the configuration file.
-        """
-        
-        # === INTERNAL PARAMETER(S) ===
-        # (TODO: ajouter ici les paramètres nécessaires à la sauvegarde des données de la page de gestion des sites web)
-
-        # --- Checking changes ---
-        self.save_button.setEnabled(False)
+    # ====================================
+    #           PUBLIC METHODS
+    # ====================================
 
     def retranslate_ui(self):
-        
-        """
-        Update the texte of every widget of the application depending the new user language input.
-        """
+        self.title.setText(self.translator.get("page_settings_system.category"))
+        self.update_button.setText(self.translator.get("subpage_settings_system_update.button"))
+        self.restart_button.setText(self.translator.get("subpage_settings_system_restart.button"))
+        self.reset_button.setText(self.translator.get("subpage_settings_system_reset.button"))
 
-        self.title.setText(self.translator.get("subpage_settings_system.title"))
 
-        self.save_button.setText(self.translator.get("save.button"))
+    # ====================================
+    #           PRIVATE METHODS
+    # ====================================
+
+    def _check_updates(self):
+        # TODO: implémenter la vérification des mises à jour
+        LOG.debug("[SystemPage] Recherche de mises à jour...")
+
+    def _restart(self):
+        # TODO: implémenter le redémarrage de l'application
+        LOG.debug("[SystemPage] Redémarrage...")
+
+    def _reset(self):
+        # TODO: implémenter la réinitialisation (avec confirmation)
+        LOG.debug("[SystemPage] Réinitialisation...")

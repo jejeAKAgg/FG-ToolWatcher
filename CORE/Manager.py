@@ -8,17 +8,9 @@ import json
 import requests
 import subprocess
 
-import pandas as pd
-
 from CORE.Services.mail import MailService
 from CORE.Services.user import UserService
 from CORE.Services.setup import *
-
-from CORE.Search.watchers.clabots import CLABOTSwatcher
-from CORE.Search.watchers.fixami import FIXAMIwatcher
-from CORE.Search.watchers.klium import KLIUMwatcher
-from CORE.Search.watchers.lecot import LECOTwatcher
-from CORE.Search.watchers.toolnation import TOOLNATIONwatcher
 
 
 
@@ -54,13 +46,13 @@ class WatcherManager:
         self.dfs = []
 
         self.sites_mapping = {
-            #'CIPAC':        'CIPACwatcher',
-            'CLABOTS':      CLABOTSwatcher,
-            #'GEORGES':      FGwatcher,
-            'FIXAMI':       FIXAMIwatcher,
-            'KLIUM':        KLIUMwatcher,
-            'LECOT':        LECOTwatcher,
-            'TOOLNATION':   TOOLNATIONwatcher,
+            #'CIPAC':        'CORE.Search.watchers.cipac:CIPACwatcher',
+            'CLABOTS':      'CORE.Search.watchers.clabots:CLABOTSwatcher',
+            #'GEORGES':      'CORE.Search.watchers.georges:FGwatcher',
+            'FIXAMI':       'CORE.Search.watchers.fixami:FIXAMIwatcher',
+            'KLIUM':        'CORE.Search.watchers.klium:KLIUMwatcher',
+            'LECOT':        'CORE.Search.watchers.lecot:LECOTwatcher',
+            'TOOLNATION':   'CORE.Search.watchers.toolnation:TOOLNATIONwatcher',
         }
 
     def _update_progress(self, percentage: int):
@@ -91,8 +83,9 @@ class WatcherManager:
             elif isinstance(item, dict):
                 items.append({
                     "name": item.get("name", "-"),
-                    "mpn":  item.get("mpn",  "-"),
-                    "ean":  item.get("ean",  "-"),
+                    "mpn": item.get("mpn",  "-"),
+                    "ean": item.get("ean",  "-"),
+                    "brand": item.get("brand", "-"),
                 })
 
         LOG.debug(f"{len(items)} articles loaded from the catalog.")
@@ -145,7 +138,9 @@ class WatcherManager:
                 global_pct = start + int(pct / 100 * (end - start))
                 self._update_progress(global_pct)
 
-            watcher_cls = self.sites_mapping[site]
+            import importlib
+            module_path, cls_name = self.sites_mapping[site].split(':')
+            watcher_cls = getattr(importlib.import_module(module_path), cls_name)
 
             try:
                 watcher_instance = watcher_cls(
@@ -168,6 +163,7 @@ class WatcherManager:
             return None, None
 
         try:
+            import pandas as pd
             final_df = pd.concat(self.dfs, ignore_index=True)
 
             csv_path  = os.path.join(RESULTS_SUBFOLDER, "FG-ToolWatcher_RESULTS.csv")

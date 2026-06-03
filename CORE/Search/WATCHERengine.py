@@ -1,21 +1,21 @@
 # CORE/Search/WATCHERengine.py
+from __future__ import annotations
+
 import os
 import json
 import logging
 import random
 import time
 
-import cloudscraper
-import pandas as pd
-import requests
-
-from bs4 import BeautifulSoup
 from datetime import datetime, timedelta
-from typing import Dict, Any, Optional, List
+from typing import TYPE_CHECKING, Any
 
 from CORE.Services.setup import *
-from CORE.Services.parser import ProductDataParser
 from CORE.Services.user import UserService
+
+if TYPE_CHECKING:
+    import pandas as pd
+    from bs4 import BeautifulSoup
 
 
 
@@ -41,23 +41,25 @@ class WatcherEngine:
 
     """
 
-    def __init__(self, site_key: str, items: List[dict], config: UserService, progress_callback=None):
+    MAX_RETRIES = 3
+    RETRY_DELAY = 5
+    WAIT_TIME = 3
+
+    def __init__(self, site_key: str, items: list[dict[str, Any]], config: UserService, progress_callback=None):
 
         # === INTERNAL VARIABLE(S) ===
         self.ATTEMPT = 0
-        self.MAX_RETRIES = 3
-        self.RETRY_DELAY = 5
-        self.WAIT_TIME = 3
+
 
         self.DEFAULT_COLUMNS = [
-            'Société', 'Marque', 'Article',
+            'Société',
+            'EAN', 'MPN',
+            'Marque', 'Article',
             'Prix enregistré (HTVA)', 'Prix enregistré (TVA)',
-            'Prix détecté (HTVA)', 'Prix détecté (HTVA)',
+            'Prix détecté (HTVA)', 'Prix détecté (TVA)',
             'Evolution du prix', 'Offres',
             'ArticleURL', 'Vérifié', 'Recherche',
         ]
-
-        self.FUZZY_THRESHOLD = 90
 
         # === INTERNAL PARAMETER(S) ===
         self.WEBSITE = site_key.upper()
@@ -75,18 +77,12 @@ class WatcherEngine:
 
         self.CACHE_DELAY = self.CONFIG.get(key="cache_duration", default=3)
 
-        # === INTERNAL SERVICE(S) ===
-        self.parser = ProductDataParser(brands_file_path=os.path.join(RESOURCES_FOLDER, 'brands.json'))
+        # === LAZY PARAMETER(S) ===
+        self._DB = None
+        self._PARSER = None
+        self._REQUESTS = None
 
         # === PARAMETERS & OPTIONS SETUP (CloudSCRAPER) ===
-        self.requests = cloudscraper.create_scraper(
-            browser={
-                'browser': 'chrome',
-                'platform': 'windows',
-                'desktop': True
-            }
-        )
-
         self.REQUESTS_HEADERS = {
             'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/114.0.0.0 Safari/537.36',
             'Referer': f'https://www.{self.DOMAIN}/' if self.DOMAIN else '',
@@ -96,8 +92,61 @@ class WatcherEngine:
             'DNT': '1' # Do Not Track
         }
 
-        # === DB (loaded only once) ===
-        self.DBdataframe: Optional[pd.DataFrame] = self._load_db()
+
+    @property
+    def DB(self):
+
+        """
+        Lazy load for the DB system.
+
+        """
+
+        if self._DB is None:
+            self._DB = self._load_db()
+        return self._DB
+
+    @property
+    def PD(self):
+
+        """
+        Lazy load for the DataFrame system
+
+        """
+
+        import pandas as pd
+        return pd
+
+    @property
+    def parser(self):
+
+        """
+        Lazy load for the Parser system
+
+        """
+
+        if self._PARSER is None:
+            from CORE.Services.parser import ProductDataParser
+            self._PARSER = ProductDataParser(brands_file_path=os.path.join(RESOURCES_FOLDER, 'brands.json'))
+        return self._PARSER
+
+    @property
+    def requests(self):
+
+        """
+        Lazy load for the Request system
+
+        """
+
+        if self._REQUESTS is None:
+            import cloudscraper
+            self._REQUESTS = cloudscraper.create_scraper(
+                browser={
+                    'browser': 'chrome',
+                    'platform': 'windows',
+                    'desktop': True
+                }
+            )
+        return self._REQUESTS
 
 
     # ─────────────
@@ -136,7 +185,7 @@ class WatcherEngine:
     #   LOADER(S)/SAVER(S)
     # ──────────────────────
 
-    def _load_db(self) -> Optional[pd.DataFrame]:
+    def _load_db(self) -> pd.DataFrame | None:
 
         """
         Loads the MASTER_DB and filters records for the current company.
@@ -148,7 +197,7 @@ class WatcherEngine:
             return None
 
         try:
-            df = pd.read_csv(os.path.join(DATA_SUBFOLDER, "MASTERproductsDB.csv"), encoding='utf-8-sig', dtype=str)
+            df = self.PD.read_csv(os.path.join(DATA_SUBFOLDER, "MASTERproductsDB.csv"), encoding='utf-8-sig', dtype=str)
             df = df[df["Company"].str.upper() == self.WEBSITE].copy()
 
             df['EAN'] = df['EAN'].str.strip().str.upper()
@@ -161,7 +210,7 @@ class WatcherEngine:
             LOG.exception(f"An error occurred during LOADING MASTERproductsDB: {e}")
             return None
 
-    def _extract_DBproduct(self, item: dict) -> Optional[Dict[str, Any]]:
+    def _extract_DBproduct(self, item: dict) -> dict[str, Any]:
 
         """
         Searches for a product in the database using a tiered fallback strategy:
@@ -169,26 +218,59 @@ class WatcherEngine:
 
         """
 
-        if self.DBdataframe is None:
-            return None
+        if self.DB is None: return None
 
-        ean = str(item.get("ean",  "-")).strip().upper()
-        mpn = str(item.get("mpn",  "-")).strip().upper()
-        name = str(item.get("name", "")).strip()
+        ean   = str(item.get("ean",   "-")).strip().upper()
+        mpn   = str(item.get("mpn",   "-")).strip().upper()
+        name  = str(item.get("name",  "")).strip()
+        brand = str(item.get("brand", "-")).strip().upper()
 
         # --- EAN (100% match only) ---
         if ean not in ("-", "", "NAN"):
-            match = self.DBdataframe[self.DBdataframe['EAN'] == ean]
+            match = self.DB[self.DB['EAN'] == ean]
             if not match.empty:
                 LOG.debug(f"Full Match EAN {ean}")
                 return match.iloc[0].to_dict()
 
-        # --- MPN (100% match only) ---
-        if mpn not in ("-", "", "NAN"):
-            match = self.DBdataframe[self.DBdataframe['MPN'] == mpn]
-            if not match.empty:
-                LOG.debug(f"Full Match MPN {mpn}")
-                return match.iloc[0].to_dict()
+        # --- MPN match → refine by EAN + Brand ---
+        PLACEHOLDERS = {"-", "", "NAN", "NONE"}
+
+        if mpn not in PLACEHOLDERS:
+            for _, row in self.DB[self.DB['MPN'] == mpn].iterrows():
+                row_ean    = str(row.get('EAN',   '-')).strip().upper()
+                row_brand  = str(row.get('Brand', '-')).strip().upper()
+                item_brand = str(item.get('brand', '-')).strip().upper()
+
+                ean_ok       = ean        not in PLACEHOLDERS
+                row_ean_ok   = row_ean    not in PLACEHOLDERS
+                brand_ok     = item_brand not in PLACEHOLDERS
+                row_brand_ok = row_brand  not in PLACEHOLDERS
+
+                # EAN match → 100% certain
+                if ean_ok and row_ean_ok:
+                    if ean == row_ean:
+                        LOG.debug(f"Match MPN+EAN {mpn}/{ean}")
+                        return row.to_dict()
+                    # EAN mismatch → brand decides
+                    if brand_ok and row_brand_ok:
+                        if item_brand == row_brand:
+                            LOG.debug(f"Match MPN+Brand (EAN mismatch) {mpn}/{item_brand}")
+                            return row.to_dict()
+                        LOG.debug(f"Rejected MPN {mpn} — EAN+Brand mismatch")
+                        continue
+                    LOG.debug(f"Match MPN (EAN mismatch, Brand unknown) {mpn} — benefit of doubt")
+                    return row.to_dict()
+
+                # EAN absent one side → brand decides
+                if brand_ok and row_brand_ok:
+                    if item_brand == row_brand:
+                        LOG.debug(f"Match MPN+Brand (EAN absent) {mpn}/{item_brand}")
+                        return row.to_dict()
+                    LOG.debug(f"Rejected MPN {mpn} — EAN absent, Brand mismatch ({item_brand} vs {row_brand})")
+                    continue
+                # Both unknown → benefit of doubt
+                LOG.debug(f"Match MPN (EAN+Brand absent) {mpn} — benefit of doubt")
+                return row.to_dict()
 
         LOG.debug(f"No Match — EAN={ean} / MPN={mpn} / Article={name}")
         return None
@@ -198,27 +280,27 @@ class WatcherEngine:
     #   CACHE
     # ─────────
 
-    def _cache_checker(self, path: Optional[str] = None, cache_df: Optional[pd.DataFrame] = None, item: Optional[str] = None) -> pd.DataFrame | dict | None:
+    def _cache_checker(self, path: str | None = None, cache_df: pd.DataFrame | None = None, item: str | None = None) -> pd.DataFrame | dict | None:
         if path:
             if os.path.exists(path):
                 try:
                     if os.path.getsize(path) == 0:
-                        return pd.DataFrame(columns=self.DEFAULT_COLUMNS)
+                        return self.PD.DataFrame(columns=self.DEFAULT_COLUMNS)
 
-                    df = pd.read_csv(path, encoding='utf-8-sig')
+                    df = self.PD.read_csv(path, encoding='utf-8-sig')
                     for col in set(self.DEFAULT_COLUMNS) - set(df.columns):
                         df[col] = None
 
                     return df[self.DEFAULT_COLUMNS]
 
-                except pd.errors.EmptyDataError:
-                    return pd.DataFrame(columns=self.DEFAULT_COLUMNS)
+                except self.PD.errors.EmptyDataError:
+                    return self.PD.DataFrame(columns=self.DEFAULT_COLUMNS)
 
                 except Exception as e:
                     LOG.exception(f"An error occurred '{path}': {e}")
-                    return pd.DataFrame(columns=self.DEFAULT_COLUMNS)
+                    return self.PD.DataFrame(columns=self.DEFAULT_COLUMNS)
 
-            return pd.DataFrame(columns=self.DEFAULT_COLUMNS)
+            return self.PD.DataFrame(columns=self.DEFAULT_COLUMNS)
 
         elif cache_df is not None and item:
             if cache_df.empty or 'Recherche' not in cache_df.columns:
@@ -230,7 +312,7 @@ class WatcherEngine:
 
             row_dict = row.iloc[0].to_dict()
             try:
-                last_checked = pd.to_datetime(row_dict.get("Checked on"))
+                last_checked = self.PD.to_datetime(row_dict.get("Checked on"))
                 if datetime.now() - last_checked <= timedelta(days=self.CACHE_DELAY):
                     return row_dict
 
@@ -280,9 +362,21 @@ class WatcherEngine:
                         result = val.get("name") if isinstance(val, dict) else val
                         break
 
-            # if DATA from JSON-LD, return
+            # Validate before returning — reject MPN if == EAN (JSON-LD often sets mpn=sku=ean)
             if result:
-                return str(result).strip()
+                result_str = str(result).strip()
+                if result_str not in {"-", "", "NAN", "NONE", "NULL"}:
+                    if field == "mpn":
+                        ean_val = next(
+                            (str(jsonld.get(k)).strip() for k in ["gtin13", "gtin", "gtin12", "gtin8", "isbn", "sku"] if jsonld.get(k)),
+                            None
+                        )
+                        if ean_val and result_str == ean_val:
+                            pass  # MPN == EAN → fallback to HTML
+                        else:
+                            return result_str
+                    else:
+                        return result_str
 
         # --- else, fallback to HTML ---
         if isinstance(sel, dict):
@@ -336,7 +430,12 @@ class WatcherEngine:
             # ── Attribut custom / tag simple (Toolnation/Klium price) ──
             elif attr_dict or tag:
                 find_kwargs = {k: v for k, v in [('class_', cls), ('id', id_)] if v}
-                el = soup.find(tag, attr_dict) if attr_dict else soup.find(tag, **find_kwargs)
+                if split_on:
+                    # find_all + pick element containing the keyword (avoids wrong divs like "Cadeau!")
+                    candidates = soup.find_all(tag, attr_dict) if attr_dict else soup.find_all(tag, **find_kwargs)
+                    el = next((c for c in candidates if split_on.upper() in c.get_text().upper()), None)
+                else:
+                    el = soup.find(tag, attr_dict) if attr_dict else soup.find(tag, **find_kwargs)
                 if el:
                     child_tag = sel.get("child_tag")
                     if child_tag:
@@ -348,7 +447,11 @@ class WatcherEngine:
             # --- POST-TREATMENT ---
             if result and split_on:
                 parts = result.upper().split(split_on.upper())
-                result = parts[-1].strip().split()[0] if len(parts) > 1 else "-"
+                if len(parts) > 1:
+                    raw = parts[-1].strip().split()[0] if parts[-1].strip() else "-"
+                    result = raw.split("|")[0].strip() or "-"
+                else:
+                    result = "-"
 
             if result and replace_:
                 result = result.upper().replace(replace_.upper(), "").strip()
@@ -413,16 +516,68 @@ class WatcherEngine:
         return "-"
 
 
+
+    def _extract_offers(self, soup: BeautifulSoup) -> str:
+
+        """
+        Extracts discount/volume offer tiers from the product page.
+        Returns a formatted string like "1x→9.36€ | 12x→8.89€ (-5%) | 24x→8.66€ (-7.5%)"
+        or "-" if no offers found.
+
+        """
+
+        offers_cfg = self.SELECTORS.get("offers")
+        if not offers_cfg:
+            return "-"
+
+        mode = offers_cfg.get("mode")
+        results = []
+
+        try:
+            # ── KLIUM mode : section.product-discounts ──
+            if mode == "klium":
+                container = soup.select_one(offers_cfg["container"])
+                if not container:
+                    return "-"
+                for item in container.select(offers_cfg["item"]):
+                    qty_el   = item.select_one(offers_cfg["qty"])
+                    price_el = item.select_one(offers_cfg["price"])
+                    if qty_el and price_el:
+                        qty   = qty_el.get_text(strip=True)
+                        price = price_el.get_text(strip=True)
+                        results.append(f"{qty} → {price}")
+
+            # ── FIXAMI mode : radio inputs + labels ──
+            elif mode == "fixami":
+                for radio in soup.select('input[name="variant"]'):
+                    radio_id = radio.get("id", "")
+                    labels = soup.select(f'label[for="{radio_id}"]')
+                    if len(labels) >= 2:
+                        qty   = labels[0].get_text(strip=True)
+                        price = labels[1].get_text(strip=True)
+                        pct   = labels[2].get_text(strip=True) if len(labels) >= 3 else ""
+                        entry = f"{qty} → {price}€"
+                        if pct:
+                            entry += f" ({pct})"
+                        results.append(entry)
+
+        except Exception as e:
+            LOG.exception(f"[WATCHERengine] Error extracting offers: {e}")
+
+        return " | ".join(results) if results else "-"
+
     # ─────────────
     #   EXTRACTOR
     # ─────────────
 
-    def _extract_FINALproduct(self, db_row: Dict[str, Any], item_name: str) -> Optional[dict]:
+    def _extract_FINALproduct(self, db_row: dict[str, Any], item_name: str) -> dict | None:
 
         """
         Scrapes the product page and returns a result dictionary.
 
         """
+
+        from bs4 import BeautifulSoup
 
         # === INTERNAL VARIABLE(S) ===
         self.ATTEMPT = 0
@@ -432,6 +587,8 @@ class WatcherEngine:
         # === INTERNAL PARAMETER(S) ===
         PRODUCTvar = {
             'Société': self.WEBSITE,
+            'EAN': db_row.get('EAN', '-'),
+            'MPN': db_row.get('MPN', '-'),
             'Marque': db_row.get('Brand', '-'),
             'Article': db_row.get('Article', '-'),
             'Prix enregistré (HTVA)': db_row.get('Base Price (HTVA)', 0.0),
@@ -454,7 +611,7 @@ class WatcherEngine:
 
                 ARTICLEpage = response.content
 
-                soup = BeautifulSoup(ARTICLEpage, "html.parser")
+                soup = BeautifulSoup(ARTICLEpage, "lxml")
 
                 JSONdata = {}
                 for s in soup.find_all('script', type='application/ld+json'):
@@ -482,9 +639,12 @@ class WatcherEngine:
                 except Exception:
                     PRODUCTvar['Evolution du prix'] = "-"
 
+                # ── Offers ──
+                PRODUCTvar['Offres'] = self._extract_offers(soup)
+
                 return PRODUCTvar
 
-            except requests.exceptions.HTTPError as e:
+            except self.requests.exceptions.HTTPError as e:
                 if e.response.status_code == 404:
                     LOG.warning(f"Error 404 : {db_row.get('ArticleURL', '-')}")
                     return PRODUCTvar
@@ -517,7 +677,7 @@ class WatcherEngine:
 
         ITEMSlenght = len(self.ITEMS)
 
-        PRODUCTS: List[dict] = []
+        PRODUCTS: list[dict[str, Any]] = []
 
         try:
             for idx, ITEM in enumerate(self.ITEMS, 1):
@@ -546,7 +706,7 @@ class WatcherEngine:
         except Exception as e:
             LOG.error(f"A fatal error occurred: {e}")
 
-        df = pd.DataFrame(PRODUCTS)
+        df = self.PD.DataFrame(PRODUCTS)
         df.to_csv(CSVpath,  index=False, encoding='utf-8-sig')
         df.to_excel(XLSXpath, index=False)
 

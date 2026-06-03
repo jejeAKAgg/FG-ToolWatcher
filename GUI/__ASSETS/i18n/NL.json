@@ -20,11 +20,13 @@
     "page_menu_stop.button": "Stoppen",
     "page_menu_catalog.button": "Mijn Catalogus",
     "page_menu_FGI.button": "FGI (SOON)",
-    "page_menu_calibration.button": "Kalibratie",
+    "page_menu_calibration.button": "Kalibratie (SOON)",
 
     "page_search_input.placeholder": "Voer de naam van het gereedschap in...",
     "page_search_add.button": "Toevoegen",
     "page_search_remove.button": "Verwijderen",
+    "page_search_remove_all.button": "Alles Verwijderen",
+    "page_search_rapid_access.label": "Snelle Toegang",
 
     "page_settings_save.button": "Opslaan",
     "page_settings_general.category": "Algemeen",

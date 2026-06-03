@@ -6,8 +6,8 @@ import logging
 from PySide6.QtWidgets import (
     QWidget, QVBoxLayout, QHBoxLayout, QListWidget, QStackedWidget, QFrame, QListWidgetItem
 )
-from PySide6.QtCore import Qt, Signal, QTimer
-from PySide6.QtGui import QFont
+from PySide6.QtCore import Qt, QTimer, QSize
+from PySide6.QtGui import QFont, QIcon
 
 from CORE.Services.setup import *
 from CORE.Services.user import UserService
@@ -33,7 +33,7 @@ class SettingsPage(QWidget):
     """
     QSide6 widget dedicated to the user settings management.
     It provides a sidebar for navigating between different settings categories and a main area for displaying the corresponding settings pages.
-    
+
     """
 
     def __init__(self, config: UserService, translator: TranslatorService, parent=None):
@@ -45,7 +45,7 @@ class SettingsPage(QWidget):
             config (UserService): The service instance for managing user settings.
             translator (TranslatorService): The service instance for managing translations.
             parent (Optional[QWidget]): The parent widget.
-        
+
         """
 
         super().__init__(parent)
@@ -56,19 +56,21 @@ class SettingsPage(QWidget):
 
         # === MAIN LAYOUT ===
         self.setStyleSheet("background: transparent;")
-        
+
         self.main_layout = QHBoxLayout(self)
         self.main_layout.setContentsMargins(0, 0, 0, 0)
         self.main_layout.setSpacing(0)
 
         # === SIDEBAR ===
         self.sidebar = QListWidget()
-        self.sidebar.setFixedWidth(260) 
+        self.sidebar.setVerticalScrollBarPolicy(Qt.ScrollBarAlwaysOff)
+        self.sidebar.setFixedWidth(260)
         self.sidebar.setFrameShape(QFrame.NoFrame)
-        self.sidebar.setSpacing(12) 
+        self.sidebar.setSpacing(10)
         self.sidebar.setObjectName("Sidebar")
-        
-        sidebar_font = QFont("Arial Black", 14)
+        self.sidebar.setIconSize(QSize(30, 30))
+
+        sidebar_font = QFont("Arial Black", 15)
         sidebar_font.setWeight(QFont.Black)
         self.sidebar.setFont(sidebar_font)
 
@@ -81,14 +83,14 @@ class SettingsPage(QWidget):
                 outline: none;
             }
             QListWidget#Sidebar::item {
-                padding: 12px 20px;
-                border-radius: 15px; 
+                padding: 10px 20px;
+                border-radius: 15px;
                 margin: 0px 15px;
                 color: #000000;
                 background-color: transparent;
             }
             QListWidget#Sidebar::item:selected {
-                background-color: rgba(0, 0, 0, 0.25); 
+                background-color: rgba(0, 0, 0, 0.25);
                 color: #000000;
                 border: 1px solid rgba(0, 0, 0, 0.05);
                 font-size: 16px;
@@ -129,11 +131,20 @@ class SettingsPage(QWidget):
         self.main_layout.addLayout(right_container)
 
         # --- SIDEBAR ITEMS ---
-        self.sidebar.addItem("⚙️  " + self.translator.get("subpage_settings_general"))
-        self.sidebar.addItem("🌐  " + self.translator.get("subpage_settings_websites"))
-        self.sidebar.addItem("👤  " + self.translator.get("subpage_settings_profile"))
-        self.sidebar.addItem("💻  " + self.translator.get("subpage_settings_system"))
-        self.sidebar.addItem("🤖  " + self.translator.get("subpage_settings_ai"))
+        sidebar_pages = [
+            ("general.ico", self.translator.get("page_settings_general.category")),
+            ("websites.ico", self.translator.get("page_settings_websites.category")),
+            ("profile.ico", self.translator.get("page_settings_profile.category")),
+            ("settings.ico", self.translator.get("page_settings_system.category")),
+            ("AI.ico", self.translator.get("page_settings_AI.category")),
+        ]
+
+        for icon_file, label in sidebar_pages:
+            item = QListWidgetItem(label)
+            icon_path = os.path.join(ASSETS_FOLDER, "icons", icon_file)
+            if os.path.exists(icon_path):
+                item.setIcon(QIcon(icon_path))
+            self.sidebar.addItem(item)
 
         self.sidebar.itemClicked.connect(self._routes)
 
@@ -143,17 +154,17 @@ class SettingsPage(QWidget):
 
     # === PUBLIC METHOD(S) ===
     def retranslate_ui(self):
-        
+
         """
         Update the texte of every widget of the application depending the new user language input.
-        
+
         """
 
-        self.sidebar.item(0).setText("⚙️  " + self.translator.get("subpage_settings_general"))
-        self.sidebar.item(1).setText("🌐  " + self.translator.get("subpage_settings_websites"))
-        self.sidebar.item(2).setText("👤  " + self.translator.get("subpage_settings_profile"))
-        self.sidebar.item(3).setText("💻  " + self.translator.get("subpage_settings_system"))
-        self.sidebar.item(4).setText("🤖  " + self.translator.get("subpage_settings_ai"))
+        self.sidebar.item(0).setText(self.translator.get("page_settings_general.category"))
+        self.sidebar.item(1).setText(self.translator.get("page_settings_websites.category"))
+        self.sidebar.item(2).setText(self.translator.get("page_settings_profile.category"))
+        self.sidebar.item(3).setText(self.translator.get("page_settings_system.category"))
+        self.sidebar.item(4).setText(self.translator.get("page_settings_AI.category"))
 
         self.subpage_general.retranslate_ui()
         self.subpage_websites.retranslate_ui()
@@ -164,11 +175,11 @@ class SettingsPage(QWidget):
 
     # === PRIVATE METHOD(S) ===
     def _routes(self):
-        
+
         """
-        Direct routing based on index. 
+        Direct routing based on index.
         This is the closest equivalent to button.clicked for a Sidebar.
-        
+
         """
 
         index = self.sidebar.currentRow()
@@ -195,7 +206,7 @@ class SettingsPage(QWidget):
     def _toggle_system(self):
         if self.content_stack.currentWidget() != self.subpage_system:
             self.transition.fade_to(self.subpage_system, on_start=lambda: self.sidebar.setEnabled(False), on_finished=lambda: self.sidebar.setEnabled(True))
-    
+
     def _toggle_ai(self):
         if self.content_stack.currentWidget() != self.subpage_ai:
             self.transition.fade_to(self.subpage_ai, on_start=lambda: self.sidebar.setEnabled(False), on_finished=lambda: self.sidebar.setEnabled(True))

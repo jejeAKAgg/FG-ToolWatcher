@@ -2,7 +2,7 @@
 from PySide6.QtWidgets import QWidget, QHBoxLayout, QGridLayout
 from PySide6.QtCore import Qt
 
-def create_top_buttons(settings_button, english_button, french_button, netherlands_button, stats_button, docs_button):
+def create_top_buttons(settings_button, home_button, english_button, french_button, netherlands_button, stats_button, docs_button):
 
     """
     Creates the main top bar, with the language bar
@@ -20,6 +20,7 @@ def create_top_buttons(settings_button, english_button, french_button, netherlan
     left_layout = QHBoxLayout()
     left_layout.setSpacing(15)
     left_layout.addWidget(settings_button)
+    left_layout.addWidget(home_button)
 
     # --- MID top side ---
     center_layout = QHBoxLayout()

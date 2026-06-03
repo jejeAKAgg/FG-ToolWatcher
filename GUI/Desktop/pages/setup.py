@@ -21,6 +21,7 @@ class SetupPage(QWidget):
     """
     QSide6 widget dedicated to the initial application setup process.
     It displays a spinner and messages while the setup thread is running.
+
     """
 
     setup_finished = Signal()
@@ -33,6 +34,7 @@ class SetupPage(QWidget):
         Args:
             config (UserService): The service instance for managing user settings.
             parent (Optional[QWidget]): The parent widget.
+
         """
 
         super().__init__(parent)
@@ -42,7 +44,7 @@ class SetupPage(QWidget):
         self.translator = translator
 
         # === INTERNAL PARAMETER(S) ===
-        self.is_running = False 
+        self.is_running = False
         self.thread = None
 
         # === LAYOUT ===
@@ -63,43 +65,46 @@ class SetupPage(QWidget):
         self.start_setup()
 
     def start_setup(self):
-        
+
         """
         Initiates the setup process in a new thread.
+
         """
-        
+
         if self.is_running:
             return
 
         self.is_running = True
-        
+
         self.thread = SetupThread(
             configs_service=self.configs,
             translator_service=self.translator,
             parent=self
         )
-        
+
         self.thread.message.connect(self.label.setText)
         self.thread.finished_ok.connect(self.on_setup_finished)
-        
+
         self.thread.start()
 
     def on_setup_finished(self):
-        
+
         """
         Handles post-setup actions once the thread signals completion.
+
         """
-        
+
         self.is_running = False
         self.setup_finished.emit()
-    
+
 
     def retranslate_ui(self):
-        
+
         """
         Update the texte of every widget of the application depending the new user language input.
+
         """
-        
+
         pass
 
 
@@ -108,31 +113,33 @@ class SetupPage(QWidget):
 # ===============================
 
 class SetupThread(QThread):
-    
+
     """
-    Manages the sequential and potentially time-consuming initial setup tasks 
+    Manages the sequential and potentially time-consuming initial setup tasks
     (directory creation, config loading) in a separate thread to prevent GUI freezing.
+
     """
-    
+
     message = Signal(str)
     finished_ok = Signal()
 
     def __init__(self, configs_service: UserService, translator_service: TranslatorService, parent=None):
         super().__init__(parent)
-        
+
         self.configs_service = configs_service
         self.translator_service = translator_service
 
     def run(self):
-        
+
         """
         Executes setup steps: creating directories and loading configurations.
+
         """
-        
+
         try:
             steps = [
                 (self.translator_service.get("page_setup_start.text"), lambda: None),
-                (self.translator_service.get("page_setup_step1.text"), lambda: make_dirs),
+                (self.translator_service.get("page_setup_step1.text"), lambda: make_dirs()),
                 (self.translator_service.get("page_setup_complete.text"), lambda: None),
             ]
 

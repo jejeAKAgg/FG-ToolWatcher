@@ -29,16 +29,17 @@ a = Analysis(
     binaries=[],
 
     datas=[
-        
-        # Secrets data
-        (str(ROOT / '__SECRETS'), '/__SECRETS'),
-        
+
         # Assets GUI (icônes, i18n, widgets)
         (str(ROOT / 'GUI' / '__ASSETS' / 'icons'), 'GUI/__ASSETS/icons'),
         (str(ROOT / 'GUI' / '__ASSETS' / 'i18n'), 'GUI/__ASSETS/i18n'),
 
         # Resources CORE (brands.json, websites.json)
         (str(ROOT / 'CORE' / '__RESOURCES'), 'CORE/__RESOURCES'),
+
+        # WEB viewer
+        (str(ROOT / 'WEB' / 'viewer.html'), 'WEB'),
+        (str(ROOT / 'WEB' / 'assets'), 'WEB/assets'),
     ],
 
     # Imports

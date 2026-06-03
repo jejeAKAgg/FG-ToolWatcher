@@ -27,6 +27,7 @@ class AIPage(QWidget):
     """
     QSide6 widget dedicated to the AI management.
     It displays AI information and allows AI configuration updates.
+
     """
 
     def __init__(self, config: UserService, translator: TranslatorService, parent=None):
@@ -38,6 +39,7 @@ class AIPage(QWidget):
             config (UserService): The service instance for managing user settings.
             translator (TranslatorService): The service instance for managing translations.
             parent (Optional[QWidget]): The parent widget.
+
         """
 
         super().__init__(parent)
@@ -48,12 +50,12 @@ class AIPage(QWidget):
 
         # === MAIN LAYOUT ===
         self.main_layout = QVBoxLayout(self)
-        self.main_layout.setContentsMargins(60, 50, 60, 0) 
+        self.main_layout.setContentsMargins(60, 50, 60, 0)
         self.main_layout.setSpacing(10)
         self.main_layout.setAlignment(Qt.AlignTop)
 
         # --- SUBPAGE TITLE ---
-        self.title = QLabel(self.translator.get("subpage_settings_ai.title"))
+        self.title = QLabel(self.translator.get("page_settings_AI.category"))
         self.title.setStyleSheet("font-size: 26px; font-weight: 900; color: #000; margin-bottom: 20px;")
         self.main_layout.addWidget(self.title)
 
@@ -61,10 +63,10 @@ class AIPage(QWidget):
         # TODO: ajouter ici les éléments de la page ai (ex: configuration de l'API, choix du modèle, etc.)
 
         self.save_button = CustomPushButton(
-            width=100, height=50,
-            bg_color="#eb6134", hover_color="#78351f"
+            width=110, height=50,
+            bg_color="#4a7fa5", hover_color="#2e5f7e"
         )
-        self.save_button.setText(self.translator.get("save.button"))
+        self.save_button.setText(self.translator.get("page_settings_save.button"))
         self.save_button.clicked.connect(self.save_user)
 
         self.save_button.setEnabled(False)
@@ -73,7 +75,7 @@ class AIPage(QWidget):
         self.button_layout.addStretch()
         self.button_layout.addWidget(self.save_button)
         self.button_layout.addStretch()
-            
+
         self.main_layout.addStretch()
 
         self.main_layout.addLayout(self.button_layout)
@@ -81,11 +83,12 @@ class AIPage(QWidget):
 
     # === PUBLIC METHODS ===
     def save_user(self):
-        
+
         """
         Validates and saves user profile data to the configuration file.
+
         """
-        
+
         # === INTERNAL PARAMETER(S) ===
         # (TODO: ajouter ici les paramètres nécessaires à la sauvegarde des données de la page de gestion des sites web)
 
@@ -93,11 +96,12 @@ class AIPage(QWidget):
         self.save_button.setEnabled(False)
 
     def retranslate_ui(self):
-        
+
         """
         Update the texte of every widget of the application depending the new user language input.
+
         """
 
-        self.title.setText(self.translator.get("subpage_settings_ai.title"))
+        self.title.setText(self.translator.get("page_settings_AI.category"))
 
-        self.save_button.setText(self.translator.get("save.button"))
+        self.save_button.setText(self.translator.get("page_settings_save.button"))

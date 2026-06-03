@@ -73,6 +73,8 @@ if not any(_OS.startswith(p) for p in ("win", "linux", "darwin")):
 
 # === Path Constant(s) ===
 
+PROJECT_ROOT = _BASE_SYSTEM_PATH                                # Project root
+
 RESOURCES_FOLDER = _OS_CONFIG["_RESOURCES_FOLDER"]              # System
 SECRETS_FOLDER = _OS_CONFIG["_SECRETS_FOLDER"]                  # System
 
