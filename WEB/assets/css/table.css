@@ -1,0 +1,248 @@
+/* ═══════════════════════════════════════
+   TABLE.CSS — Results Table
+   FG-ToolWatcher Viewer
+═══════════════════════════════════════ */
+
+.table-wrapper {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    overflow: hidden;
+    margin-bottom: 32px;
+}
+
+/* ── Toolbar ── */
+.table-toolbar {
+    padding: 16px 20px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    border-bottom: 1px solid var(--border);
+    gap: 16px;
+    flex-wrap: wrap;
+}
+
+.search-box {
+    background: var(--bg);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-sm);
+    padding: 8px 14px;
+    color: var(--text);
+    font-family: var(--font-body);
+    font-size: 13px;
+    width: 280px;
+    outline: none;
+    transition: border-color 0.2s;
+}
+
+.search-box:focus { border-color: var(--accent2); }
+.search-box::placeholder { color: var(--muted); }
+
+.filter-btns {
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+}
+
+.filter-btn {
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-sm);
+    color: var(--muted);
+    font-family: var(--font-body);
+    font-size: 12px;
+    padding: 6px 14px;
+    cursor: pointer;
+    transition: all 0.2s;
+    white-space: nowrap;
+}
+
+.filter-btn:hover  { background: var(--surface); color: var(--text); }
+.filter-btn.active {
+    background: var(--accent2);
+    border-color: var(--accent2);
+    color: white;
+}
+
+/* ── Horizontal scroll container ── */
+.table-scroll {
+    width: 100%;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+}
+
+/* ── Table ── */
+table#results-table {
+    width: 100%;
+    min-width: 1100px;  /* force horizontal scroll when needed */
+    border-collapse: collapse;
+    font-size: 13px;
+}
+
+table#results-table thead th {
+    background: var(--surface2);
+    color: var(--muted);
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    font-weight: 500;
+    padding: 12px 16px;
+    text-align: left;
+    border-bottom: 1px solid var(--border);
+    white-space: nowrap;
+    position: sticky;
+    top: 0;
+    z-index: 1;
+}
+
+table#results-table thead th:after {
+    content: '';
+    position: absolute;
+    bottom: -1px;
+    left: 0; right: 0;
+    height: 1px;
+    background: var(--border);
+}
+
+table#results-table tbody tr {
+    border-bottom: 1px solid var(--border);
+    transition: background 0.15s;
+}
+
+table#results-table tbody tr:hover  { background: var(--surface2); }
+table#results-table tbody tr:last-child { border-bottom: none; }
+
+table#results-table tbody td {
+    padding: 11px 16px;
+    color: var(--text);
+    vertical-align: middle;
+    white-space: nowrap;
+    max-width: 300px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+/* article column can wrap */
+table#results-table tbody td.col-article {
+    white-space: normal;
+    min-width: 220px;
+    max-width: 320px;
+}
+
+/* offers column tooltip */
+.offers-cell {
+    font-size: 11px;
+    color: var(--muted);
+    max-width: 160px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    cursor: help;
+}
+
+/* ── DataTables overrides ── */
+.dataTables_wrapper .dataTables_paginate {
+    padding: 12px 16px;
+    display: flex;
+    gap: 4px;
+    align-items: center;
+}
+
+.dataTables_wrapper .dataTables_paginate .paginate_button {
+    background: var(--surface2) !important;
+    border: 1px solid var(--border) !important;
+    color: var(--muted) !important;
+    border-radius: var(--radius-sm) !important;
+    padding: 5px 10px !important;
+    font-family: var(--font-body) !important;
+    font-size: 12px !important;
+    cursor: pointer;
+}
+
+.dataTables_wrapper .dataTables_paginate .paginate_button.current {
+    background: var(--accent2) !important;
+    border-color: var(--accent2) !important;
+    color: white !important;
+}
+
+.dataTables_wrapper .dataTables_paginate .paginate_button:hover {
+    background: var(--surface) !important;
+    color: var(--text) !important;
+    border-color: var(--border) !important;
+}
+
+.dataTables_wrapper .dataTables_paginate .paginate_button.disabled {
+    opacity: 0.3 !important;
+    cursor: not-allowed !important;
+}
+
+.dataTables_wrapper .dataTables_info,
+.dataTables_wrapper .dataTables_length {
+    color: var(--muted);
+    font-size: 12px;
+    padding: 12px 16px;
+    font-family: var(--font-body);
+}
+
+.dataTables_wrapper .dataTables_length select {
+    background: var(--bg);
+    border: 1px solid var(--border);
+    color: var(--text);
+    border-radius: var(--radius-sm);
+    padding: 4px 8px;
+    font-family: var(--font-body);
+    outline: none;
+}
+
+.dt-bottom {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    border-top: 1px solid var(--border);
+}
+
+/* ── Empty state ── */
+.empty-state {
+    text-align: center;
+    padding: 80px 40px;
+    color: var(--muted);
+}
+
+.empty-state h2 {
+    font-family: var(--font-head);
+    font-size: 32px;
+    letter-spacing: 2px;
+    margin-bottom: 12px;
+    color: var(--border);
+}
+
+/* ── DataTables background overrides ── */
+table.dataTable tbody tr {
+    background-color: var(--surface) !important;
+    color: var(--text) !important;
+}
+
+table.dataTable tbody tr:hover {
+    background-color: var(--surface2) !important;
+}
+
+table.dataTable tbody td {
+    border-top: 1px solid var(--border) !important;
+}
+
+table.dataTable thead th,
+table.dataTable thead td {
+    border-bottom: 1px solid var(--border) !important;
+}
+
+/* Remove DataTables default stripes */
+table.dataTable.stripe tbody tr.odd,
+table.dataTable.display tbody tr.odd {
+    background-color: var(--surface) !important;
+}
+
+table.dataTable.order-column tbody tr > .sorting_1,
+table.dataTable.display tbody tr > .sorting_1 {
+    background-color: var(--surface) !important;
+}
