@@ -1,12 +1,7 @@
-# FG-ToolWatcher.spec
+# .build/release.spec
 # =====================================================
-# PyInstaller build spec for FG-ToolWatcher
-#
-# Usage:
-#   pyinstaller FG-ToolWatcher.spec
-#
-# Output:
-#   dist/FG-ToolWatcher/FG-ToolWatcher.exe
+# PyInstaller release build spec for FG-ToolWatcher
+# [MADE WITH THE HELP OF GEMINI 3.1 PRO MODEL]
 # =====================================================
 
 import sys
@@ -16,21 +11,16 @@ ROOT = Path(SPECPATH)
 
 block_cipher = None
 
-
 # =====================================================
 #   ANALYSIS
 # =====================================================
 
 a = Analysis(
     [str(ROOT / 'Launcher.py')],
-
     pathex=[str(ROOT)],
-
     binaries=[],
-
     datas=[
-
-        # Assets GUI (icônes, i18n, widgets)
+        # Assets GUI (icônes, i18n)
         (str(ROOT / 'GUI' / '__ASSETS' / 'icons'), 'GUI/__ASSETS/icons'),
         (str(ROOT / 'GUI' / '__ASSETS' / 'i18n'), 'GUI/__ASSETS/i18n'),
 
@@ -42,14 +32,11 @@ a = Analysis(
         (str(ROOT / 'WEB' / 'assets'), 'WEB/assets'),
     ],
 
-    # Imports
+    # === IMPORTS CACHÉS ===
+    # Forcer l'inclusion de dépendances qui pourraient être ignorées
     hiddenimports=[
         'cloudscraper',
         'cloudscraper.interpreters',
-        'thefuzz',
-        'thefuzz.fuzz',
-        'thefuzz.process',
-        'Levenshtein',
         'bs4',
         'lxml',
         'openpyxl',
@@ -57,20 +44,41 @@ a = Analysis(
         'openpyxl.utils',
         'pandas',
         'requests',
-        'PySide6.QtSvg',
-        'PySide6.QtPrintSupport',
+        'PyQt6.QtSvg',
+        'PyQt6.QtPrintSupport',
     ],
 
     hookspath=[],
     hooksconfig={},
     runtime_hooks=[],
 
+    # === EXCLUSIONS MASSIVES ===
+    # Allège considérablement le poids final de l'application
     excludes=[
         'tkinter',
         'matplotlib',
         'scipy',
         'notebook',
         'IPython',
+        'thefuzz',
+        'Levenshtein',
+        'PySide6', # Exclusion de PySide6 au profit de PyQt6
+        'PyQt5',
+        'wx',
+        'gi',
+        'test',
+        'unittest',
+        'pydoc',
+        'doctest',
+        'pdb',
+        'profile',
+        'cProfile',
+        'difflib',
+        'ftplib',
+        'imaplib',
+        'poplib',
+        'telnetlib',
+        'xmlrpc',
     ],
 
     win_no_prefer_redirects=False,
@@ -78,7 +86,6 @@ a = Analysis(
     cipher=block_cipher,
     noarchive=False,
 )
-
 
 # =====================================================
 #   PYZ
@@ -90,43 +97,40 @@ pyz = PYZ(
     cipher=block_cipher,
 )
 
-
 # =====================================================
-#   EXE
+#   EXE (Exécutable lanceur)
 # =====================================================
 
 exe = EXE(
     pyz,
     a.scripts,
-    a.binaries,
-    a.zipfiles,
-    a.datas,
-
     name='FG-ToolWatcher',
     icon=str(ROOT / 'GUI' / '__ASSETS' / 'icons' / 'FG-TWicoBG.ico'),
 
-    # --- Behaviour ---
-    console=False,       # no console
-    onefile=True,        # only one .exe
+    # --- Comportement ---
+    console=False,   # Cache le terminal noir en arrière-plan
+    onefile=False,   # Indispensable pour la vitesse : utilise le mode dossier
 
-    # --- Optimization ---
-    strip=False,
-    upx=True,            # compress the binary (UPX needed)
-    upx_exclude=[],
-
-    # --- WINDOWS metadata ---
-    version_file=None,   # optionnel : fichier version_info.txt
-    uac_admin=False,     # no admin rights
+    # --- Windows metadata ---
+    uac_admin=False,
     uac_uiaccess=False,
+)
 
-    # --- Debug ---
-    debug=False,
-    bootloader_ignore_signals=False,
-    disable_windowed_traceback=False,
-    argv_emulation=False,
-    target_arch=None,
-    codesign_identity=None,
-    entitlements_file=None,
+# =====================================================
+#   COLLECT (Génération du dossier final)
+# =====================================================
 
-    runtime_tmpdir=None,
+coll = COLLECT(
+    exe,
+    a.binaries,
+    a.zipfiles,
+    a.datas,
+    strip=True, # Retire les symboles de debug pour réduire la taille
+    upx=True,   # Compresse les binaires (Nécessite UPX installé sur ta machine)
+    upx_exclude=[
+        'python*.dll',
+        'Qt6*.dll',
+        'PyQt6/*.pyd',
+    ],
+    name='FG-ToolWatcher',
 )
