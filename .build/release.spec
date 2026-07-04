@@ -7,7 +7,7 @@
 import sys
 from pathlib import Path
 
-ROOT = Path(SPECPATH)
+ROOT = Path(SPECPATH).parent
 
 block_cipher = None
 
