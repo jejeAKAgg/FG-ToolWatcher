@@ -1,0 +1,998 @@
+{
+    "3M": [
+        "3M",
+        "3M - CUBITRON",
+        "3M - Cubitron",
+        "3M - DIAMOND-GRADE",
+        "3M - E-A-R",
+        "3M - PELTOR",
+        "3M - Peltor",
+        "3M - SCOTCH",
+        "3M - SCOTCH-BRITE",
+        "3M - SCOTCH-WELD",
+        "3M - SPEEDGLAS",
+        "3M - VHB",
+        "3M - XTRACT",
+        "3m"
+    ],
+    "AEG": [
+        "Aeg",
+        "AEG",
+        "aeg"
+    ],
+    "AIRPRESS": [
+        "AIRPRESS",
+        "Airpress",
+        "airpress"
+    ],
+    "ALTRAD": [
+        "Altrad",
+        "ALTRAD",
+        "altrad"
+    ],
+    "ANSELL": [
+        "ANSELL",
+        "Ansell",
+        "ansell"
+    ],
+    "BAHCO": [
+        "BAHCO",
+        "Bahco",
+        "bahco"
+    ],
+    "BATTIPAV": [
+        "BATTIPAV",
+        "Battipav",
+        "battipav"
+    ],
+    "BELLE": [
+        "BELLE",
+        "Belle",
+        "belle"
+    ],
+    "BESSEY": [
+        "BESSEY",
+        "Bessey",
+        "bessey"
+    ],
+    "BETA": [
+        "Beta",
+        "BETA",
+        "beta"
+    ],
+    "BLACK+DECKER": [
+        "Black+Decker",
+        "BLACK+DECKER",
+        "Black & Decker",
+        "BLACK & DECKER",
+        "black+decker"
+    ],
+    "BLAKLADER": [
+        "BLAKLADER",
+        "Blaklader",
+        "blaklader"
+    ],
+    "BLÅKLÄDER": [
+        "Blåkläder",
+        "BLÅKLÄDER",
+        "blåkläder"
+    ],
+    "BODEGRAVEN": [
+        "Bodegraven",
+        "BODEGRAVEN",
+        "bodegraven"
+    ],
+    "BOHLE": [
+        "Bohle",
+        "BOHLE",
+        "bohle"
+    ],
+    "BOSCH": [
+        "BOSCH",
+        "Bosch",
+        "bosch"
+    ],
+    "BOSTITCH": [
+        "Bostitch",
+        "BOSTITCH",
+        "bostitch"
+    ],
+    "BRADY": [
+        "BRADY",
+        "Brady",
+        "brady"
+    ],
+    "BRENNENSTUHL": [
+        "BRENNENSTUHL",
+        "Brennenstuhl",
+        "brennenstuhl"
+    ],
+    "CARAT": [
+        "Carat",
+        "CARAT",
+        "carat"
+    ],
+    "CLIMAMEISTER": [
+        "Climameister",
+        "CLIMAMEISTER",
+        "climameister"
+    ],
+    "CMT": [
+        "CMT",
+        "Cmt",
+        "cmt"
+    ],
+    "COLORLINE": [
+        "Colorline",
+        "COLORLINE",
+        "colorline"
+    ],
+    "CONTI": [
+        "CONTI",
+        "Conti",
+        "conti"
+    ],
+    "CONTIMAC": [
+        "CONTIMAC",
+        "Contimac",
+        "contimac"
+    ],
+    "CRC": [
+        "CRC",
+        "Crc",
+        "crc"
+    ],
+    "DELTA PLUS": [
+        "Delta Plus",
+        "DELTA PLUS",
+        "delta plus"
+    ],
+    "DEWALT": [
+        "DEWALT",
+        "Dewalt",
+        "dewalt"
+    ],
+    "DEXTER": [
+        "Dexter",
+        "DEXTER",
+        "dexter"
+    ],
+    "DIPP": [
+        "DIPP",
+        "Dipp",
+        "dipp"
+    ],
+    "DREMEL": [
+        "DREMEL",
+        "Dremel",
+        "dremel"
+    ],
+    "DURACELL": [
+        "DURACELL",
+        "Duracell",
+        "duracell"
+    ],
+    "DYNABRADE": [
+        "DYNABRADE",
+        "Dynabrade",
+        "dynabrade"
+    ],
+    "EAR": [
+        "Ear",
+        "EAR",
+        "ear"
+    ],
+    "EDMA": [
+        "Edma",
+        "EDMA",
+        "edma"
+    ],
+    "EGO": [
+        "Ego",
+        "EGO",
+        "ego"
+    ],
+    "EIBENSTOCK": [
+        "Eibenstock",
+        "EIBENSTOCK",
+        "eibenstock"
+    ],
+    "EINHELL": [
+        "Einhell",
+        "EINHELL",
+        "einhell"
+    ],
+    "ELTEN": [
+        "ELTEN",
+        "Elten",
+        "elten"
+    ],
+    "ENT": [
+        "Ent",
+        "ENT",
+        "ent"
+    ],
+    "ERDI": [
+        "Erdi",
+        "ERDI",
+        "erdi"
+    ],
+    "ESTWING": [
+        "Estwing",
+        "ESTWING",
+        "estwing"
+    ],
+    "EUROBOOR": [
+        "Euroboor",
+        "EUROBOOR",
+        "euroboor"
+    ],
+    "EVOLUTION": [
+        "Evolution",
+        "EVOLUTION",
+        "evolution"
+    ],
+    "EXPERT": [
+        "Expert",
+        "EXPERT",
+        "expert"
+    ],
+    "EXTECH": [
+        "Extech",
+        "EXTECH",
+        "extech"
+    ],
+    "FACOM": [
+        "FACOM",
+        "Facom",
+        "facom"
+    ],
+    "FEIN": [
+        "FEIN",
+        "Fein",
+        "fein"
+    ],
+    "FELCO": [
+        "FELCO",
+        "Felco",
+        "felco"
+    ],
+    "FENTO": [
+        "FENTO",
+        "Fento",
+        "fento"
+    ],
+    "FESTOOL": [
+        "Festool",
+        "FESTOOL",
+        "festool"
+    ],
+    "FISCHER": [
+        "Fischer",
+        "FISCHER",
+        "fischer"
+    ],
+    "FLUKE": [
+        "Fluke",
+        "FLUKE",
+        "fluke"
+    ],
+    "FUTECH": [
+        "Futech",
+        "FUTECH",
+        "futech"
+    ],
+    "GARDENA": [
+        "Gardena",
+        "GARDENA",
+        "gardena"
+    ],
+    "GEDORE": [
+        "GEDORE",
+        "Gedore",
+        "gedore"
+    ],
+    "GESIPA": [
+        "GESIPA",
+        "Gesipa",
+        "gesipa"
+    ],
+    "HALDER": [
+        "HALDER",
+        "Halder",
+        "halder"
+    ],
+    "HAUBOLD": [
+        "HAUBOLD",
+        "Haubold",
+        "haubold"
+    ],
+    "HAZET": [
+        "HAZET",
+        "Hazet",
+        "hazet"
+    ],
+    "HEROCK": [
+        "HEROCK",
+        "Herock",
+        "herock"
+    ],
+    "HIKOKI": [
+        "HIKOKI",
+        "Hikoki",
+        "hikoki"
+    ],
+    "HILTI": [
+        "Hilti",
+        "HILTI",
+        "hilti"
+    ],
+    "HITACHI": [
+        "Hitachi",
+        "HITACHI",
+        "hitachi"
+    ],
+    "HONEYWELL": [
+        "HONEYWELL",
+        "Honeywell",
+        "honeywell"
+    ],
+    "HUSQVARNA": [
+        "HUSQVARNA",
+        "Husqvarna",
+        "husqvarna"
+    ],
+    "INCRA": [
+        "Incra",
+        "INCRA",
+        "incra"
+    ],
+    "INTERNATIONAL TOOLS": [
+        "INTERNATIONAL TOOLS",
+        "International Tools",
+        "international tools"
+    ],
+    "IRWIN": [
+        "IRWIN",
+        "Irwin",
+        "irwin"
+    ],
+    "JEPSON": [
+        "Jepson",
+        "JEPSON",
+        "jepson"
+    ],
+    "JOKARI": [
+        "Jokari",
+        "JOKARI",
+        "jokari"
+    ],
+    "JUNG": [
+        "JUNG",
+        "Jung",
+        "jung"
+    ],
+    "KAPRO": [
+        "Kapro",
+        "KAPRO",
+        "kapro"
+    ],
+    "KARCHER": [
+        "Karcher",
+        "KARCHER",
+        "karcher"
+    ],
+    "KIDDE": [
+        "Kidde",
+        "KIDDE",
+        "kidde"
+    ],
+    "KLAUKE": [
+        "Klauke",
+        "KLAUKE",
+        "klauke"
+    ],
+    "KLIUM": [
+        "Klium",
+        "KLIUM",
+        "klium"
+    ],
+    "KNIPEX": [
+        "KNIPEX",
+        "Knipex",
+        "knipex"
+    ],
+    "KRAFTWERK": [
+        "KRAFTWERK",
+        "Kraftwerk",
+        "kraftwerk"
+    ],
+    "KRANZLE": [
+        "Kranzle",
+        "KRANZLE",
+        "kranzle"
+    ],
+    "KREG": [
+        "Kreg",
+        "KREG",
+        "kreg"
+    ],
+    "KS TOOLS": [
+        "KS Tools",
+        "KS TOOLS",
+        "Ks Tools",
+        "ks tools"
+    ],
+    "KUKKO": [
+        "KUKKO",
+        "Kukko",
+        "kukko"
+    ],
+    "LAMELLO": [
+        "LAMELLO",
+        "Lamello",
+        "lamello"
+    ],
+    "LASERLINER": [
+        "LASERLINER",
+        "Laserliner",
+        "laserliner"
+    ],
+    "LEATHERMAN": [
+        "Leatherman",
+        "LEATHERMAN",
+        "leatherman"
+    ],
+    "LEDLENSER": [
+        "Ledlenser",
+        "LEDLENSER",
+        "ledlenser"
+    ],
+    "LEICA": [
+        "LEICA",
+        "Leica",
+        "leica"
+    ],
+    "LEISTER": [
+        "LEISTER",
+        "Leister",
+        "leister"
+    ],
+    "LENOX": [
+        "Lenox",
+        "LENOX",
+        "lenox"
+    ],
+    "LESCHA": [
+        "Lescha",
+        "LESCHA",
+        "lescha"
+    ],
+    "LEVELFIX": [
+        "Levelfix",
+        "LEVELFIX",
+        "levelfix"
+    ],
+    "LOCTITE": [
+        "Loctite",
+        "LOCTITE",
+        "loctite"
+    ],
+    "LOWA": [
+        "Lowa",
+        "LOWA",
+        "lowa"
+    ],
+    "LUFKIN": [
+        "LUFKIN",
+        "Lufkin",
+        "lufkin"
+    ],
+    "LUMX": [
+        "LUMX",
+        "Lumx",
+        "lumx"
+    ],
+    "LYRA": [
+        "LYRA",
+        "Lyra",
+        "lyra"
+    ],
+    "MAC ALLISTER": [
+        "Mac Allister",
+        "MAC ALLISTER",
+        "Mac allister",
+        "mac allister"
+    ],
+    "MAFELL": [
+        "Mafell",
+        "MAFELL",
+        "mafell"
+    ],
+    "MAGLITE": [
+        "MAGLITE",
+        "Maglite",
+        "maglite"
+    ],
+    "MAKITA": [
+        "MAKITA",
+        "Makita",
+        "makita"
+    ],
+    "MARSHALLTOWN": [
+        "Marshalltown",
+        "MARSHALLTOWN",
+        "marshalltown"
+    ],
+    "MARTOR": [
+        "Martor",
+        "MARTOR",
+        "martor"
+    ],
+    "MASTER": [
+        "MASTER",
+        "Master",
+        "master"
+    ],
+    "MASTER LOCK": [
+        "Master Lock",
+        "MASTER LOCK",
+        "master lock"
+    ],
+    "MAX": [
+        "Max",
+        "MAX",
+        "max"
+    ],
+    "MESTO": [
+        "MESTO",
+        "Mesto",
+        "mesto"
+    ],
+    "METABO": [
+        "Metabo",
+        "METABO",
+        "metabo"
+    ],
+    "METOFIX": [
+        "Metofix",
+        "METOFIX",
+        "metofix"
+    ],
+    "MILWAUKEE": [
+        "MILWAUKEE",
+        "Milwaukee",
+        "milwaukee"
+    ],
+    "MIRKA": [
+        "Mirka",
+        "MIRKA",
+        "mirka"
+    ],
+    "MITUTOYO": [
+        "MITUTOYO",
+        "Mitutoyo",
+        "mitutoyo"
+    ],
+    "NEDERMAN": [
+        "Nederman",
+        "NEDERMAN",
+        "nederman"
+    ],
+    "NEDO": [
+        "NEDO",
+        "Nedo",
+        "nedo"
+    ],
+    "NILFISK": [
+        "Nilfisk",
+        "NILFISK",
+        "nilfisk"
+    ],
+    "NORTON": [
+        "NORTON",
+        "Norton",
+        "norton"
+    ],
+    "OLIMPIA SPLENDID": [
+        "OLIMPIA SPLENDID",
+        "Olimpia Splendid",
+        "olimpia splendid"
+    ],
+    "OPTIMUM": [
+        "Optimum",
+        "OPTIMUM",
+        "optimum"
+    ],
+    "OSBORN": [
+        "Osborn",
+        "OSBORN",
+        "osborn"
+    ],
+    "PANASONIC": [
+        "PANASONIC",
+        "Panasonic",
+        "panasonic"
+    ],
+    "PARKSIDE": [
+        "Parkside",
+        "PARKSIDE",
+        "parkside"
+    ],
+    "PASLODE": [
+        "PASLODE",
+        "Paslode",
+        "paslode"
+    ],
+    "PB SWISS TOOLS": [
+        "PB Swiss Tools",
+        "PB SWISS TOOLS",
+        "PB Swiss",
+        "pb swiss tools"
+    ],
+    "PETZL": [
+        "PETZL",
+        "Petzl",
+        "petzl"
+    ],
+    "PEUGEOT": [
+        "Peugeot",
+        "PEUGEOT",
+        "peugeot"
+    ],
+    "PFERD": [
+        "Pferd",
+        "PFERD",
+        "pferd"
+    ],
+    "PHANTOM": [
+        "PHANTOM",
+        "Phantom",
+        "phantom"
+    ],
+    "PHILIPS": [
+        "PHILIPS",
+        "Philips",
+        "philips"
+    ],
+    "PICA": [
+        "PICA",
+        "Pica",
+        "pica"
+    ],
+    "PICARD": [
+        "PICARD",
+        "Picard",
+        "picard"
+    ],
+    "PIHER": [
+        "Piher",
+        "PIHER",
+        "piher"
+    ],
+    "POLET": [
+        "POLET",
+        "Polet",
+        "polet"
+    ],
+    "PRAMAC": [
+        "PRAMAC",
+        "Pramac",
+        "pramac"
+    ],
+    "PRESSOL": [
+        "Pressol",
+        "PRESSOL",
+        "pressol"
+    ],
+    "PROXXON": [
+        "Proxxon",
+        "PROXXON",
+        "proxxon"
+    ],
+    "PUMA": [
+        "Puma",
+        "PUMA",
+        "puma"
+    ],
+    "RAACO": [
+        "Raaco",
+        "RAACO",
+        "raaco"
+    ],
+    "RAPID": [
+        "RAPID",
+        "Rapid",
+        "rapid"
+    ],
+    "RECTAVIT": [
+        "RECTAVIT",
+        "Rectavit",
+        "rectavit"
+    ],
+    "REMS": [
+        "REMS",
+        "Rems",
+        "rems"
+    ],
+    "RHODIUS": [
+        "Rhodius",
+        "RHODIUS",
+        "rhodius"
+    ],
+    "RIDGID": [
+        "RIDGID",
+        "Ridgid",
+        "ridgid"
+    ],
+    "RODAC": [
+        "Rodac",
+        "RODAC",
+        "rodac"
+    ],
+    "ROHM": [
+        "ROHM",
+        "Rohm",
+        "rohm"
+    ],
+    "ROTHENBERGER": [
+        "ROTHENBERGER",
+        "Rothenberger",
+        "rothenberger"
+    ],
+    "RUBI": [
+        "RUBI",
+        "Rubi",
+        "rubi"
+    ],
+    "RUST-OLEUM": [
+        "Rust-Oleum",
+        "RUST-OLEUM",
+        "rust-oleum"
+    ],
+    "RYOBI": [
+        "RYOBI",
+        "Ryobi",
+        "ryobi"
+    ],
+    "SAFETY JOGGER": [
+        "Safety Jogger",
+        "SAFETY JOGGER",
+        "safety jogger"
+    ],
+    "SAM": [
+        "SAM",
+        "Sam",
+        "sam"
+    ],
+    "SCANGRIP": [
+        "Scangrip",
+        "SCANGRIP",
+        "scangrip"
+    ],
+    "SCHEPPACH": [
+        "Scheppach",
+        "SCHEPPACH",
+        "scheppach"
+    ],
+    "SENCO": [
+        "SENCO",
+        "Senco",
+        "senco"
+    ],
+    "SHAVIV": [
+        "Shaviv",
+        "SHAVIV",
+        "shaviv"
+    ],
+    "SIA": [
+        "SIA",
+        "Sia",
+        "sia"
+    ],
+    "SILVERLINE": [
+        "Silverline",
+        "SILVERLINE",
+        "silverline"
+    ],
+    "SKF": [
+        "SKF",
+        "Skf",
+        "skf"
+    ],
+    "SNICKERS": [
+        "SNICKERS",
+        "Snickers",
+        "snickers"
+    ],
+    "SOLA": [
+        "Sola",
+        "SOLA",
+        "sola"
+    ],
+    "SOLID": [
+        "SOLID",
+        "Solid",
+        "solid"
+    ],
+    "SORTIMO": [
+        "SORTIMO",
+        "Sortimo",
+        "sortimo"
+    ],
+    "SOUDAL": [
+        "Soudal",
+        "SOUDAL",
+        "soudal"
+    ],
+    "SPAX": [
+        "SPAX",
+        "Spax",
+        "spax"
+    ],
+    "SPIT": [
+        "SPIT",
+        "Spit",
+        "spit"
+    ],
+    "STABILA": [
+        "Stabila",
+        "STABILA",
+        "stabila"
+    ],
+    "STAHLWILLE": [
+        "Stahlwille",
+        "STAHLWILLE",
+        "stahlwille"
+    ],
+    "STANLEY": [
+        "STANLEY",
+        "Stanley",
+        "stanley"
+    ],
+    "STEINEL": [
+        "Steinel",
+        "STEINEL",
+        "steinel"
+    ],
+    "STIHL": [
+        "STIHL",
+        "Stihl",
+        "stihl"
+    ],
+    "TAJIMA": [
+        "TAJIMA",
+        "Tajima",
+        "tajima"
+    ],
+    "TEC7": [
+        "Tec7",
+        "TEC7",
+        "tec7"
+    ],
+    "TENG TOOLS": [
+        "Teng Tools",
+        "TENG TOOLS",
+        "teng tools"
+    ],
+    "TEROSON": [
+        "TEROSON",
+        "Teroson",
+        "teroson"
+    ],
+    "TESA": [
+        "Tesa",
+        "TESA",
+        "tesa"
+    ],
+    "TESTO": [
+        "Testo",
+        "TESTO",
+        "testo"
+    ],
+    "TOOLNATION": [
+        "Toolnation",
+        "TOOLNATION",
+        "toolnation"
+    ],
+    "TOPCON": [
+        "Topcon",
+        "TOPCON",
+        "topcon"
+    ],
+    "TORK": [
+        "TORK",
+        "Tork",
+        "tork"
+    ],
+    "TORMEK": [
+        "TORMEK",
+        "Tormek",
+        "tormek"
+    ],
+    "TREND": [
+        "Trend",
+        "TREND",
+        "trend"
+    ],
+    "TRITON": [
+        "Triton",
+        "TRITON",
+        "triton"
+    ],
+    "TYROLIT": [
+        "TYROLIT",
+        "Tyrolit",
+        "tyrolit"
+    ],
+    "VARTA": [
+        "Varta",
+        "VARTA",
+        "varta"
+    ],
+    "VAUGHAN": [
+        "Vaughan",
+        "VAUGHAN",
+        "vaughan"
+    ],
+    "VIRAX": [
+        "Virax",
+        "VIRAX",
+        "virax"
+    ],
+    "WAGNER": [
+        "Wagner",
+        "WAGNER",
+        "wagner"
+    ],
+    "WAGO": [
+        "Wago",
+        "WAGO",
+        "wago"
+    ],
+    "WD-40": [
+        "WD-40",
+        "Wd-40",
+        "wd-40"
+    ],
+    "WEIDMÜLLER": [
+        "Weidmüller",
+        "WEIDMÜLLER",
+        "weidmüller"
+    ],
+    "WELLER": [
+        "Weller",
+        "WELLER",
+        "weller"
+    ],
+    "WERA": [
+        "WERA",
+        "Wera",
+        "wera"
+    ],
+    "WIHA": [
+        "Wiha",
+        "WIHA",
+        "wiha"
+    ],
+    "WOLFCRAFT": [
+        "Wolfcraft",
+        "WOLFCRAFT",
+        "wolfcraft"
+    ],
+    "WORX": [
+        "Worx",
+        "WORX",
+        "worx"
+    ],
+    "YATO": [
+        "Yato",
+        "YATO",
+        "yato"
+    ],
+    "ZARGES": [
+        "ZARGES",
+        "Zarges",
+        "zarges"
+    ]
+}
