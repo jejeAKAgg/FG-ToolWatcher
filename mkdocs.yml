@@ -1,5 +1,5 @@
 site_name: FG-ToolWatcher Documentation
-docs_dir: __WEB
+docs_dir: .docs
 theme:
   name: material
   palette: 
@@ -37,7 +37,7 @@ nav:
 extra:
   social:
     - icon: fontawesome/brands/github
-      link: https://github.com/ton-profil/FG-ToolWatcher
+      link: https://github.com/jejeAKAgg/FG-ToolWatcher
 copyright: "Copyright &copy; 2026 FG-ToolWatcher - Developed by LECHAT Jérôme."
 
 markdown_extensions:
