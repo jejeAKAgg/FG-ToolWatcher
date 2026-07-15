@@ -1,16 +1,15 @@
 # ======================================================
-#       1. PYTHON ENVIRONMENT & BUILD ARTIFACTS
+#       1. PYTHON ENVIRONMENT & BUILD ARTIFACT(S)
 # ======================================================
-# Ignore the common legacy/IDE virtual environment names
-__TWlinux__/
-__TWwindows__/
+# Ignore the common legacy/IDE virtual environment name(s)
+.venv/
 
-# Ignore Python cache, bytecode, and IDE folders
+# Ignore Python cache, bytecode, and IDE folder(s)
 __pycache__/
 */__pycache__/
 *.pyc
 
-# Python testing artifacts
+# Python testing artifact(s)
 .pytest_cache/
 */.pytest_cache/
 
@@ -33,7 +32,10 @@ site/
 #Ignores any .csv file(s)
 *.csv
 
+#Ignores any .db file(s)
+*.db
+
 # ======================================================
-#             3. SECRETS & CONFIG TEMPLATES
+#             3. SECRETS & CONFIG TEMPLATE(S)
 # ======================================================
 CORE/__RESOURCES/secrets.json
