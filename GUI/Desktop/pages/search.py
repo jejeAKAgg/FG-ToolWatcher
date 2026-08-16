@@ -15,9 +15,7 @@ from CORE.Services.translator import TranslatorService
 
 
 
-# ======= LOGGING SYSTEM ========
 LOG = logging.getLogger(__name__)
-# ===============================
 
 class SearchPage(QWidget):
     def __init__(self, config: UserService, translator: TranslatorService, parent=None):
@@ -35,13 +33,12 @@ class SearchPage(QWidget):
         self.configs = config
         self.translator = translator
 
-
         # === MAIN LAYOUT — horizontal split ===
         root_layout = QHBoxLayout(self)
         root_layout.setContentsMargins(0, 0, 0, 0)
         root_layout.setSpacing(0)
 
-        # ── LEFT : catalogue list + search input ──
+        # --- LEFT : catalogue list + search input ---
         left_widget = QWidget()
         main_layout = QVBoxLayout(left_widget)
         main_layout.setAlignment(Qt.AlignTop)
@@ -95,7 +92,7 @@ class SearchPage(QWidget):
 
         self.input_field.textChanged.connect(self._update_completer)
 
-        # ── RIGHT : quick access by brand ──
+        # --- RIGHT : quick access by brand ---
         right_widget = QWidget()
         right_widget.setFixedWidth(180)
         right_widget.setStyleSheet("""
@@ -108,10 +105,10 @@ class SearchPage(QWidget):
         right_layout.setContentsMargins(8, 12, 8, 12)
         right_layout.setSpacing(6)
 
-        brand_title = QLabel(self.translator.get("page_search_rapid_access.label"))
-        brand_title.setStyleSheet("color: #aaa; font-size: 11px; font-weight: bold; letter-spacing: 1px; text-transform: uppercase;")
-        brand_title.setAlignment(Qt.AlignCenter)
-        right_layout.addWidget(brand_title)
+        self.rapid_access_title = QLabel(self.translator.get("page_search_rapid_access.label"))
+        self.rapid_access_title.setStyleSheet("color: #aaa; font-size: 11px; font-weight: bold; letter-spacing: 1px; text-transform: uppercase;")
+        self.rapid_access_title.setAlignment(Qt.AlignCenter)
+        right_layout.addWidget(self.rapid_access_title)
 
         # Scrollable brand buttons
         scroll = QScrollArea()
@@ -147,9 +144,9 @@ class SearchPage(QWidget):
 
         """
         Opens a persistent SQLite connection at startup.
-        Reused for every query — avoids opening/closing on each keystroke.
-
+        Reused for every query to avoid opening/closing on each keystroke.
         """
+        LOG.debug("Initializing DB connection...")
 
         db_path = os.path.join(DATA_SUBFOLDER, "MASTERproductsDB.db")
         if os.path.exists(db_path):
@@ -158,26 +155,25 @@ class SearchPage(QWidget):
         else:
             LOG.warning(f"MASTERproductsDB.db not found: {db_path}")
 
-    def closeEvent(self, event):
+    def close_db_connection(self):
 
         """
         Closes the SQLite connection when the widget is destroyed.
-
         """
+        LOG.debug("Closing DB connection...")
 
         if self._db_conn:
             self._db_conn.close()
             self._db_conn = None
             LOG.debug("[SearchPage] SQLite connection closed.")
-        super().closeEvent(event)
 
     def _refresh_list(self):
 
         """
         Refresh the QListWidget with Article(s) saved by the user.
         Displays only the name, while storing the full dict in each item's UserRole.
-
         """
+        LOG.debug("Refreshing the list...")
 
         self.mpn_list.clear()
         saved_items = self.configs.get_catalog_items()
@@ -196,8 +192,8 @@ class SearchPage(QWidget):
         Adds the selected article to the catalog.
         Retrieves EAN + MPN from _suggestion_map if available,
         otherwise records only the manually entered name.
-
         """
+        LOG.debug("Adding the article...")
 
         INPUT = self.input_field.text().strip()
         if not INPUT:
@@ -246,8 +242,8 @@ class SearchPage(QWidget):
 
         """
         Removes the selected article from the catalog.
-
         """
+        LOG.debug("Removing article...")
 
         selected_items = self.mpn_list.selectedItems()
         if not selected_items:
@@ -270,8 +266,8 @@ class SearchPage(QWidget):
         """
         Queries SQLite on each keystroke — no data loaded at startup.
         Index B-tree on Article column → ~1ms per query, no GIL issue.
-
         """
+        LOG.debug("Updating auto-completer...")
 
         if len(text) >= 3:
             if not self._db_conn:
@@ -317,14 +313,14 @@ class SearchPage(QWidget):
 
         """
         Removes all articles from the catalog after confirmation.
-
         """
+        LOG.debug("Removing all article(s)...")
 
         from PySide6.QtWidgets import QMessageBox
         reply = QMessageBox.question(
             self,
-            "Tout supprimer",
-            "Supprimer tous les articles du catalogue ?",
+            self.translator.get("page_search_remove_all.title"),
+            self.translator.get("page_search_remove_all.subtitle"),
             QMessageBox.Yes | QMessageBox.No,
             QMessageBox.No
         )
@@ -338,8 +334,8 @@ class SearchPage(QWidget):
         """
         Loads distinct brands from SQLite and creates a quick-access button for each.
         Deduplicates case-insensitively to handle fragmented brand names.
-
         """
+        LOG.debug("Loading brands...")
 
         if not self._db_conn:
             return
@@ -393,10 +389,10 @@ class SearchPage(QWidget):
     def _add_brand(self, brand: str):
 
         """
-        Adds all articles of the given brand to the catalog.
+        Adds all articles of the given brand to the catalog. 
         Skips articles already present.
-
         """
+        LOG.debug("Adding article(s) matching the brand...")
 
         if not self._db_conn:
             return
@@ -434,9 +430,9 @@ class SearchPage(QWidget):
     def retranslate_ui(self):
 
         """
-        Update the texte of every widget of the application depending the new user language input.
-
+        Update the text of every widget of the application depending the new user language input.
         """
+        LOG.debug("Retranslating UI in SearchPage...")
 
         self.input_field.setPlaceholderText(self.translator.get("page_search_input.placeholder"))
 
@@ -444,4 +440,4 @@ class SearchPage(QWidget):
         self.remove_button.setText(self.translator.get("page_search_remove.button"))
         self.clear_button.setText(self.translator.get("page_search_remove_all.button"))
 
-        self.brand_title.setText(self.translator.get("page_search_rapid_access.label"))
+        self.rapid_access_title.setText(self.translator.get("page_search_rapid_access.label"))
