@@ -37,8 +37,11 @@ class WatcherGUI(QWidget):
 
     """
     Main Application Window (GUI) for FG-ToolWatcher.
-    Manages global navigation, language switching, and the primary application stack.
-
+    
+    Roles:
+        Primary application stack
+        Manages global navigation
+        Language switching
     """
 
     def __init__(self, config_service: UserService, translator_service: TranslatorService, viewer_service: ViewerService):
@@ -49,9 +52,7 @@ class WatcherGUI(QWidget):
         Args:
             config_service (UserService): Instance for handling user data and preferences.
             translator_service (TranslatorService): Instance for handling multi-language support.
-
         """
-
         super().__init__()
 
         # === INPUT VARIABLE(S) ===
@@ -64,8 +65,8 @@ class WatcherGUI(QWidget):
 
         # === WINDOW SETTINGS ===
         self.setWindowTitle("FG-ToolWatcher")
-        self.setGeometry(300, 300, 1000, 700)
-        self.setFixedSize(1000, 700)
+        self.setGeometry(100, 100, 1280, 800)
+        self.setFixedSize(1280, 800)
 
         # --- Window ICON ---
         icon_path = os.path.join(ASSETS_FOLDER, "icons", "FG-TWicoBG.ico")
@@ -166,8 +167,18 @@ class WatcherGUI(QWidget):
         """
         Handles the window close event to ensure threads are stopped.
 
-        """
+        This method ensures that any active background processes (such as the 
+        watcher thread) are gracefully terminated, and that persistent resources 
+        (like SQLite database connections) are properly closed before the 
+        application exits. This prevents data corruption, memory leaks, and 
+        zombie processes.
 
+        Args:
+            event (QCloseEvent): The close event object triggered by the system 
+                                 or user action. It is explicitly accepted 
+                                 (`event.accept()`) at the end of the method 
+                                 to authorize the window to close normally.
+        """
         LOG.debug("Close event triggered.")
 
         if hasattr(self, 'main_page') and self.main_page.watcher_thread.isRunning():
@@ -178,8 +189,8 @@ class WatcherGUI(QWidget):
                  LOG.debug("Warning: Watcher thread still running after stop attempt during close.")
 
         if hasattr(self, 'search_page') and self.search_page._db_conn:
-            self.search_page._db_conn.close()
-            self.search_page._db_conn = None
+            LOG.debug("SQLite connection is running, attempting to stop...")
+            self.search_page.close_db_connection()
             LOG.debug("SQLite connection closed.")
 
         LOG.debug("Accepting close event.")
@@ -222,7 +233,6 @@ class WatcherGUI(QWidget):
 
         Args:
             code (str): The language code (e.g., "FR", "EN").
-
         """
 
         # === LOGIC ===
@@ -239,9 +249,7 @@ class WatcherGUI(QWidget):
         Function that updates all translatable texts in WatcherGUI and its child pages when the language is changed.
 
         NOTE: QMessageBox (like function show_info()) do not need to be updated as they read traduction only once it got opened.
-
         """
-
         LOG.debug("Retranslating UI...")
 
         # === Refreshing child pages ===
@@ -264,41 +272,14 @@ class WatcherGUI(QWidget):
 
         """
         Function that updates all buttons in WatcherGUI and its child pages when a lambda action is made by the user.
-
         """
-
         LOG.debug("Updating buttons...")
 
         current_index = self.stack.currentIndex()
         current_page = self.stack.widget(current_index)
+        current_button_state = current_page not in (self.setup_page, self.profile_page)
 
-        if current_page == self.main_page:               # menu_page
-            self.settings_button.setEnabled(True)
-            self.home_button.setEnabled(True)
-            self.stats_button.setEnabled(True)
-            self.docs_button.setEnabled(True)
-        elif current_page == self.profile_page:          # profile_page
-            self.settings_button.setEnabled(False)
-            self.home_button.setEnabled(False)
-            self.stats_button.setEnabled(False)
-            self.docs_button.setEnabled(False)
-        elif current_page == self.search_page:           # search_page
-            self.settings_button.setEnabled(True)
-            self.home_button.setEnabled(True)
-            self.stats_button.setEnabled(True)
-            self.docs_button.setEnabled(True)
-        elif current_page == self.settings_page:         # settings_page
-            self.settings_button.setEnabled(True)
-            self.home_button.setEnabled(True)
-            self.stats_button.setEnabled(True)
-            self.docs_button.setEnabled(True)
-        elif current_page == self.setup_page:            # setup_page
-            self.settings_button.setEnabled(False)
-            self.home_button.setEnabled(False)
-            self.stats_button.setEnabled(False)
-            self.docs_button.setEnabled(False)
-        else:                                            # Other pages
-            self.settings_button.setEnabled(True)
-            self.home_button.setEnabled(True)
-            self.stats_button.setEnabled(True)
-            self.docs_button.setEnabled(True)
+        self.settings_button.setEnabled(current_button_state)
+        self.home_button.setEnabled(current_button_state)
+        self.stats_button.setEnabled(current_button_state)
+        self.docs_button.setEnabled(current_button_state)
