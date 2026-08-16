@@ -37,7 +37,7 @@ class LoaderEngine:
     MAX_RETRIES = 3
     RETRY_DELAY = 5      # in seconds
     SAVE_COUNTER = 0
-    SAVE_THRESHOLD = 10 # RAM savings
+    SAVE_THRESHOLD = 10  # RAM savings
 
     def __init__(self, site_key: str):
 
@@ -420,6 +420,7 @@ class LoaderEngine:
             'Brand': "-",
             'Article': "-",
             'Base Price (HTVA)': 0.0,
+            'Base Price (TTC)': 0.0,
             'ArticleURL': link,
             'Checked on': datetime.now().strftime("%Y-%m-%d %H:%M:%S")
         }
@@ -477,11 +478,11 @@ class LoaderEngine:
                             PRODUCTvar["Brand"] = b.upper() 
                             break
 
-                # --- Price Handling ---
+                # --- Price Handling (FLOAT FORMAT) ---
                 PRICE_STR = self._extract_field(soup, "price", JSONdata)
                 PRICE_FLOAT = self._clean_price(PRICE_STR)
                     
-                # Assignation des deux prix au format FLOAT
+                # 'FLOATing' the output(s)
                 if PRICE_FLOAT > 0:
                     PRODUCTvar["Base Price (TTC)"] = round(PRICE_FLOAT, 2)
                     PRODUCTvar["Base Price (HTVA)"] = round(PRICE_FLOAT / self.VAT_RATE, 2)
@@ -499,6 +500,10 @@ class LoaderEngine:
                 LOG.exception(f"HTTP Error ({response.status_code}) for {link}: {http_err}")
                 ATTEMPT+=1
                 time.sleep(self.RETRY_DELAY)
+
+            except requests.exceptions.TooManyRedirects:
+                LOG.warning(f"TooManyRedirects error. Infinite loop detected for {link}. Product ignored.")
+                return PRODUCTvar
 
             except Exception as e:
                 LOG.exception(f"Error during data extraction for product {link}: {e}")
@@ -550,7 +555,7 @@ class LoaderEngine:
                     LOG.exception(f"An unexpected error occurred for URL {PRODUCTurl}: {e}")
                     continue
 
-            # Sauvegarde finale des résidus du batch
+            # Final save of the batch
             if PRODUCTS_BATCH: 
                 self._save_batch(PRODUCTS_BATCH)
 
