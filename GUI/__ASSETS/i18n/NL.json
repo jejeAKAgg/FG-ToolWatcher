@@ -26,6 +26,8 @@
     "page_search_add.button": "Toevoegen",
     "page_search_remove.button": "Verwijderen",
     "page_search_remove_all.button": "Alles Verwijderen",
+    "page_search_remove_all.title": "Alles verwijderen",
+    "page_search_remove_all.subtitle": "Alle artikelen uit de catalogus verwijderen?",
     "page_search_rapid_access.label": "Snelle Toegang",
 
     "page_settings_save.button": "Opslaan",

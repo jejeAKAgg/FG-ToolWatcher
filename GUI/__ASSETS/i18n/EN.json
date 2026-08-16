@@ -26,6 +26,8 @@
     "page_search_add.button": "Add",
     "page_search_remove.button": "Remove",
     "page_search_remove_all.button": "Remove All",
+    "page_search_remove_all.title": "Remove All",
+    "page_search_remove_all.subtitle": "Remove all items from the catalog?",
     "page_search_rapid_access.label": "Quick Access",
 
     "page_settings_save.button": "Save",

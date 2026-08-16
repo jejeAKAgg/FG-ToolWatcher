@@ -26,6 +26,8 @@
     "page_search_add.button": "Ajouter",
     "page_search_remove.button": "Supprimer",
     "page_search_remove_all.button": "Tout supprimer",
+    "page_search_remove_all.title": "Tout supprimer",
+    "page_search_remove_all.subtitle": "Supprimer tous les articles du catalogue ?",
     "page_search_rapid_access.label": "Accès rapide",
 
     "page_settings_save.button": "Enregistrer",
