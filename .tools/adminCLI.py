@@ -4,28 +4,39 @@ import sys
 
 import logging
 
-import sqlite3
-import pandas as pd
-
 from concurrent.futures import ProcessPoolExecutor, as_completed
 
 from DATABASE.Loaders.LOADERengine import LoaderEngine
 from DATABASE.Sitemaps.SITEMAPengine import SITEMAPengine
 
-def process_loader(site: str) -> str:
+def process_loader(site: str, log_level: int) -> str:
+
     """
     Initializes and runs the LoaderEngine for the given site.
     """
+    logging.basicConfig(
+        level=log_level,
+        format='%(asctime)s [%(processName)s] %(message)s',
+        datefmt='%H:%M:%S'
+    )
+
     loader = LoaderEngine(site)
     loader.run()
     return site
 
-def process_sitemap(site: str) -> str:
+def process_sitemap(site: str, log_level: int) -> str:
+
     """
     Initializes and runs the SITEMAPengine for the given site.
     """
-    moteur = SITEMAPengine(site)
-    moteur.run()
+    logging.basicConfig(
+        level=log_level,
+        format='%(asctime)s [%(processName)s] %(message)s',
+        datefmt='%H:%M:%S'
+    )
+    
+    sitemap = SITEMAPengine(site)
+    sitemap.run()
     return site
 
 if __name__ == "__main__":
@@ -53,13 +64,13 @@ if __name__ == "__main__":
 
         with ProcessPoolExecutor(max_workers=len(SITES)) as executor:
             # Submitting the tasks
-            futures = {executor.submit(process_sitemap, site): site for site in SITES}
+            futures = {executor.submit(process_sitemap, site, LEVEL): site for site in SITES}
             
             # 'as_completed' to capture the end of each task
             for future in as_completed(futures):
                 site = futures[future]
                 try:
-                    # Checking tast end status
+                    # Checking task end status
                     future.result() 
                 except Exception as exc:
                     logging.error(f"❌ The process for {site} crashed unexpectedly: {exc}")
@@ -69,7 +80,7 @@ if __name__ == "__main__":
 
         with ProcessPoolExecutor(max_workers=len(SITES)) as executor:
             # Submitting the tasks
-            futures = {executor.submit(process_loader, site): site for site in SITES}
+            futures = {executor.submit(process_loader, site, LEVEL): site for site in SITES}
             
             # 'as_completed' to capture the end of each task
             for future in as_completed(futures):
