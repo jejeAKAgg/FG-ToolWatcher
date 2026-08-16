@@ -63,6 +63,7 @@ def RUN_GUI():
         LOG.exception(f"A critical error occured on GUI mode: {e}")
         sys.exit(1)
 
+
 # =====================================================
 #                   POINT D'ENTRÉE
 # =====================================================
