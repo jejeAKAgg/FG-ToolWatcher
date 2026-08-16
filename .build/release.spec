@@ -62,23 +62,13 @@ a = Analysis(
         'IPython',
         'thefuzz',
         'Levenshtein',
-        'PySide6', # Exclusion de PySide6 au profit de PyQt6
         'PyQt5',
+        'PyQt6',
         'wx',
-        'gi',
-        'test',
         'unittest',
         'pydoc',
         'doctest',
         'pdb',
-        'profile',
-        'cProfile',
-        'difflib',
-        'ftplib',
-        'imaplib',
-        'poplib',
-        'telnetlib',
-        'xmlrpc',
     ],
 
     win_no_prefer_redirects=False,
@@ -125,12 +115,7 @@ coll = COLLECT(
     a.binaries,
     a.zipfiles,
     a.datas,
-    strip=True, # Retire les symboles de debug pour réduire la taille
-    upx=True,   # Compresse les binaires (Nécessite UPX installé sur ta machine)
-    upx_exclude=[
-        'python*.dll',
-        'Qt6*.dll',
-        'PyQt6/*.pyd',
-    ],
+    strip=False,   # NE retire PAS les symboles de debug pour réduire la taille
+    upx=False,   # NE compresse PAS les binaires
     name='FG-ToolWatcher',
 )
