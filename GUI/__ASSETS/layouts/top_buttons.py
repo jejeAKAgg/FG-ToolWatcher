@@ -1,39 +1,50 @@
-# GUI/__ASSETS/layouts/top_buttons.py
-from PySide6.QtWidgets import QWidget, QHBoxLayout, QGridLayout
+# GUI/__assets/layouts/top_buttons.py
+
 from PySide6.QtCore import Qt
+from PySide6.QtWidgets import QGridLayout, QHBoxLayout, QWidget
 
-def create_top_buttons(settings_button, home_button, english_button, french_button, netherlands_button, stats_button, docs_button):
 
-    """
-    Creates the main top bar, with the language bar
-    perfectly centered using a QGridLayout.
+def create_top_bar(left_widgets: list = None, center_widgets: list = None, right_widgets: list = None, margins: int | list | tuple = 5) -> QWidget:
 
     """
+    Creates the main top bar with three distinct layout zones (left, center, right),
+    ensuring the center zone is perfectly aligned in the middle using a QGridLayout.
 
+    Args:
+        left_widgets (list, optional): Widgets to display on the left.
+        center_widgets (list, optional): Widgets to display perfectly centered.
+        right_widgets (list, optional): Widgets to display on the right.
+
+    Note:
+        You can use the string "STRETCH" or None within any of these lists
+        to insert a flexible space between items in that specific zone.
+
+    Returns:
+        QWidget: A container widget holding the configured grid layout.
+    """
     container = QWidget()
 
     layout = QGridLayout(container)
-    layout.setContentsMargins(5, 5, 5, 5)
+    layout.setContentsMargins(*(margins if isinstance(margins, (list, tuple)) else [margins] * 4))
     layout.setSpacing(10)
 
-    # --- LEFT top side ---
-    left_layout = QHBoxLayout()
-    left_layout.setSpacing(15)
-    left_layout.addWidget(settings_button)
-    left_layout.addWidget(home_button)
+    # Helper function to generate a QHBoxLayout for each zone
+    def build_zone_layout(widgets, default_spacing=15):
+        zone_layout = QHBoxLayout()
+        zone_layout.setSpacing(default_spacing)
 
-    # --- MID top side ---
-    center_layout = QHBoxLayout()
-    center_layout.setSpacing(10)
-    center_layout.addWidget(english_button)
-    center_layout.addWidget(french_button)
-    center_layout.addWidget(netherlands_button)
+        if widgets:
+            for item in widgets:
+                if item is None or item == "STRETCH":
+                    zone_layout.addStretch()
+                else:
+                    zone_layout.addWidget(item)
+        return zone_layout
 
-    # --- RIGHT top side ---
-    right_layout = QHBoxLayout()
-    right_layout.setSpacing(15)
-    right_layout.addWidget(stats_button)
-    #right_layout.addWidget(docs_button)
+    # --- Build the 3 zones ---
+    left_layout = build_zone_layout(left_widgets, default_spacing=15)
+    center_layout = build_zone_layout(center_widgets, default_spacing=10)
+    right_layout = build_zone_layout(right_widgets, default_spacing=15)
 
     # --- Assembling and attributing weight to each column ---
     layout.addLayout(left_layout, 0, 0, Qt.AlignmentFlag.AlignLeft)
