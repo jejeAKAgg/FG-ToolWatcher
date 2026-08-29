@@ -1,46 +1,56 @@
-# GUI/__ASSETS/layouts/top_header.py
+# GUI/__assets/layouts/top_header.py
+
 import os
 
-from PySide6.QtGui import QPixmap, Qt
-from PySide6.QtWidgets import QWidget, QHBoxLayout, QLabel
+from PySide6.QtGui import QFont, QFontDatabase, QPixmap, Qt
+from PySide6.QtWidgets import QHBoxLayout, QLabel, QWidget
 
+from CORE.Services.setup import ASSETS_FOLDER
 
-def create_top_header(title_text, logo_path, logo_size=(120, 120)):
-
-    """
-    Creates a header with a logo + centered title.
+def create_header(widgets: list) -> QWidget:
 
     """
-
+    Creates a generic horizontal header layout from a list of items.
+    Use "STRETCH" or None to insert flexible spaces.
+    """
     container = QWidget()
+
     layout = QHBoxLayout(container)
-    layout.setContentsMargins(0,0,0,0)
+    layout.setContentsMargins(0, 0, 0, 0)
     layout.setSpacing(15)
 
-    # Logo
-    logo_label = QLabel()
-    logo_label.setAlignment(Qt.AlignCenter)
-    if os.path.exists(logo_path):
-        logo_pixmap = QPixmap(logo_path).scaled(logo_size[0], logo_size[1], Qt.KeepAspectRatio, Qt.SmoothTransformation)
-        logo_label.setPixmap(logo_pixmap)
-
-    # Title
-    title_label = QLabel(title_text)
-    title_label.setAlignment(Qt.AlignVCenter | Qt.AlignLeft)
-    title_label.setStyleSheet("""
-        QLabel {
-            font-size: 48px;
-            font-weight: bold;
-            font-family: "Segoe UI", Arial, sans-serif;
-            color: qlineargradient(x1:0, y1:0, x2:1, y2:0,
-                                   stop:0 #007e2d, stop:1 #007e2d);
-        }
-    """)
-
-    # Add widgets to the layout with stretches for centering
-    layout.addStretch()
-    layout.addWidget(logo_label)
-    layout.addWidget(title_label)
-    layout.addStretch()
+    for item in widgets:
+        if item is None or item == "STRETCH":
+            layout.addStretch()
+        else:
+            layout.addWidget(item)
 
     return container
+
+def create_logo_widget(image_path: str, size: tuple = (120, 120)) -> QLabel:
+    """Helper to create a QLabel containing a scaled image."""
+    label = QLabel()
+    label.setAlignment(Qt.AlignCenter)
+    if os.path.exists(image_path):
+        pixmap = QPixmap(image_path).scaled(size[0], size[1], Qt.KeepAspectRatio, Qt.SmoothTransformation)
+        label.setPixmap(pixmap)
+    return label
+
+def create_title_widget(text: str, font_size: int = 28, text_color: str = "#000000") -> QLabel:
+    """Helper to create a stylized title label using Montserrat."""
+    label = QLabel(text)
+    label.setAlignment(Qt.AlignCenter)
+
+    font_path = os.path.join(ASSETS_FOLDER, "fonts", "Montserrat-Black.ttf")
+
+    if os.path.exists(font_path):
+        font_id = QFontDatabase.addApplicationFont(font_path)
+        if font_id != -1:
+            font_family = QFontDatabase.applicationFontFamilies(font_id)[0]
+            custom_font = QFont(font_family, font_size, QFont.Weight.Black)
+            label.setFont(custom_font)
+    else:
+        label.setFont(QFont("Arial Black", font_size, QFont.Weight.Black))
+
+    label.setStyleSheet(f"color: {text_color}; letter-spacing: 2px;")
+    return label
