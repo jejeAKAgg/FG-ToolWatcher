@@ -2,39 +2,39 @@
 import os
 import sys
 
+import logging
+
 from typing import Dict, Any, Tuple
 
 
 
-# === Internal Variable(s) ===
+LOG = logging.getLogger(__name__)
 
+# === Internal Variable(s) ===
 _OS        = sys.platform.lower()
 _IS_FROZEN = getattr(sys, 'frozen', False)
 
 
 # === Private Function(s) ===
-
 def _get_base_paths() -> Tuple[str, str]:
 
     """
     Returns (base_system_path, base_temp_path).
     - base_system_path : dossier du .exe (frozen) ou racine du projet (dev)
-    - base_temp_path   : dossier temporaire PyInstaller (_MEIPASS) ou "" en dev
-
+    - base_temp_path : dossier temporaire PyInstaller (_MEIPASS) ou "" en dev
     """
+    LOG.debug("Getting base paths...")
 
     if _IS_FROZEN:
         return os.path.dirname(sys.executable), sys._MEIPASS
     return os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "..")), ""
 
-
-
 def _build_paths(sys_path: str, tmp_path: str) -> Dict[str, Any]:
 
     """
     Constructs the directory path mapping. Ensures consistent logic across Windows, Linux, and macOS.
-
     """
+    LOG.debug("Building paths...")
 
     return {
         # ── System side ──
@@ -46,7 +46,7 @@ def _build_paths(sys_path: str, tmp_path: str) -> Dict[str, Any]:
         "_SEARCH_FOLDER":           os.path.join(tmp_path, "CORE", "Search"),
         "_SERVICE_FOLDER":          os.path.join(tmp_path, "CORE", "Service"),
 
-        "_ASSETS_FOLDER":           os.path.join(tmp_path, "GUI",  "__ASSETS"),
+        "_ASSETS_FOLDER":           os.path.join(tmp_path, "GUI",  "__assets"),
 
         # ── User side (folder(s) & path(s)) ──
         "_USER_FOLDER":             os.path.join(sys_path, "USER"),
@@ -63,7 +63,6 @@ def _build_paths(sys_path: str, tmp_path: str) -> Dict[str, Any]:
 
 
 # === Execution ===
-
 _BASE_SYSTEM_PATH, _BASE_TEMP_PATH = _get_base_paths()
 _OS_CONFIG = _build_paths(_BASE_SYSTEM_PATH, _BASE_TEMP_PATH)
 
@@ -72,7 +71,6 @@ if not any(_OS.startswith(p) for p in ("win", "linux", "darwin")):
 
 
 # === Path Constant(s) ===
-
 PROJECT_ROOT = _BASE_SYSTEM_PATH                                # Project root
 
 RESOURCES_FOLDER = _OS_CONFIG["_RESOURCES_FOLDER"]              # System
@@ -97,15 +95,14 @@ CATALOG_CONFIG_PATH = _OS_CONFIG["_CATALOG_CONFIG_PATH"]        # User file path
 USER_CONFIG_PATH = _OS_CONFIG["_USER_CONFIG_PATH"]              # User file path
 
 
-# === Public Function(s) ===
-
+# === PUBLIC METHOD(S) ===
 def make_dirs() -> None:
 
     """
     Creates all required user directories if they do not exist.
     Called during application startup.
-
     """
+    LOG.debug("Creating directory/ies")
 
     for path in (
         USER_FOLDER,

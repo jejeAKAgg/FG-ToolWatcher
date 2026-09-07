@@ -11,7 +11,7 @@ from CORE.Services.setup import *
 from CORE.Services.user import UserService
 from CORE.Services.translator import TranslatorService
 
-from GUI.__ASSETS.widgets.push_buttons import CustomPushButton
+from GUI.__assets.widgets.buttons import CustomPushButton
 
 
 

@@ -15,37 +15,38 @@ class ComparisonTable(QTableWidget):
     A customized QTableWidget for displaying price comparisons.
     Handles its own styling, column resizing, and URL click events.
     """
-    
+
+    COLUMN_HEADERS = [
+        "EAN", "MPN", "Article", "Georges (€)", "Clabots (€)", "Fixami (€)",
+        "Klium (€)", "Lecot (€)", "Toolnation (€)"
+    ]
+
     def __init__(self, parent=None):
         super().__init__(0, 9, parent)
-        
+
         # --- CONFIGURATION ---
-        self.setHorizontalHeaderLabels([
-            "EAN", "MPN", "Article", "Georges (€)", "Clabots (€)", "Fixami (€)", 
-            "Klium (€)", "Lecot (€)", "Toolnation (€)"
-        ])
-        
+        self.setHorizontalHeaderLabels(self.COLUMN_HEADERS)
+
         self.setEditTriggers(QAbstractItemView.EditTrigger.NoEditTriggers)
         self.setSelectionBehavior(QAbstractItemView.SelectionBehavior.SelectRows)
         self.setAlternatingRowColors(True)
         self.setShowGrid(False)
         self.verticalHeader().setVisible(False)
         self.setMouseTracking(True)
-        
+
         # Resizing
-        for i in range(0, 9):
+        for i, header in enumerate(self.COLUMN_HEADERS):
             self.horizontalHeader().setSectionResizeMode(i, QHeaderView.ResizeMode.ResizeToContents)
-        self.horizontalHeader().setSectionResizeMode(2, QHeaderView.ResizeMode.Stretch) 
-        
+        self.horizontalHeader().setSectionResizeMode(2, QHeaderView.ResizeMode.Stretch)
+
         # --- STYLING ---
         self._apply_style()
-        
+
         # --- EVENTS ---
         self.cellEntered.connect(self._on_cell_entered)
         self.cellClicked.connect(self._on_cell_clicked)
 
     def _apply_style(self):
-        # Appliquer le style global de la table
         self.setStyleSheet("""
             QWidget {
                 color: #E0E0E0;
@@ -92,7 +93,6 @@ class ComparisonTable(QTableWidget):
         """)
 
     def _on_cell_entered(self, row, column):
-        # Gérer le changement de curseur lorsque la souris entre dans une cellule
         item = self.item(row, column)
         if item is not None:
             url = item.data(Qt.ItemDataRole.UserRole)
@@ -102,7 +102,6 @@ class ComparisonTable(QTableWidget):
                 self.viewport().setCursor(Qt.CursorShape.ArrowCursor)
 
     def _on_cell_clicked(self, row, column):
-        # Ouvrir l'URL dans le navigateur lorsque la cellule est cliquée
         item = self.item(row, column)
         if item is not None:
             url = item.data(Qt.ItemDataRole.UserRole)

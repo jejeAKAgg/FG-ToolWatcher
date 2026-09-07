@@ -1,18 +1,19 @@
 # GUI/Desktop/pages/search.py
+
 import logging
 import sqlite3
 
+from PySide6.QtCore import QStringListModel, Qt
 from PySide6.QtWidgets import (
-    QWidget, QVBoxLayout, QHBoxLayout, QLineEdit, QListWidget,
-    QPushButton, QCompleter, QListWidgetItem,
-    QScrollArea, QFrame, QLabel
+    QCompleter, QFrame, QHBoxLayout,
+    QLabel, QLineEdit, QListWidget,
+    QListWidgetItem, QPushButton, QScrollArea,
+    QWidget, QVBoxLayout
 )
-from PySide6.QtCore import Qt, QStringListModel
 
 from CORE.Services.setup import *
-from CORE.Services.user import UserService
 from CORE.Services.translator import TranslatorService
-
+from CORE.Services.user import UserService
 
 
 LOG = logging.getLogger(__name__)
@@ -140,6 +141,22 @@ class SearchPage(QWidget):
     #             FUNCTIONS
     # ====================================
 
+    # === PUBLIC METHOD(S) ===
+    def retranslate_ui(self):
+
+        """
+        Update the text of every widget of the application depending the new user language input.
+        """
+        LOG.debug("Retranslating UI in SearchPage...")
+
+        self.input_field.setPlaceholderText(self.translator.get("page_search_input.placeholder"))
+
+        self.add_button.setText(self.translator.get("page_search_add.button"))
+        self.remove_button.setText(self.translator.get("page_search_remove.button"))
+        self.clear_button.setText(self.translator.get("page_search_remove_all.button"))
+
+        self.rapid_access_title.setText(self.translator.get("page_search_rapid_access.label"))
+
     def _init_db_connection(self):
 
         """
@@ -167,6 +184,7 @@ class SearchPage(QWidget):
             self._db_conn = None
             LOG.debug("[SearchPage] SQLite connection closed.")
 
+    # === PRIVATE METHOD(S) ===
     def _refresh_list(self):
 
         """
@@ -389,7 +407,7 @@ class SearchPage(QWidget):
     def _add_brand(self, brand: str):
 
         """
-        Adds all articles of the given brand to the catalog. 
+        Adds all articles of the given brand to the catalog.
         Skips articles already present.
         """
         LOG.debug("Adding article(s) matching the brand...")
@@ -427,17 +445,4 @@ class SearchPage(QWidget):
         except Exception as e:
             LOG.exception(f"[SearchPage] Error adding brand {brand}: {e}")
 
-    def retranslate_ui(self):
 
-        """
-        Update the text of every widget of the application depending the new user language input.
-        """
-        LOG.debug("Retranslating UI in SearchPage...")
-
-        self.input_field.setPlaceholderText(self.translator.get("page_search_input.placeholder"))
-
-        self.add_button.setText(self.translator.get("page_search_add.button"))
-        self.remove_button.setText(self.translator.get("page_search_remove.button"))
-        self.clear_button.setText(self.translator.get("page_search_remove_all.button"))
-
-        self.rapid_access_title.setText(self.translator.get("page_search_rapid_access.label"))

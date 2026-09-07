@@ -1,26 +1,21 @@
 # GUI/Desktop/pages/subpages/settings/profile.py
-import os
 
 import logging
-
 import re
 
-from PySide6.QtWidgets import (
-    QWidget, QVBoxLayout, QHBoxLayout, QLabel, QLineEdit, QMessageBox, QSpacerItem, QSizePolicy
-)
 from PySide6.QtCore import Qt
+from PySide6.QtWidgets import (
+    QHBoxLayout, QLabel, QLineEdit, QVBoxLayout, QWidget
+)
 
 from CORE.Services.setup import *
-from CORE.Services.user import UserService
 from CORE.Services.translator import TranslatorService
+from CORE.Services.user import UserService
 
-from GUI.__ASSETS.widgets.push_buttons import CustomPushButton
+from GUI.__assets.widgets.buttons import CustomPushButton
 
 
-
-# ======= LOGGING SYSTEM ========
 LOG = logging.getLogger(__name__)
-# ===============================
 
 class ProfilePage(QWidget):
 
@@ -39,10 +34,9 @@ class ProfilePage(QWidget):
             translator (TranslatorService): The service instance for managing translations.
             parent (Optional[QWidget]): The parent widget.
         """
-
         super().__init__(parent)
 
-        # === INTERNAL VARIABLE(S) ===
+        # === INTERNAL SERVICE(S) ===
         self.configs = config
         self.translator = translator
 

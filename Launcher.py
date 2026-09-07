@@ -1,14 +1,12 @@
 # Launcher.py
-import sys
+
 import logging
+import sys
 
 from CORE.Services.logger import setup_logging
-
 from CORE.Services.setup import *
 from CORE.Services.user import UserService
 from CORE.Services.translator import TranslatorService
-
-from WEB.Viewer import ViewerService
 
 from GUI.Desktop.Client import WatcherGUI
 
@@ -41,15 +39,11 @@ def RUN_GUI():
         translator_service = TranslatorService()
         LOG.debug("TranslatorService initialized.")
 
-        # --- Viewer Service ---
-        viewer_service = ViewerService()
-        viewer_service.start()
-
         # === START APPLICATION ===
         app = QApplication(sys.argv)
         app.setStyleSheet("* { outline: 0; }")
 
-        window = WatcherGUI(config_service=config_service, translator_service=translator_service, viewer_service=viewer_service)
+        window = WatcherGUI(config_service=config_service, translator_service=translator_service)
         window.show()
 
         LOG.debug("Window show.")
