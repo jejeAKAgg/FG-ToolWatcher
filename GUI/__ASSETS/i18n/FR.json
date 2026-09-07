@@ -16,12 +16,10 @@
     "page_profile_lastname.subtitle": "Nom",
     "page_profile_mail.subtitle": "E-mail",
 
-    "page_menu_start.button": "Démarrer",
-    "page_menu_stop.button": "Arrêter",
-    "page_menu_catalog.button": "Mon Catalogue",
-    "page_menu_FGI.button": "FGI (SOON)",
-    "page_menu_calibration.button": "Calibration (SOON)",
-
+    "page_menu_search.bar": "Rechercher un EAN, MPN ou nom d'article...",
+    "page_menu_tax_toggle_off.label": "HTVA",
+    "page_menu_tax_toggle_on.label": "TTC",
+    
     "page_search_input.placeholder": "Entrez le nom de l'outil à rechercher...",
     "page_search_add.button": "Ajouter",
     "page_search_remove.button": "Supprimer",

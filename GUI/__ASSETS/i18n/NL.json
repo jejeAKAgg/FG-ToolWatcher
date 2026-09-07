@@ -16,11 +16,9 @@
     "page_profile_lastname.subtitle": "Naam",
     "page_profile_mail.subtitle": "E-mail",
 
-    "page_menu_start.button": "Starten",
-    "page_menu_stop.button": "Stoppen",
-    "page_menu_catalog.button": "Mijn Catalogus",
-    "page_menu_FGI.button": "FGI (SOON)",
-    "page_menu_calibration.button": "Kalibratie (SOON)",
+    "page_menu_search.bar": "Zoek een EAN, MPN of artikelnaam...",
+    "page_menu_tax_toggle_off.label": "Excl. BTW",
+    "page_menu_tax_toggle_on.label": "Incl. BTW",
 
     "page_search_input.placeholder": "Voer de naam van het gereedschap in...",
     "page_search_add.button": "Toevoegen",

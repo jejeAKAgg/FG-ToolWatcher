@@ -16,11 +16,9 @@
     "page_profile_lastname.subtitle": "Name",
     "page_profile_mail.subtitle": "E-mail",
 
-    "page_menu_start.button": "Start",
-    "page_menu_stop.button": "Stop",
-    "page_menu_catalog.button": "My Catalog",
-    "page_menu_FGI.button": "FGI (SOON)",
-    "page_menu_calibration.button": "Calibration (SOON)",
+    "page_menu_search.bar": "Search for an EAN, MPN or item name...",
+    "page_menu_tax_toggle_off.label": "Excl. VAT",
+    "page_menu_tax_toggle_on.label": "Incl. VAT",
 
     "page_search_input.placeholder": "Enter the name of the tool to search...",
     "page_search_add.button": "Add",
